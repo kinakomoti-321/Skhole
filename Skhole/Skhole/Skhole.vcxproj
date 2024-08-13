@@ -152,7 +152,6 @@
     <ClInclude Include="include\common\timer.h" />
     <ClInclude Include="include\include.h" />
     <ClInclude Include="include\renderer\renderer.h" />
-    <ClInclude Include="include\renderer\sample_renderer.h" />
     <ClInclude Include="include\renderer\simple_raytracer.h" />
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp" />
   </ItemGroup>

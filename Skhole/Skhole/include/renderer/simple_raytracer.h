@@ -151,7 +151,6 @@ namespace Skhole
 
 		RendererDesc m_desc;
 		void InitVulkan();
-		void CreateSwapChainImageViews();
 
 		void PrepareShader();
 		void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);

@@ -1,9 +1,17 @@
 #version 460
 #extension GL_EXT_ray_tracing : enable
 
-layout(location = 0) rayPayloadInEXT vec3 payLoad;
+struct PayLoadStruct{
+    vec3 basecolor;
+    vec3 normal;
+    bool isMiss;
+};
+
+layout(location = 0) rayPayloadInEXT PayLoadStruct payLoad;
 
 void main()
 {
-    payLoad = vec3(0.0, 0.5, 0.2);
+    payLoad.basecolor = vec3(1.0);
+    payLoad.normal = vec3(0.0,1.0,0.0);
+    payLoad.isMiss = true;
 }

@@ -463,7 +463,7 @@ namespace Skhole {
 			missRegion,
 			hitRegion,
 			{},
-			1, 1, 1
+			m_desc.Width,m_desc.Height, 1
 		);
 
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);

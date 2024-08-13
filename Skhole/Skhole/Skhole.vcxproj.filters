@@ -50,9 +50,6 @@
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\renderer\sample_renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />
