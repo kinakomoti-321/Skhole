@@ -33,12 +33,23 @@ namespace Skhole
 		else {
 			SKHOLE_UNIMPL("Offscreen rendering");
 		}
+
+		RendererDesc rendererDesc;
+		rendererDesc.Name = "Skhole";
+		rendererDesc.Width = m_desc.Width;
+		rendererDesc.Height = m_desc.Height;
+		rendererDesc.useWindow = m_desc.useWindow;
+		rendererDesc.window = m_window;
+
+		m_renderer = std::make_shared<SimpleRaytracer>();
+		m_renderer->Init(rendererDesc);
 	}
 
 	void Application::Run()
 	{
 		while (!glfwWindowShouldClose(m_window)) {
 			glfwPollEvents();	
+			m_renderer->Render();
 		}
 	}
 

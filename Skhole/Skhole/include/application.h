@@ -1,5 +1,7 @@
 #pragma once
 #include <include.h>
+#include <renderer/renderer.h>
+#include <renderer/simple_raytracer.h>
 
 namespace Skhole
 {
@@ -27,7 +29,7 @@ namespace Skhole
 	private:
 		GLFWwindow* m_window;
 		ApplicationDesc m_desc;
-
+		std::shared_ptr<Renderer> m_renderer;
 	};
 
 

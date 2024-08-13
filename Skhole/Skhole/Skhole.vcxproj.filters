@@ -24,6 +24,9 @@
     <ClCompile Include="src\renderer\simple_raytracer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\vulkan_helpler\vkhelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\include.h">
@@ -41,5 +44,16 @@
     <ClInclude Include="include\renderer\simple_raytracer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vulkan_helpler\vkhelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\simple_raytracer\closesthit.glsl" />
+    <None Include="shader\simple_raytracer\miss.glsl" />
+    <None Include="shader\simple_raytracer\raygen.glsl" />
   </ItemGroup>
 </Project>
