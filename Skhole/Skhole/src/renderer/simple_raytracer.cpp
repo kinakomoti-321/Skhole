@@ -38,6 +38,7 @@ namespace Skhole {
 
 		m_swapchainImages = m_device->getSwapchainImagesKHR(*m_swapchain);
 
+		SKHOLE_LOG("Create Swapchain Image View");
 		for (auto& image : m_swapchainImages) {
 			vk::ImageViewCreateInfo imageViewCreateInfo;
 			imageViewCreateInfo.setImage(image);
@@ -60,6 +61,7 @@ namespace Skhole {
 		);
 
 
+		SKHOLE_LOG("Buttom AS Swapchain Image View");
 		std::vector<Vertex> vertices = {
 			{{1.0f, 1.0f, 0.0f}},
 			{{-1.0f, 1.0f, 0.0f}},

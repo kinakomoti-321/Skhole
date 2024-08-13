@@ -7,16 +7,26 @@ namespace VKHelper {
 	//--------------------------
 	//  Instance & Debugger
 	//--------------------------
-	inline static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
+
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageTypes,
 		VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
 		void* pUserData) {
-
-		std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
-
+		std::cerr << pCallbackData->pMessage << "\n\n";
 		return VK_FALSE;
 	}
+
+	//inline static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
+	//	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	//	VkDebugUtilsMessageTypeFlagsEXT messageTypes,
+	//	VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
+	//	void* pUserData) {
+
+	//	std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
+
+	//	return VK_FALSE;
+	//}
 
 	inline bool CheckLayerSupport(const std::vector<const char*>& layer) {
 		std::vector<vk::LayerProperties> availableLayers =
@@ -50,60 +60,114 @@ namespace VKHelper {
 		return extensions;
 	}
 
-	inline vk::DebugUtilsMessengerCreateInfoEXT CreateDebugMessengerCreateInfo() {
-		vk::DebugUtilsMessengerCreateInfoEXT createInfo;
+	inline vk::DebugUtilsMessengerCreateInfoEXT CreateDebugCreateInfo() {
+		vk::DebugUtilsMessengerCreateInfoEXT createInfo{};
 		createInfo.setMessageSeverity(
 			vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-			vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
-		);
+			vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
 		createInfo.setMessageType(
 			vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-			vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-			vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance
-		);
-		createInfo.setPfnUserCallback(debugMessengerCallback);
+			vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+			vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
+		createInfo.setPfnUserCallback(&debugUtilsMessengerCallback);
 		return createInfo;
 	}
 
-	inline vk::UniqueInstance CreateInstance(uint32_t vkVersion, const std::vector<const char*>& layer) {
-		SKHOLE_LOG("Create VK Instance");
+	inline vk::UniqueInstance CreateInstance(
+		uint32_t apiVersion,
+		const std::vector<const char*>& layers) {
+		std::cout << "Create instance\n";
 
+		// Setup dynamic loader
 		static vk::DynamicLoader dl;
 		auto vkGetInstanceProcAddr =
 			dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
-		if (!CheckLayerSupport(layer)) {
-			SKHOLE_ABORT("Layer not supported");
+		// Check layer support
+		if (!CheckLayerSupport(layers)) {
+			std::cerr << "Requested layers not available.\n";
+			std::abort();
 		}
 
-		vk::ApplicationInfo appInfo;
-		appInfo.setApiVersion(vkVersion);
+		// Create instance
+		vk::ApplicationInfo appInfo{};
+		appInfo.setApiVersion(apiVersion);
 
-		vk::InstanceCreateInfo createInfo;
-		createInfo.pApplicationInfo = &appInfo;
+		std::vector<const char*> extensions = GetRequiredExtensions();
 
-		auto extensions = GetRequiredExtensions();
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-		createInfo.ppEnabledExtensionNames = extensions.data();
+		vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo =
+			CreateDebugCreateInfo();
 
-		vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = CreateDebugMessengerCreateInfo();
-		createInfo.pNext = &debugCreateInfo;
-
-		vk::UniqueInstance instance = vk::createInstanceUnique(createInfo);
-
-		if (!(instance)) {
-			SKHOLE_ABORT("Failed to create instance");
-		}
-
+		vk::InstanceCreateInfo instanceCreateInfo{};
+		instanceCreateInfo.setPApplicationInfo(&appInfo);
+		instanceCreateInfo.setPEnabledLayerNames(layers);
+		instanceCreateInfo.setPEnabledExtensionNames(extensions);
+		instanceCreateInfo.setPNext(&debugCreateInfo);
+		vk::UniqueInstance instance = vk::createInstanceUnique(instanceCreateInfo);
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
-
 		return instance;
 	}
+	//inline vk::DebugUtilsMessengerCreateInfoEXT CreateDebugMessengerCreateInfo() {
+	//	vk::DebugUtilsMessengerCreateInfoEXT createInfo;
+	//	createInfo.setMessageSeverity(
+	//		vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+	//		vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
+	//	);
+	//	createInfo.setMessageType(
+	//		vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+	//		vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+	//		vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance
+	//	);
+	//	createInfo.setPfnUserCallback(debugMessengerCallback);
+	//	return createInfo;
+	//}
 
-	inline vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
-		SKHOLE_LOG("Create VK Debug Messanger");
-		return instance.createDebugUtilsMessengerEXTUnique(CreateDebugMessengerCreateInfo());
+	//inline vk::UniqueInstance CreateInstance(uint32_t vkVersion, const std::vector<const char*>& layer) {
+	//	SKHOLE_LOG("Create VK Instance");
+
+	//	static vk::DynamicLoader dl;
+	//	auto vkGetInstanceProcAddr =
+	//		dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+	//	VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
+
+	//	if (!CheckLayerSupport(layer)) {
+	//		SKHOLE_ABORT("Layer not supported");
+	//	}
+
+	//	vk::ApplicationInfo appInfo;
+	//	appInfo.setApiVersion(vkVersion);
+
+	//	vk::InstanceCreateInfo createInfo;
+	//	createInfo.pApplicationInfo = &appInfo;
+
+	//	auto extensions = GetRequiredExtensions();
+	//	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+	//	createInfo.ppEnabledExtensionNames = extensions.data();
+
+	//	vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = CreateDebugMessengerCreateInfo();
+	//	createInfo.pNext = &debugCreateInfo;
+
+	//	vk::UniqueInstance instance = vk::createInstanceUnique(createInfo);
+
+	//	if (!(instance)) {
+	//		SKHOLE_ABORT("Failed to create instance");
+	//	}
+
+	//	VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
+
+	//	return instance;
+	//}
+
+	//inline vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
+	//	SKHOLE_LOG("Create VK Debug Messanger");
+	//	return instance.createDebugUtilsMessengerEXTUnique(CreateDebugMessengerCreateInfo());
+	//}
+
+	inline vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(
+		vk::Instance instance) {
+		std::cout << "Create debug messenger\n";
+		return instance.createDebugUtilsMessengerEXTUnique(CreateDebugCreateInfo());
 	}
 
 	//--------------------------
