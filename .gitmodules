@@ -1,0 +1,3 @@
+[submodule "Skhole/Skhole/extern/VectorLikeGLSL"]
+	path = Skhole/Skhole/extern/VectorLikeGLSL
+	url = git@github.com:kinakomoti-321/VectorLikeGLSL.git
