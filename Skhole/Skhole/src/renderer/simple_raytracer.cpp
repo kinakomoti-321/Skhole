@@ -16,6 +16,8 @@ namespace Skhole {
 	void SimpleRaytracer::Init(RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
+		m_desc = desc;
+
 		m_instance = VKHelper::CreateInstance(VK_API_VERSION_1_2, m_layer);
 		m_debugMessenger = VKHelper::CreateDebugMessenger(*m_instance);
 
@@ -33,7 +35,7 @@ namespace Skhole {
 		m_surfaceFormat = VKHelper::ChooseSurfaceFormat(m_physicalDevice, *m_surface, vk::Format::eR8G8B8A8Unorm);
 		m_swapchain = VKHelper::CreateSwapchain(
 			m_physicalDevice, *m_device, *m_surface,
-			vk::ImageUsageFlagBits::eColorAttachment,
+			vk::ImageUsageFlagBits::eStorage,
 			m_surfaceFormat, desc.Width, desc.Height, m_graphicsQueueIndex);
 
 		m_swapchainImages = m_device->getSwapchainImagesKHR(*m_swapchain);
@@ -244,18 +246,21 @@ namespace Skhole {
 	}
 
 	void SimpleRaytracer::CreateShaderBindingTable() {
-		vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties = VKHelper::GetRayTracingProp(m_physicalDevice);
-
+		vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties =
+			VKHelper::GetRayTracingProp(m_physicalDevice);
 		uint32_t handleSize = rtProperties.shaderGroupHandleSize;
 		uint32_t handleAlignment = rtProperties.shaderGroupHandleAlignment;
 		uint32_t baseAlignment = rtProperties.shaderGroupBaseAlignment;
-		uint32_t handleSizeAligned = VKHelper::AlignUp(handleSize, handleAlignment);
+		uint32_t handleSizeAligned =
+			VKHelper::AlignUp(handleSize, handleAlignment);
 
-		uint32_t raygenShaderCount = 1;
+		// Set strides and sizes
+		uint32_t raygenShaderCount = 1;  // raygen count must be 1
 		uint32_t missShaderCount = 1;
 		uint32_t hitShaderCount = 1;
 
-		raygenRegion.setStride(VKHelper::AlignUp(handleSizeAligned, baseAlignment));
+		raygenRegion.setStride(
+			VKHelper::AlignUp(handleSizeAligned, baseAlignment));
 		raygenRegion.setSize(raygenRegion.stride);
 
 		missRegion.setStride(handleSizeAligned);
@@ -266,44 +271,50 @@ namespace Skhole {
 		hitRegion.setSize(VKHelper::AlignUp(hitShaderCount * handleSizeAligned,
 			baseAlignment));
 
-		vk::DeviceSize stbSize = raygenRegion.size + missRegion.size + hitRegion.size;
-		sbt.init(m_physicalDevice, *m_device, stbSize,
+		// Create SBT
+		vk::DeviceSize sbtSize =
+			raygenRegion.size + missRegion.size + hitRegion.size;
+		sbt.init(m_physicalDevice, *m_device, sbtSize,
 			vk::BufferUsageFlagBits::eShaderBindingTableKHR |
 			vk::BufferUsageFlagBits::eTransferSrc |
 			vk::BufferUsageFlagBits::eShaderDeviceAddress,
 			vk::MemoryPropertyFlagBits::eHostVisible |
-			vk::MemoryPropertyFlagBits::eHostCoherent
-		);
+			vk::MemoryPropertyFlagBits::eHostCoherent);
 
-		uint32_t handleCount = raygenShaderCount + missShaderCount + hitShaderCount;
+		// Get shader group handles
+		uint32_t handleCount =
+			raygenShaderCount + missShaderCount + hitShaderCount;
 		uint32_t handleStorageSize = handleCount * handleSize;
-
 		std::vector<uint8_t> handleStorage(handleStorageSize);
-
 		auto result = m_device->getRayTracingShaderGroupHandlesKHR(
-			*m_pipeline, 0, handleCount, handleStorageSize, handleStorage.data()
-		);
-
+			*m_pipeline, 0, handleCount, handleStorageSize, handleStorage.data());
 		if (result != vk::Result::eSuccess) {
-			SKHOLE_ABORT("Failed to get shader group handles");
+			std::cerr << "Failed to get ray tracing shader group handles.\n";
+			std::abort();
 		}
 
-		uint8_t* sbtHead = static_cast<uint8_t*>(m_device->mapMemory(*sbt.memory, 0, stbSize));
-		uint8_t* dstPtr = sbtHead;
+		// Copy handles
+		uint32_t handleIndex = 0;
+		uint8_t* sbtHead =
+			static_cast<uint8_t*>(m_device->mapMemory(*sbt.memory, 0, sbtSize));
 
+		uint8_t* dstPtr = sbtHead;
 		auto copyHandle = [&](uint32_t index) {
-			std::memcpy(dstPtr, handleStorage.data() + handleSize * index, handleSize);
+			std::memcpy(dstPtr, handleStorage.data() + handleSize * index,
+				handleSize);
 			};
 
-		uint32_t handleIndex = 0;
+		// Raygen
 		copyHandle(handleIndex++);
 
+		// Miss
 		dstPtr = sbtHead + raygenRegion.size;
 		for (uint32_t c = 0; c < missShaderCount; c++) {
 			copyHandle(handleIndex++);
 			dstPtr += missRegion.stride;
 		}
 
+		// Hit
 		dstPtr = sbtHead + raygenRegion.size + missRegion.size;
 		for (uint32_t c = 0; c < hitShaderCount; c++) {
 			copyHandle(handleIndex++);
@@ -312,7 +323,8 @@ namespace Skhole {
 
 		raygenRegion.setDeviceAddress(sbt.address);
 		missRegion.setDeviceAddress(sbt.address + raygenRegion.size);
-		hitRegion.setDeviceAddress(sbt.address + raygenRegion.size + missRegion.size);
+		hitRegion.setDeviceAddress(sbt.address + raygenRegion.size +
+			missRegion.size);
 	}
 
 	void SimpleRaytracer::Destroy()
@@ -338,39 +350,49 @@ namespace Skhole {
 	void SimpleRaytracer::Render()
 	{
 		static int frame = 0;
-		frame++;
+		std::cout << frame << '\n';
 
-		vk::UniqueSemaphore imageAvailableSemaphre = m_device->createSemaphoreUnique({});
+		// Create semaphore
+		vk::UniqueSemaphore imageAvailableSemaphore =
+			m_device->createSemaphoreUnique({});
 
+		// Acquire next image
 		auto result = m_device->acquireNextImageKHR(
-			*m_swapchain, std::numeric_limits<uint64_t>::max(), *imageAvailableSemaphre
-		);
+			*m_swapchain, std::numeric_limits<uint64_t>::max(),
+			*imageAvailableSemaphore);
 		if (result.result != vk::Result::eSuccess) {
-			SKHOLE_ABORT("Failed to acquire next image");
+			std::cerr << "Failed to acquire next image.\n";
+			std::abort();
 		}
 
+		// Update descriptor sets using current image
 		uint32_t imageIndex = result.value;
-
 		UpdateDescriptorSet(*m_swapchainImageViews[imageIndex]);
 
+		// Record command buffer
 		RecordCommandBuffer(m_swapchainImages[imageIndex]);
 
-		vk::PipelineStageFlags waitStage{vk::PipelineStageFlagBits::eTopOfPipe};
-		vk::SubmitInfo submitInfo;
+		// Submit command buffer
+		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
+		vk::SubmitInfo submitInfo{};
 		submitInfo.setWaitDstStageMask(waitStage);
 		submitInfo.setCommandBuffers(*m_commandBuffer);
-		submitInfo.setWaitSemaphores(*imageAvailableSemaphre);
-		m_graphicsQueue.submit(submitInfo, nullptr);
+		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
+		m_graphicsQueue.submit(submitInfo);
 
+		// Wait
 		m_graphicsQueue.waitIdle();
 
+		// Present
 		vk::PresentInfoKHR presentInfo{};
 		presentInfo.setSwapchains(*m_swapchain);
 		presentInfo.setImageIndices(imageIndex);
-
 		if (m_graphicsQueue.presentKHR(presentInfo) != vk::Result::eSuccess) {
-			SKHOLE_ABORT("Failed to present image");
+			std::cerr << "Failed to present.\n";
+			std::abort();
 		}
+
+		frame++;
 	}
 
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image) {
@@ -392,7 +414,7 @@ namespace Skhole {
 			missRegion,
 			hitRegion,
 			{},
-			m_desc.Width, m_desc.Height, 1
+			1, 1, 1
 		);
 
 		VKHelper::SetImageLayout(*m_commandBuffer, image, vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);

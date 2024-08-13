@@ -19,13 +19,18 @@ namespace Skhole
 			createInfo.setUsage(usage);
 			buffer = device.createBufferUnique(createInfo);
 
+			vk::MemoryAllocateFlagsInfo allocateFlags{};
+			if (usage & vk::BufferUsageFlagBits::eShaderDeviceAddress) {
+				allocateFlags.flags = vk::MemoryAllocateFlagBits::eDeviceAddress;
+			}
+
 			vk::MemoryRequirements memoryRequirements = device.getBufferMemoryRequirements(buffer.get());
 			uint32_t memoryType = VKHelper::GetMemoryType(physicalDevice, memoryRequirements, memoryProperty);
 
 			vk::MemoryAllocateInfo allocateInfo{};
 			allocateInfo.setAllocationSize(memoryRequirements.size);
 			allocateInfo.setMemoryTypeIndex(memoryType);
-			allocateInfo.setPNext(nullptr);
+			allocateInfo.setPNext(&allocateFlags);
 
 			memory = device.allocateMemoryUnique(allocateInfo);
 
@@ -175,10 +180,9 @@ namespace Skhole
 		};
 
 		std::vector<const char* > m_extension = {
-			//SwapChain
+			// For swapchain
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-
-			//Raytracing
+			// For ray tracing
 			VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
 			VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
 			VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
@@ -199,7 +203,7 @@ namespace Skhole
 
 		vk::UniquePipeline m_pipeline;
 		vk::UniquePipelineLayout m_pipelineLayout;
-		
+
 		Buffer sbt{};
 		vk::StridedDeviceAddressRegionKHR raygenRegion{};
 		vk::StridedDeviceAddressRegionKHR missRegion{};

@@ -8,24 +8,24 @@ layout(binding = 1, rgba8) uniform image2D image;
 
 void main()
 {
-    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + vec2(0.5)) / vec2(gl_LaunchSizeEXT.xy);
-    vec3 origin = vec3(0, 0, 5);
-    vec3 target = vec3(uv * 2.0 - 1.0, 2);
-    vec3 direction = normalize(target - origin);
+//    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + vec2(0.5)) / vec2(gl_LaunchSizeEXT.xy);
+//    vec3 origin = vec3(0, 0, 5);
+//    vec3 target = vec3(uv * 2.0 - 1.0, 2);
+//    vec3 direction = normalize(target - origin);
+//
+//    payload = vec3(0.0);
 
-    payload = vec3(0.0);
+//    traceRayEXT(
+//        topLevelAS,
+//        gl_RayFlagsOpaqueEXT,
+//        0xff,       // cullMask
+//        0, 0, 0,    // sbtRecordOffset, sbtRecordStride, missIndex
+//        origin,
+//        0.001,      // tMin
+//        direction,
+//        10000.0,    // tMax
+//        0           // payloadLocation
+//    );
 
-    traceRayEXT(
-        topLevelAS,
-        gl_RayFlagsOpaqueEXT,
-        0xff,       // cullMask
-        0, 0, 0,    // sbtRecordOffset, sbtRecordStride, missIndex
-        origin,
-        0.001,      // tMin
-        direction,
-        10000.0,    // tMax
-        0           // payloadLocation
-    );
-
-    imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(payload, 0.0));
+    imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(1.0));
 }

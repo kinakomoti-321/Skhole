@@ -7,7 +7,6 @@ namespace VKHelper {
 	//--------------------------
 	//  Instance & Debugger
 	//--------------------------
-
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageTypes,
@@ -16,17 +15,6 @@ namespace VKHelper {
 		std::cerr << pCallbackData->pMessage << "\n\n";
 		return VK_FALSE;
 	}
-
-	//inline static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback(
-	//	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	//	VkDebugUtilsMessageTypeFlagsEXT messageTypes,
-	//	VkDebugUtilsMessengerCallbackDataEXT const* pCallbackData,
-	//	void* pUserData) {
-
-	//	std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
-
-	//	return VK_FALSE;
-	//}
 
 	inline bool CheckLayerSupport(const std::vector<const char*>& layer) {
 		std::vector<vk::LayerProperties> availableLayers =
@@ -108,61 +96,6 @@ namespace VKHelper {
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
 		return instance;
 	}
-	//inline vk::DebugUtilsMessengerCreateInfoEXT CreateDebugMessengerCreateInfo() {
-	//	vk::DebugUtilsMessengerCreateInfoEXT createInfo;
-	//	createInfo.setMessageSeverity(
-	//		vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-	//		vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
-	//	);
-	//	createInfo.setMessageType(
-	//		vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-	//		vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-	//		vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance
-	//	);
-	//	createInfo.setPfnUserCallback(debugMessengerCallback);
-	//	return createInfo;
-	//}
-
-	//inline vk::UniqueInstance CreateInstance(uint32_t vkVersion, const std::vector<const char*>& layer) {
-	//	SKHOLE_LOG("Create VK Instance");
-
-	//	static vk::DynamicLoader dl;
-	//	auto vkGetInstanceProcAddr =
-	//		dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
-	//	VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
-
-	//	if (!CheckLayerSupport(layer)) {
-	//		SKHOLE_ABORT("Layer not supported");
-	//	}
-
-	//	vk::ApplicationInfo appInfo;
-	//	appInfo.setApiVersion(vkVersion);
-
-	//	vk::InstanceCreateInfo createInfo;
-	//	createInfo.pApplicationInfo = &appInfo;
-
-	//	auto extensions = GetRequiredExtensions();
-	//	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-	//	createInfo.ppEnabledExtensionNames = extensions.data();
-
-	//	vk::DebugUtilsMessengerCreateInfoEXT debugCreateInfo = CreateDebugMessengerCreateInfo();
-	//	createInfo.pNext = &debugCreateInfo;
-
-	//	vk::UniqueInstance instance = vk::createInstanceUnique(createInfo);
-
-	//	if (!(instance)) {
-	//		SKHOLE_ABORT("Failed to create instance");
-	//	}
-
-	//	VULKAN_HPP_DEFAULT_DISPATCHER.init(*instance);
-
-	//	return instance;
-	//}
-
-	//inline vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(vk::Instance instance) {
-	//	SKHOLE_LOG("Create VK Debug Messanger");
-	//	return instance.createDebugUtilsMessengerEXTUnique(CreateDebugMessengerCreateInfo());
-	//}
 
 	inline vk::UniqueDebugUtilsMessengerEXT CreateDebugMessenger(
 		vk::Instance instance) {
@@ -214,7 +147,7 @@ namespace VKHelper {
 		return true;
 	}
 
-	inline vk::PhysicalDevice PickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface, std::vector<const char*> extensions) {
+	inline vk::PhysicalDevice PickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR surface, const std::vector<const char*>& extensions) {
 		SKHOLE_LOG("Create VK Physical Device");
 
 		auto physicalDevices = instance.enumeratePhysicalDevices();
@@ -265,9 +198,9 @@ namespace VKHelper {
 
 		vk::StructureChain createInfoChain{
 			deviceCreateInfo,
-			vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{},
-			vk::PhysicalDeviceAccelerationStructureFeaturesKHR{},
-			vk::PhysicalDeviceBufferDeviceAddressFeaturesKHR{},
+			vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{VK_TRUE},
+			vk::PhysicalDeviceAccelerationStructureFeaturesKHR{VK_TRUE},
+			vk::PhysicalDeviceBufferDeviceAddressFeatures{VK_TRUE},
 		};
 
 		vk::UniqueDevice device = physicalDevice.createDeviceUnique(
@@ -285,7 +218,7 @@ namespace VKHelper {
 		uint32_t queueFamilyIndex
 	) {
 		SKHOLE_LOG("Create Command Pool");
-		vk::CommandPoolCreateInfo createInfo; 
+		vk::CommandPoolCreateInfo createInfo;
 		createInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
 		createInfo.setQueueFamilyIndex(queueFamilyIndex);
 		return device.createCommandPoolUnique(createInfo);
@@ -371,8 +304,8 @@ namespace VKHelper {
 		SKHOLE_LOG("Create Swapchain");
 		vk::SurfaceCapabilitiesKHR capabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
 		vk::PresentModeKHR presentMode = ChoosePresentMode(physicalDevice, surface);
-		vk::Extent2D extent = ChooseExtent(capabilities,width,height);
-		
+		vk::Extent2D extent = ChooseExtent(capabilities, width, height);
+
 		uint32_t imageCount = capabilities.minImageCount + 1;
 		if (capabilities.maxImageCount > 0 && imageCount < capabilities.maxImageCount) {
 			imageCount < capabilities.maxImageCount;
@@ -394,13 +327,13 @@ namespace VKHelper {
 		return device.createSwapchainKHRUnique(createInfo);
 	}
 
-	inline void OneTimeSubmit(vk::Device device,vk::CommandPool commandPool,vk::Queue queue, const std::function<void(vk::CommandBuffer)>& func)
+	inline void OneTimeSubmit(vk::Device device, vk::CommandPool commandPool, vk::Queue queue, const std::function<void(vk::CommandBuffer)>& func)
 	{
 		vk::CommandBufferAllocateInfo allocateInfo;
 		allocateInfo.setCommandPool(commandPool);
 		allocateInfo.setLevel(vk::CommandBufferLevel::ePrimary);
 		allocateInfo.setCommandBufferCount(1);
-	
+
 		auto commandBuffer = device.allocateCommandBuffersUnique(allocateInfo);
 
 		commandBuffer[0]->begin(vk::CommandBufferBeginInfo{});
