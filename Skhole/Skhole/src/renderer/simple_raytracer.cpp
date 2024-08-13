@@ -1,6 +1,6 @@
 #include <renderer/simple_raytracer.h>
 #include <common/log.h>
-#include <vulkan_helpler/vkhelper.h>
+#include <vulkan_helpler/vkutils.hpp>
 
 namespace Skhole {
 
@@ -11,6 +11,11 @@ namespace Skhole {
 
 	SimpleRaytracer::~SimpleRaytracer()
 	{
+
+	}
+
+	void SimpleRaytracer::Wait() {
+		m_device->waitIdle();
 	}
 
 	void SimpleRaytracer::Init(RendererDesc& desc)
@@ -18,52 +23,72 @@ namespace Skhole {
 		SKHOLE_LOG_SECTION("Initialze Renderer");
 		m_desc = desc;
 
-		m_instance = VKHelper::CreateInstance(VK_API_VERSION_1_2, m_layer);
-		m_debugMessenger = VKHelper::CreateDebugMessenger(*m_instance);
+		m_instance = vkutils::createInstance(VK_API_VERSION_1_2, m_layer);
+		m_debugMessenger = vkutils::createDebugMessenger(*m_instance);
 
-		m_surface = VKHelper::CreateSurface(*m_instance, desc.window);
+		m_surface = vkutils::createSurface(*m_instance, desc.window);
 
-		m_physicalDevice = VKHelper::PickPhysicalDevice(*m_instance, *m_surface, m_extension);
+		m_physicalDevice = vkutils::pickPhysicalDevice(*m_instance, *m_surface, m_extension);
 
-		m_graphicsQueueIndex = VKHelper::FindGeneralQueueFamily(m_physicalDevice, *m_surface);
-		m_device = VKHelper::CreateLogicalDevice(m_physicalDevice, m_graphicsQueueIndex, m_extension);
-		m_graphicsQueue = m_device->getQueue(m_graphicsQueueIndex, 0);
+		m_graphicsQueueIndex = vkutils::findGeneralQueueFamily(m_physicalDevice, *m_surface);
+		m_device = vkutils::createLogicalDevice(m_physicalDevice, m_graphicsQueueIndex, m_extension);
+		m_queue = m_device->getQueue(m_graphicsQueueIndex, 0);
 
-		m_commandPool = VKHelper::CreateCommandPool(*m_device, m_graphicsQueueIndex);
-		m_commandBuffer = VKHelper::CreateCommandBuffer(*m_device, *m_commandPool);
+		m_commandPool = vkutils::createCommandPool(*m_device, m_graphicsQueueIndex);
+		m_commandBuffer = vkutils::createCommandBuffer(*m_device, *m_commandPool);
 
-		m_surfaceFormat = VKHelper::ChooseSurfaceFormat(m_physicalDevice, *m_surface, vk::Format::eR8G8B8A8Unorm);
-		m_swapchain = VKHelper::CreateSwapchain(
-			m_physicalDevice, *m_device, *m_surface,
-			vk::ImageUsageFlagBits::eStorage,
-			m_surfaceFormat, desc.Width, desc.Height, m_graphicsQueueIndex);
+		m_surfaceFormat = vkutils::chooseSurfaceFormat(m_physicalDevice, *m_surface);
+
+		m_swapchain = vkutils::createSwapchain(  //
+			m_physicalDevice, *m_device, *m_surface, m_graphicsQueueIndex,
+			vk::ImageUsageFlagBits::eStorage, m_surfaceFormat,  //
+			m_desc.Width, m_desc.Height);
 
 		m_swapchainImages = m_device->getSwapchainImagesKHR(*m_swapchain);
 
 		SKHOLE_LOG("Create Swapchain Image View");
 		for (auto& image : m_swapchainImages) {
-			vk::ImageViewCreateInfo imageViewCreateInfo;
-			imageViewCreateInfo.setImage(image);
-			imageViewCreateInfo.setViewType(vk::ImageViewType::e2D);
-			imageViewCreateInfo.setFormat(m_surfaceFormat.format);
-			imageViewCreateInfo.setComponents({ vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG, vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA });
-			imageViewCreateInfo.setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+
+			vk::ImageViewCreateInfo createInfo{};
+			createInfo.setImage(image);
+			createInfo.setViewType(vk::ImageViewType::e2D);
+			createInfo.setFormat(m_surfaceFormat.format);
+			createInfo.setComponents(
+				{ vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
+					vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA });
+			createInfo.setSubresourceRange(
+				{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
 
 			m_swapchainImageViews.push_back(
-				m_device->createImageViewUnique(imageViewCreateInfo)
-			);
+				m_device->createImageViewUnique(createInfo));
 		}
 
-		VKHelper::OneTimeSubmit(*m_device, *m_commandPool, m_graphicsQueue,
+		vkutils::oneTimeSubmit(*m_device, *m_commandPool, m_queue,
 			[&](vk::CommandBuffer commandBuffer) {
 				for (auto image : m_swapchainImages) {
-					VKHelper::SetImageLayout(commandBuffer, image, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
+					vkutils::setImageLayout(commandBuffer, image,
+						vk::ImageLayout::eUndefined,
+						vk::ImageLayout::ePresentSrcKHR);
 				}
-			}
-		);
+			});
 
+		CreateBottomLevelAS();
+		CreateTopLevelAS();
 
-		SKHOLE_LOG("Buttom AS Swapchain Image View");
+		PrepareShader();
+
+		CreateDescriptorPool();
+		CreateDescSetLayout();
+		CreateDescSet();
+
+		CreatePipeline();
+		CreateShaderBindingTable();
+
+		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
+	}
+
+	void SimpleRaytracer::CreateBottomLevelAS() {
+		SKHOLE_LOG("Create Buttom AS");
 		std::vector<Vertex> vertices = {
 			{{1.0f, 1.0f, 0.0f}},
 			{{-1.0f, 1.0f, 0.0f}},
@@ -100,11 +125,11 @@ namespace Skhole {
 		geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
 
 		uint32_t primitiveCount = static_cast<uint32_t>(indices.size() / 3);
-		m_bottomAccel.init(m_physicalDevice, *m_device, *m_commandPool, m_graphicsQueue, vk::AccelerationStructureTypeKHR::eBottomLevel, geometry, primitiveCount);
+		m_bottomAccel.init(m_physicalDevice, *m_device, *m_commandPool, m_queue, vk::AccelerationStructureTypeKHR::eBottomLevel, geometry, primitiveCount);
+	}
 
+	void SimpleRaytracer::CreateTopLevelAS() {
 		SKHOLE_LOG("Bottom AS was Created");
-
-
 		vk::TransformMatrixKHR transform = std::array{
 			std::array{1.0f, 0.0f, 0.0f, 0.0f},
 			std::array{0.0f, 1.0f, 0.0f, 0.0f},
@@ -138,19 +163,10 @@ namespace Skhole {
 
 		constexpr uint32_t gasCount = 1;
 		m_topAccel.init(
-			m_physicalDevice, *m_device, *m_commandPool, m_graphicsQueue,
+			m_physicalDevice, *m_device, *m_commandPool, m_queue,
 			vk::AccelerationStructureTypeKHR::eTopLevel,
 			ias, gasCount);
 		SKHOLE_LOG("Instance AS was Created");
-
-		PrepareShader();
-		CreateDescriptorPool();
-		CreateDescSetLayout();
-		CreateDescSet();
-
-		CreatePipeline();
-
-		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
 #define SHADER_FILE_PATH "shader/"
@@ -160,7 +176,7 @@ namespace Skhole {
 		vk::ShaderStageFlagBits stage
 	)
 	{
-		shaderModules[shaderIndex] = VKHelper::CreateShaderModule(*m_device, SHADER_FILE_PATH + shaderName);
+		shaderModules[shaderIndex] = vkutils::createShaderModule(*m_device, SHADER_FILE_PATH + shaderName);
 		shaderStages[shaderIndex].setStage(stage);
 		shaderStages[shaderIndex].setModule(*shaderModules[shaderIndex]);
 		shaderStages[shaderIndex].setPName("main");
@@ -176,13 +192,39 @@ namespace Skhole {
 		shaderModules.resize(3);
 		shaderStages.resize(3);
 
-		//std::filesystem::path relativePath("shader/simple_raytracer/raygen.rgen.spv");
-		//std::filesystem::path absolutePath = std::filesystem::absolute(relativePath);
-		//std::cout << "Absolute path: " << absolutePath << std::endl;
-
 		AddShader(raygenShader, "simple_raytracer/raygen.rgen.spv", vk::ShaderStageFlagBits::eRaygenKHR);
 		AddShader(missShader, "simple_raytracer/miss.rmiss.spv", vk::ShaderStageFlagBits::eMissKHR);
 		AddShader(closestHitShader, "simple_raytracer/closesthit.rchit.spv", vk::ShaderStageFlagBits::eClosestHitKHR);
+
+		uint32_t raygenGroup = 0;
+		uint32_t missGroup = 1;
+		uint32_t hitGroup = 2;
+
+		shaderGroups.resize(3);
+
+		// Raygen group
+		shaderGroups[raygenGroup].setType(
+			vk::RayTracingShaderGroupTypeKHR::eGeneral);
+		shaderGroups[raygenGroup].setGeneralShader(raygenShader);
+		shaderGroups[raygenGroup].setClosestHitShader(VK_SHADER_UNUSED_KHR);
+		shaderGroups[raygenGroup].setAnyHitShader(VK_SHADER_UNUSED_KHR);
+		shaderGroups[raygenGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
+
+		// Miss group
+		shaderGroups[missGroup].setType(
+			vk::RayTracingShaderGroupTypeKHR::eGeneral);
+		shaderGroups[missGroup].setGeneralShader(missShader);
+		shaderGroups[missGroup].setClosestHitShader(VK_SHADER_UNUSED_KHR);
+		shaderGroups[missGroup].setAnyHitShader(VK_SHADER_UNUSED_KHR);
+		shaderGroups[missGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
+
+		// Hit group
+		shaderGroups[hitGroup].setType(
+			vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup);
+		shaderGroups[hitGroup].setGeneralShader(VK_SHADER_UNUSED_KHR);
+		shaderGroups[hitGroup].setClosestHitShader(closestHitShader);
+		shaderGroups[hitGroup].setAnyHitShader(VK_SHADER_UNUSED_KHR);
+		shaderGroups[hitGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
 	}
 
 	void SimpleRaytracer::CreateDescriptorPool()
@@ -201,8 +243,10 @@ namespace Skhole {
 
 	void SimpleRaytracer::CreateDescSetLayout() {
 		std::vector<vk::DescriptorSetLayoutBinding> bindings(2);
+
 		bindings[0].setBinding(0);
-		bindings[0].setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR);
+		bindings[0].setDescriptorType(
+			vk::DescriptorType::eAccelerationStructureKHR);
 		bindings[0].setDescriptorCount(1);
 		bindings[0].setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
 
@@ -211,48 +255,52 @@ namespace Skhole {
 		bindings[1].setDescriptorCount(1);
 		bindings[1].setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
 
-		vk::DescriptorSetLayoutCreateInfo layoutCreateInfo;
-		layoutCreateInfo.setBindings(bindings);
-		descSetLayout = m_device->createDescriptorSetLayoutUnique(layoutCreateInfo);
+		vk::DescriptorSetLayoutCreateInfo createInfo{};
+		createInfo.setBindings(bindings);
+		descSetLayout = m_device->createDescriptorSetLayoutUnique(createInfo);
 	}
 
 	void SimpleRaytracer::CreateDescSet() {
-		vk::DescriptorSetAllocateInfo allocateInfo;
+		std::cout << "Create desc set\n";
+
+		vk::DescriptorSetAllocateInfo allocateInfo{};
 		allocateInfo.setDescriptorPool(*descPool);
 		allocateInfo.setSetLayouts(*descSetLayout);
-		descSet = std::move(m_device->allocateDescriptorSetsUnique(allocateInfo).front());
+		descSet = std::move(
+			m_device->allocateDescriptorSetsUnique(allocateInfo).front());
 	}
 
-#define MAX_DEPTH 1
 	void SimpleRaytracer::CreatePipeline() {
+		std::cout << "Create pipeline\n";
 
+		// Create pipeline layout
 		vk::PipelineLayoutCreateInfo layoutCreateInfo{};
 		layoutCreateInfo.setSetLayouts(*descSetLayout);
 		m_pipelineLayout = m_device->createPipelineLayoutUnique(layoutCreateInfo);
 
-
+		// Create pipeline
 		vk::RayTracingPipelineCreateInfoKHR pipelineCreateInfo{};
 		pipelineCreateInfo.setLayout(*m_pipelineLayout);
 		pipelineCreateInfo.setStages(shaderStages);
 		pipelineCreateInfo.setGroups(shaderGroups);
-		pipelineCreateInfo.setMaxPipelineRayRecursionDepth(MAX_DEPTH);
-
-		auto result = m_device->createRayTracingPipelineKHRUnique(nullptr, nullptr, pipelineCreateInfo);
+		pipelineCreateInfo.setMaxPipelineRayRecursionDepth(1);
+		auto result = m_device->createRayTracingPipelineKHRUnique(
+			nullptr, nullptr, pipelineCreateInfo);
 		if (result.result != vk::Result::eSuccess) {
-			SKHOLE_ABORT("Failed to create raytracing pipeline");
+			std::cerr << "Failed to create ray tracing pipeline.\n";
+			std::abort();
 		}
-
 		m_pipeline = std::move(result.value);
 	}
 
 	void SimpleRaytracer::CreateShaderBindingTable() {
 		vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties =
-			VKHelper::GetRayTracingProp(m_physicalDevice);
+			vkutils::getRayTracingProps(m_physicalDevice);
 		uint32_t handleSize = rtProperties.shaderGroupHandleSize;
 		uint32_t handleAlignment = rtProperties.shaderGroupHandleAlignment;
 		uint32_t baseAlignment = rtProperties.shaderGroupBaseAlignment;
 		uint32_t handleSizeAligned =
-			VKHelper::AlignUp(handleSize, handleAlignment);
+			vkutils::alignUp(handleSize, handleAlignment);
 
 		// Set strides and sizes
 		uint32_t raygenShaderCount = 1;  // raygen count must be 1
@@ -260,15 +308,15 @@ namespace Skhole {
 		uint32_t hitShaderCount = 1;
 
 		raygenRegion.setStride(
-			VKHelper::AlignUp(handleSizeAligned, baseAlignment));
+			vkutils::alignUp(handleSizeAligned, baseAlignment));
 		raygenRegion.setSize(raygenRegion.stride);
 
 		missRegion.setStride(handleSizeAligned);
-		missRegion.setSize(VKHelper::AlignUp(missShaderCount * handleSizeAligned,
+		missRegion.setSize(vkutils::alignUp(missShaderCount * handleSizeAligned,
 			baseAlignment));
 
 		hitRegion.setStride(handleSizeAligned);
-		hitRegion.setSize(VKHelper::AlignUp(hitShaderCount * handleSizeAligned,
+		hitRegion.setSize(vkutils::alignUp(hitShaderCount * handleSizeAligned,
 			baseAlignment));
 
 		// Create SBT
@@ -286,6 +334,7 @@ namespace Skhole {
 			raygenShaderCount + missShaderCount + hitShaderCount;
 		uint32_t handleStorageSize = handleCount * handleSize;
 		std::vector<uint8_t> handleStorage(handleStorageSize);
+
 		auto result = m_device->getRayTracingShaderGroupHandlesKHR(
 			*m_pipeline, 0, handleCount, handleStorageSize, handleStorage.data());
 		if (result != vk::Result::eSuccess) {
@@ -378,16 +427,16 @@ namespace Skhole {
 		submitInfo.setWaitDstStageMask(waitStage);
 		submitInfo.setCommandBuffers(*m_commandBuffer);
 		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
-		m_graphicsQueue.submit(submitInfo);
+		m_queue.submit(submitInfo);
 
 		// Wait
-		m_graphicsQueue.waitIdle();
+		m_queue.waitIdle();
 
 		// Present
 		vk::PresentInfoKHR presentInfo{};
 		presentInfo.setSwapchains(*m_swapchain);
 		presentInfo.setImageIndices(imageIndex);
-		if (m_graphicsQueue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+		if (m_queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
 			std::cerr << "Failed to present.\n";
 			std::abort();
 		}
@@ -397,7 +446,7 @@ namespace Skhole {
 
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-		VKHelper::SetImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
+		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
 
 		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *m_pipeline);
 
@@ -417,7 +466,7 @@ namespace Skhole {
 			1, 1, 1
 		);
 
-		VKHelper::SetImageLayout(*m_commandBuffer, image, vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);
+		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);
 
 		m_commandBuffer->end();
 
@@ -426,23 +475,26 @@ namespace Skhole {
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
 		std::vector<vk::WriteDescriptorSet> writes(2);
 
+		// [0]: For AS
 		vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
 		accelInfo.setAccelerationStructures(*m_topAccel.accel);
 		writes[0].setDstSet(*descSet);
 		writes[0].setDstBinding(0);
 		writes[0].setDescriptorCount(1);
-		writes[0].setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR);
+		writes[0].setDescriptorType(
+			vk::DescriptorType::eAccelerationStructureKHR);
 		writes[0].setPNext(&accelInfo);
 
+		// [0]: For storage image
 		vk::DescriptorImageInfo imageInfo{};
 		imageInfo.setImageView(imageView);
 		imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
 		writes[1].setDstSet(*descSet);
 		writes[1].setDstBinding(1);
-		writes[1].setDescriptorCount(1);
 		writes[1].setDescriptorType(vk::DescriptorType::eStorageImage);
-		writes[1].setPImageInfo(&imageInfo);
+		writes[1].setImageInfo(imageInfo);
 
+		// Update
 		m_device->updateDescriptorSets(writes, nullptr);
 	}
 

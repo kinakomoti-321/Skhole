@@ -24,7 +24,7 @@
     <ClCompile Include="src\renderer\simple_raytracer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\vulkan_helpler\vkhelper.cpp">
+    <ClCompile Include="include\vulkan_helpler\vkutils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,10 +44,13 @@
     <ClInclude Include="include\renderer\simple_raytracer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vulkan_helpler\vkhelper.h">
+    <ClInclude Include="include\common\timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\common\timer.h">
+    <ClInclude Include="include\vulkan_helpler\vkutils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\renderer\sample_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

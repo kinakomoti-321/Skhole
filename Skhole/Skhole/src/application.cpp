@@ -10,7 +10,6 @@ namespace Skhole
 
 	Application::~Application()
 	{
-		Destroy();	
 	}
 
 	void Application::Init(ApplicationDesc& desc)
@@ -51,6 +50,9 @@ namespace Skhole
 			glfwPollEvents();	
 			m_renderer->Render();
 		}
+
+		
+		Destroy();
 	}
 
 	void Application::Destroy()

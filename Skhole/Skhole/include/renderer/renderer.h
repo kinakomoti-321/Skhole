@@ -17,7 +17,7 @@ namespace Skhole
 
 	struct RendererData 
 	{
-			
+				
 	};
 
 	class Renderer {
@@ -30,6 +30,8 @@ namespace Skhole
 
 		virtual void Resize(unsigned int width,unsigned int height) = 0;
 		virtual void Render() = 0;
+
+		virtual void Wait() = 0;
 
 		virtual void OffscreenRender() = 0;
 		virtual RendererData GetRendererData() = 0;

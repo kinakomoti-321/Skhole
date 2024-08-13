@@ -1,4 +1,5 @@
 #include <Application.h>
+//#include <renderer/sample_renderer.h>
 
 int main() {
 	Skhole::Application app;
@@ -19,5 +20,8 @@ int main() {
 		return -1;
 	}
 
+
+	//Application app;
+	//app.run();
 	return 0;
 }
