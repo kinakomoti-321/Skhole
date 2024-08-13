@@ -55,5 +55,6 @@
     <None Include="shader\simple_raytracer\closesthit.glsl" />
     <None Include="shader\simple_raytracer\miss.glsl" />
     <None Include="shader\simple_raytracer\raygen.glsl" />
+    <None Include="shader\simple_raytracer\payload.glsl" />
   </ItemGroup>
 </Project>

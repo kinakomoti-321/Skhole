@@ -158,6 +158,7 @@
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />
     <None Include="shader\simple_raytracer\miss.glsl" />
+    <None Include="shader\simple_raytracer\payload.glsl" />
     <None Include="shader\simple_raytracer\raygen.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

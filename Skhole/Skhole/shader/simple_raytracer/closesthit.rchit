@@ -2,11 +2,7 @@
 #extension GL_EXT_ray_tracing : enable
 #extension GL_ARB_shading_language_include : require
 
-struct PayLoadStruct{
-    vec3 basecolor;
-    vec3 normal;
-    bool isMiss;
-};
+#include "./payload.glsl"
 
 layout(location = 0) rayPayloadInEXT PayLoadStruct payload;
 hitAttributeEXT vec3 attribs;
