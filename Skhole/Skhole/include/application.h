@@ -1,17 +1,16 @@
 #pragma once
 #include <include.h>
-#include <renderer/renderer.h>
-#include <renderer/simple_raytracer.h>
+#include <editor/editor.h>
 
 namespace Skhole
 {
 	struct ApplicationDesc 
 	{
-		std::string Name;
-		int Width;
-		int Height;
-
-		bool useWindow;
+		std::string applicationName;
+		int initWidth;
+		int initHeight;
+		
+		bool useEditor;
 	};
 
 	class Application
@@ -24,12 +23,8 @@ namespace Skhole
 		void Run();
 
 	private:
-		void Destroy();
-
-	private:
-		GLFWwindow* m_window;
-		ApplicationDesc m_desc;
-		std::shared_ptr<Renderer> m_renderer;
+		std::shared_ptr<Editor> m_editor;
+		bool m_useEditor;
 	};
 
 

@@ -5,10 +5,10 @@ int main() {
 	Skhole::Application app;
 	
 	Skhole::ApplicationDesc desc;
-
-	desc.Name = "Skhole";
-	desc.Width = 1280;
-	desc.Height = 720;
+	desc.applicationName = "Skhole";
+	desc.initWidth = 1280;
+	desc.initHeight = 720;
+	desc.useEditor = true;
 
 	app.Init(desc);
 

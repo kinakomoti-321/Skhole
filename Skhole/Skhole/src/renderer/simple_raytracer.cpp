@@ -165,8 +165,6 @@ namespace Skhole {
 
 		CreatePipeline();
 		CreateShaderBindingTable();
-		
-		InitImGui();
 
 		m_frameBuffer.resize(m_swapchainImageViews.size());
 		for (int i = 0; i < m_swapchainImageViews.size(); i++) {

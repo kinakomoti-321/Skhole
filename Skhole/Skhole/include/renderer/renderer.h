@@ -27,6 +27,7 @@ namespace Skhole
 		~Renderer() {};
 
 		virtual void Init(RendererDesc& desc) = 0;
+
 		virtual void Destroy() = 0;
 
 		virtual void Resize(unsigned int width,unsigned int height) = 0;

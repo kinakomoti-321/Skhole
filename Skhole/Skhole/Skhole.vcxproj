@@ -150,6 +150,7 @@
     <ClCompile Include="extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="include\vulkan_helpler\vkutils.cpp" />
     <ClCompile Include="src\application.cpp" />
+    <ClCompile Include="src\editor\editor.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\simple_raytracer.cpp" />
   </ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="include\application.h" />
     <ClInclude Include="include\common\log.h" />
     <ClInclude Include="include\common\timer.h" />
+    <ClInclude Include="include\editor\editor.h" />
     <ClInclude Include="include\include.h" />
     <ClInclude Include="include\renderer\renderer.h" />
     <ClInclude Include="include\renderer\simple_raytracer.h" />
