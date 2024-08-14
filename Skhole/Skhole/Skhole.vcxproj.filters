@@ -71,6 +71,18 @@
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\scene\material\material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\scene\material\texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\scene\scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan_helpler\vk_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="extern\imgui\backends\imgui_impl_glfw.h">
       <Filter>Header Files</Filter>
     </ClInclude>

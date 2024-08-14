@@ -1,7 +1,7 @@
 #pragma once
 
 #include <include.h>
-
+#include <scene/scene.h>
 
 namespace Skhole
 {
@@ -17,7 +17,8 @@ namespace Skhole
 
 	struct RendererData 
 	{
-				
+		std::string rendererName;
+		std::vector<MaterialParameter> materialParameters;
 	};
 
 	class Renderer {

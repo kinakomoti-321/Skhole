@@ -168,7 +168,11 @@
     <ClInclude Include="include\include.h" />
     <ClInclude Include="include\renderer\renderer.h" />
     <ClInclude Include="include\renderer\simple_raytracer.h" />
+    <ClInclude Include="include\scene\material\material.h" />
+    <ClInclude Include="include\scene\material\texture.h" />
+    <ClInclude Include="include\scene\scene.h" />
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp" />
+    <ClInclude Include="include\vulkan_helpler\vk_buffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />
