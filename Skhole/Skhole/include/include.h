@@ -26,5 +26,12 @@
 #include <vulkan/vulkan.hpp>
 
 
-//VLG
+// VLG
 #include <vector_like_glsl.h>
+
+// Dear ImGui
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+
+
