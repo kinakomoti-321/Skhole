@@ -51,7 +51,7 @@ namespace Skhole
 			m_renderer->Render();
 		}
 
-		
+		m_renderer->Destroy();
 		Destroy();
 	}
 

@@ -18,6 +18,96 @@ namespace Skhole {
 		m_device->waitIdle();
 	}
 
+	void SimpleRaytracer::InitImGui()
+	{
+		m_context = ImGui::CreateContext();
+		ImGui::SetCurrentContext(m_context);
+		ImGui_ImplGlfw_InitForVulkan(m_desc.window, true);
+		ImGui::StyleColorsDark();
+
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		init_info.Instance = *m_instance;
+		init_info.PhysicalDevice = m_physicalDevice;
+		init_info.Device = *m_device;
+		init_info.QueueFamily = m_queueIndex;
+		init_info.Queue = m_queue;
+		init_info.PipelineCache = VK_NULL_HANDLE;
+
+		// Not share
+		std::vector<vk::DescriptorPoolSize> poolSize = {
+			{vk::DescriptorType::eSampler,1000},
+			{vk::DescriptorType::eCombinedImageSampler,1000},
+			{vk::DescriptorType::eSampledImage,1000},
+			{vk::DescriptorType::eStorageImage,1000},
+			{vk::DescriptorType::eUniformTexelBuffer,1000},
+			{vk::DescriptorType::eStorageTexelBuffer,1000},
+			{vk::DescriptorType::eUniformBuffer,1000},
+			{vk::DescriptorType::eStorageBuffer,1000},
+			{vk::DescriptorType::eUniformBufferDynamic,1000},
+			{vk::DescriptorType::eStorageBufferDynamic,1000},
+			{vk::DescriptorType::eInputAttachment,1000}
+		};
+
+		vk::DescriptorPoolCreateInfo poolInfo = {};
+		poolInfo.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+		poolInfo.setMaxSets(1000);
+		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSize.size());
+		poolInfo.pPoolSizes = poolSize.data();
+
+		m_imGuiDescriptorPool = m_device->createDescriptorPoolUnique(poolInfo);
+
+		//m_imGuiDescriptorPool = vkutils::createImGuiDescriptorPool(*m_device);
+		init_info.DescriptorPool = *m_imGuiDescriptorPool;
+		init_info.Allocator = nullptr;
+		init_info.MinImageCount = 2;
+		init_info.ImageCount = m_swapchainImages.size();
+		init_info.CheckVkResultFn = nullptr;
+
+		//Create RenderPass;
+		vk::AttachmentDescription colorAttachment = {};
+		colorAttachment.setFormat(vk::Format::eB8G8R8A8Unorm);
+		colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+		colorAttachment.setLoadOp(vk::AttachmentLoadOp::eLoad);
+		colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+		colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+		colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+		colorAttachment.setInitialLayout(vk::ImageLayout::eGeneral);
+		colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+		vk::AttachmentReference colorAttachmentRef = {};
+		colorAttachmentRef.setAttachment(0);
+		colorAttachmentRef.setLayout(vk::ImageLayout::eGeneral);
+
+		vk::SubpassDescription subpass = {};
+		subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics); //Utagai
+		subpass.setColorAttachmentCount(1);
+		subpass.setPColorAttachments(&colorAttachmentRef);
+		
+		vk::RenderPassCreateInfo renderPassInfo = {};
+		renderPassInfo.setAttachmentCount(1);
+		renderPassInfo.setPAttachments(&colorAttachment);
+		renderPassInfo.setSubpassCount(1);
+		renderPassInfo.setPSubpasses(&subpass);
+		
+		m_imGuiRenderPass = m_device->createRenderPassUnique(renderPassInfo);
+		
+		init_info.RenderPass = *m_imGuiRenderPass; 
+		ImGui_ImplVulkan_Init(&init_info);
+
+		ImGui_ImplVulkan_CreateFontsTexture();
+
+		//vkutils::oneTimeSubmit(
+		//	*m_device,
+		//	*m_commandPool,
+		//	m_queue,
+
+		//	[&](vk::CommandBuffer commandBuffer) {
+		//		ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
+		//	}
+		//);
+
+	}
+
 	void SimpleRaytracer::Init(RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
@@ -30,18 +120,18 @@ namespace Skhole {
 
 		m_physicalDevice = vkutils::pickPhysicalDevice(*m_instance, *m_surface, m_extension);
 
-		m_graphicsQueueIndex = vkutils::findGeneralQueueFamily(m_physicalDevice, *m_surface);
-		m_device = vkutils::createLogicalDevice(m_physicalDevice, m_graphicsQueueIndex, m_extension);
-		m_queue = m_device->getQueue(m_graphicsQueueIndex, 0);
+		m_queueIndex = vkutils::findGeneralQueueFamily(m_physicalDevice, *m_surface);
+		m_device = vkutils::createLogicalDevice(m_physicalDevice, m_queueIndex, m_extension);
+		m_queue = m_device->getQueue(m_queueIndex, 0);
 
-		m_commandPool = vkutils::createCommandPool(*m_device, m_graphicsQueueIndex);
+		m_commandPool = vkutils::createCommandPool(*m_device, m_queueIndex);
 		m_commandBuffer = vkutils::createCommandBuffer(*m_device, *m_commandPool);
 
 		m_surfaceFormat = vkutils::chooseSurfaceFormat(m_physicalDevice, *m_surface);
 
 		m_swapchain = vkutils::createSwapchain(  //
-			m_physicalDevice, *m_device, *m_surface, m_graphicsQueueIndex,
-			vk::ImageUsageFlagBits::eStorage, m_surfaceFormat,  //
+			m_physicalDevice, *m_device, *m_surface, m_queueIndex,
+			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment, m_surfaceFormat,  //
 			m_desc.Width, m_desc.Height);
 
 		m_swapchainImages = m_device->getSwapchainImagesKHR(*m_swapchain);
@@ -62,10 +152,13 @@ namespace Skhole {
 			m_swapchainImageViews.push_back(
 				m_device->createImageViewUnique(createInfo));
 		}
+		
+
+	
 
 		vkutils::oneTimeSubmit(*m_device, *m_commandPool, m_queue,
 			[&](vk::CommandBuffer commandBuffer) {
-				for (auto image : m_swapchainImages) {
+				for (auto& image : m_swapchainImages) {
 					vkutils::setImageLayout(commandBuffer, image,
 						vk::ImageLayout::eUndefined,
 						vk::ImageLayout::ePresentSrcKHR);
@@ -83,6 +176,25 @@ namespace Skhole {
 
 		CreatePipeline();
 		CreateShaderBindingTable();
+		
+		InitImGui();
+
+		m_frameBuffer.resize(m_swapchainImageViews.size());
+		for (int i = 0; i < m_swapchainImageViews.size(); i++) {
+			vk::ImageView attachments[] = {
+				*m_swapchainImageViews[i]
+			};
+
+			vk::FramebufferCreateInfo framebufferInfo{};
+			framebufferInfo.setRenderPass(*m_imGuiRenderPass);
+			framebufferInfo.setAttachmentCount(1);
+			framebufferInfo.setPAttachments(attachments);
+			framebufferInfo.setWidth(m_desc.Width);
+			framebufferInfo.setHeight(m_desc.Height);
+			framebufferInfo.setLayers(1);
+
+			m_frameBuffer[i] = m_device->createFramebufferUnique(framebufferInfo);
+		}
 
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
@@ -380,15 +492,6 @@ namespace Skhole {
 	{
 		m_device->waitIdle();
 
-		m_swapchainImageViews.clear();
-		m_swapchain.reset();
-		m_commandBuffer.reset();
-		m_commandPool.reset();
-		m_device.reset();
-		m_physicalDevice = vk::PhysicalDevice();
-		m_surface.reset();
-		m_debugMessenger.reset();
-		m_instance.reset();
 	}
 
 	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
@@ -398,6 +501,12 @@ namespace Skhole {
 
 	void SimpleRaytracer::Render()
 	{
+		ImGui_ImplGlfw_NewFrame();
+		ImGui_ImplVulkan_NewFrame();
+		ImGui::NewFrame();
+		ImGui::Begin("Hello, world!");
+		ImGui::End();
+
 		static int frame = 0;
 		std::cout << frame << '\n';
 
@@ -419,7 +528,7 @@ namespace Skhole {
 		UpdateDescriptorSet(*m_swapchainImageViews[imageIndex]);
 
 		// Record command buffer
-		RecordCommandBuffer(m_swapchainImages[imageIndex]);
+		RecordCommandBuffer(m_swapchainImages[imageIndex],*m_frameBuffer[imageIndex]);
 
 		// Submit command buffer
 		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
@@ -444,7 +553,8 @@ namespace Skhole {
 		frame++;
 	}
 
-	void SimpleRaytracer::RecordCommandBuffer(vk::Image image) {
+	void SimpleRaytracer::RecordCommandBuffer(vk::Image image,vk::Framebuffer frameBuffer) {
+
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
 
@@ -463,10 +573,24 @@ namespace Skhole {
 			missRegion,
 			hitRegion,
 			{},
-			m_desc.Width,m_desc.Height, 1
+			m_desc.Width, m_desc.Height, 1
 		);
 
-		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);
+		vk::RenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
+		renderPassInfo.setFramebuffer(frameBuffer); //Ayasii
+		vk::Rect2D rect({0,0},{(uint32_t)m_desc.Width,(uint32_t)m_desc.Height});
+
+		renderPassInfo.setRenderArea(rect);
+
+		m_commandBuffer->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
+
+		m_commandBuffer->endRenderPass();
+
+		//vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);
 
 		m_commandBuffer->end();
 

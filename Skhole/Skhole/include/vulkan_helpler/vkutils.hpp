@@ -265,6 +265,7 @@ inline vk::UniqueSwapchainKHR createSwapchain(
     }
 
     vk::SwapchainCreateInfoKHR createInfo{};
+
     createInfo.setSurface(surface);
     createInfo.setMinImageCount(imageCount);
     createInfo.setImageFormat(surfaceFormat.format);
@@ -277,6 +278,7 @@ inline vk::UniqueSwapchainKHR createSwapchain(
     createInfo.setPresentMode(presentMode);
     createInfo.setClipped(VK_TRUE);
     createInfo.setQueueFamilyIndices(queueFamilyIndex);
+
     return device.createSwapchainKHRUnique(createInfo);
 }
 

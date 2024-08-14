@@ -63,7 +63,7 @@ namespace Skhole {
 		}
 	};
 
-	struct BasicalMaterial {
+	struct BasicMaterial {
 		vec4 basecolor;
 		Texture BaseColorMap;
 

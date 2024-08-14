@@ -32,7 +32,7 @@ namespace Skhole
 	private:
 		
 		std::string rendererName = "Simple RayTracer";
-		MaterialParameterFormat materialFormat;
+		//MaterialParameterFormat materialFormat;
 		RendererDesc m_desc;
 
 		void InitVulkan();
@@ -48,7 +48,7 @@ namespace Skhole
 		void CreateShaderBindingTable();
 
 		void UpdateDescriptorSet(vk::ImageView imageView);
-		void RecordCommandBuffer(vk::Image image);
+		void RecordCommandBuffer(vk::Image image,vk::Framebuffer frameBuffer);
 
 		vk::UniqueInstance m_instance;
 		vk::UniqueDebugUtilsMessengerEXT m_debugMessenger;
@@ -58,12 +58,13 @@ namespace Skhole
 		vk::UniqueDevice m_device;
 
 		vk::Queue m_queue;
-		uint32_t m_graphicsQueueIndex;
+		uint32_t m_queueIndex;
 
 		vk::SurfaceFormatKHR m_surfaceFormat;
 		vk::UniqueSwapchainKHR m_swapchain;
 		std::vector<vk::Image> m_swapchainImages;
 		std::vector<vk::UniqueImageView> m_swapchainImageViews;
+		std::vector<vk::UniqueFramebuffer> m_frameBuffer;
 
 		vk::UniqueCommandPool m_commandPool;
 		vk::UniqueCommandBuffer m_commandBuffer;
@@ -101,6 +102,12 @@ namespace Skhole
 		vk::StridedDeviceAddressRegionKHR raygenRegion{};
 		vk::StridedDeviceAddressRegionKHR missRegion{};
 		vk::StridedDeviceAddressRegionKHR hitRegion{};
+
+		void InitImGui();
+		ImGuiContext* m_context;
+
+		vk::UniqueDescriptorPool m_imGuiDescriptorPool;
+		vk::UniqueRenderPass m_imGuiRenderPass;		
 
 	};
 }
