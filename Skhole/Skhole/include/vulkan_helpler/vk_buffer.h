@@ -55,6 +55,12 @@ namespace Skhole {
 		}
 	};
 
+	struct DeviceBuffer {
+		Buffer hostBuffer;
+		Buffer deviceBuffer;
+
+	};
+
 	struct AccelStruct {
 		vk::UniqueAccelerationStructureKHR accel;
 		Buffer buffer;

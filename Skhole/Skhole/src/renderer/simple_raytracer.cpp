@@ -22,8 +22,8 @@ namespace Skhole {
 	{
 		m_context = ImGui::CreateContext();
 		ImGui::SetCurrentContext(m_context);
-		ImGui_ImplGlfw_InitForVulkan(m_desc.window, true);
 		ImGui::StyleColorsDark();
+		ImGui_ImplGlfw_InitForVulkan(m_desc.window, true);
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
 		init_info.Instance = *m_instance;
@@ -56,7 +56,6 @@ namespace Skhole {
 
 		m_imGuiDescriptorPool = m_device->createDescriptorPoolUnique(poolInfo);
 
-		//m_imGuiDescriptorPool = vkutils::createImGuiDescriptorPool(*m_device);
 		init_info.DescriptorPool = *m_imGuiDescriptorPool;
 		init_info.Allocator = nullptr;
 		init_info.MinImageCount = 2;
@@ -95,16 +94,6 @@ namespace Skhole {
 		ImGui_ImplVulkan_Init(&init_info);
 
 		ImGui_ImplVulkan_CreateFontsTexture();
-
-		//vkutils::oneTimeSubmit(
-		//	*m_device,
-		//	*m_commandPool,
-		//	m_queue,
-
-		//	[&](vk::CommandBuffer commandBuffer) {
-		//		ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
-		//	}
-		//);
 
 	}
 
@@ -492,6 +481,12 @@ namespace Skhole {
 	{
 		m_device->waitIdle();
 
+
+		ImGui_ImplVulkan_DestroyFontsTexture();
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+
 	}
 
 	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
@@ -504,7 +499,13 @@ namespace Skhole {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui_ImplVulkan_NewFrame();
 		ImGui::NewFrame();
+
 		ImGui::Begin("Hello, world!");
+		float f = 0.0f;
+		ImGui::DragFloat("Drag",&f);
+		bool b = false;
+		ImGui::Checkbox("Check Box", &b);
+		ImGui::Text("Yeah");
 		ImGui::End();
 
 		static int frame = 0;
@@ -578,7 +579,7 @@ namespace Skhole {
 
 		vk::RenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
-		renderPassInfo.setFramebuffer(frameBuffer); //Ayasii
+		renderPassInfo.setFramebuffer(frameBuffer); 
 		vk::Rect2D rect({0,0},{(uint32_t)m_desc.Width,(uint32_t)m_desc.Height});
 
 		renderPassInfo.setRenderArea(rect);
@@ -589,8 +590,6 @@ namespace Skhole {
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
 
 		m_commandBuffer->endRenderPass();
-
-		//vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR);
 
 		m_commandBuffer->end();
 
