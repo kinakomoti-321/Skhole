@@ -660,6 +660,8 @@ namespace Skhole {
 	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material) 
 	{
 		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
+		materialDef->materialName = material->materialName;
+
 		materialDef->materialParameters = m_matParams; // Copy
 
 		materialDef->materialParameters[0]->setParamValue(material->basecolor); // BaseColor

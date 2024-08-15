@@ -20,9 +20,20 @@ namespace Skhole {
 		};
 
 		mat4 GetLocalTransformMatrix(float frame);
-		vec3 GetLocalTranslation(float frame);
-		vec3 GetLocalRotation(float frame);
-		vec3 GetLocalScale(float frame);
+		vec3 GetLocalTranslation(float frame) 
+		{
+			return vec3(0.0);
+		};
+
+		vec3 GetLocalRotation(float frame) 
+		{
+			return vec3(0.0);
+		};
+
+		vec3 GetLocalScale(float frame)
+		{
+			return vec3(0.0);
+		};
 
 		bool IsLeaf() const
 		{

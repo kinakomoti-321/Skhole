@@ -14,7 +14,7 @@ namespace Skhole {
 	void Scene::Initialize() {
 		ShrPtr<Geometry> geometry = MakeShr<Geometry>(BoxGeometry());
 		ShrPtr<Instance> object = MakeShr<Instance>();
-		object->m_instanceName = "Instance 0";
+		object->m_instanceName = "Instance";
 		object->m_geometryIndex = 0;
 
 		ShrPtr<BasicMaterial> material = MakeShr<BasicMaterial>();

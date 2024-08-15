@@ -10,9 +10,10 @@
 
 #include <renderer/renderer.h>
 
-class Renderer;
 
 namespace Skhole {
+	class Renderer;
+
 	class Scene {
 	public:
 

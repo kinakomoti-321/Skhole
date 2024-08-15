@@ -150,6 +150,7 @@ namespace Skhole {
 
 	struct RendererDefinisionMaterial {
 		std::vector<ShrPtr<MaterialParameter>> materialParameters;
+		std::string materialName = "DefaultMaterial";
 	};
 
 	using MatParamBool = MaterialParameterBool;
@@ -159,6 +160,8 @@ namespace Skhole {
 	using MatParamTexID = MaterialParameterTextureID;
 
 	struct BasicMaterial {
+		std::string materialName = "DefaultMaterial";
+
 		vec4 basecolor;
 		Texture BaseColorMap;
 
