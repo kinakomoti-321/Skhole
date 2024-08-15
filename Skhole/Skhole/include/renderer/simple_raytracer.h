@@ -31,9 +31,12 @@ namespace Skhole
 
 		void OffscreenRender() override;
 		RendererData GetRendererData() override;
+		ShrPtr<RendererDefinisionMaterial> GetMaterialDefinision() override;
+		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
 
 	private:
-		
+
+
 		std::string rendererName = "Simple RayTracer";
 		//MaterialParameterFormat materialFormat;
 		RendererDesc m_desc;
@@ -51,7 +54,7 @@ namespace Skhole
 		void CreateShaderBindingTable();
 
 		void UpdateDescriptorSet(vk::ImageView imageView);
-		void RecordCommandBuffer(vk::Image image,vk::Framebuffer frameBuffer);
+		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
 
 		vk::UniqueInstance m_instance;
 		vk::UniqueDebugUtilsMessengerEXT m_debugMessenger;
@@ -110,7 +113,18 @@ namespace Skhole
 		ImGuiContext* m_context;
 
 		vk::UniqueDescriptorPool m_imGuiDescriptorPool;
-		vk::UniqueRenderPass m_imGuiRenderPass;		
+		vk::UniqueRenderPass m_imGuiRenderPass;
+
+
+		// Material
+		//void DefineMaterial();
+
+		const std::vector<ShrPtr<MaterialParameter>> m_matParams =
+		{	
+			MakeShr<MatParamColor>("BaseColor", vec4(0.8f)),
+			MakeShr<MatParamFloat>("Roughness", 0.0f),
+			MakeShr<MatParamFloat>("Metallic", 0.0f),
+		};
 
 	};
 }

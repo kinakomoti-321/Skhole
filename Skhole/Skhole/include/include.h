@@ -13,6 +13,7 @@
 #include <map>
 #include <set>
 #include <variant>
+#include <optional>
 
 #define NOMINMAX // avoid conflict with std::min, std::max and min, max macro in windows.h
 
@@ -35,3 +36,5 @@
 #include <backends/imgui_impl_vulkan.h>
 
 
+#define ShrPtr std::shared_ptr
+#define MakeShr std::make_shared

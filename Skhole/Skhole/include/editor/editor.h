@@ -21,14 +21,25 @@ namespace Skhole {
 		void Run();
 		void Destroy();
 
+		void LoadModel(const std::string& filepath);
+
+		void Save();
+
 	private:
 		void ShowGUI();
+
+		void ShowRendererGUI();
+		void ShowObjectGUI();
+		void ShowMateralGUI();
+
 
 		void SaveScene();
 
 		GLFWwindow* m_window;
 		ImGuiContext* m_imguiContext;
 		std::shared_ptr<Renderer> m_renderer;
+
+		std::shared_ptr<Scene> m_scene;
 
 		unsigned int m_windowWidth;
 		unsigned int m_windowHeight;	

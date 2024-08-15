@@ -41,6 +41,12 @@ namespace Skhole
 		virtual void Wait() = 0;
 
 		virtual void OffscreenRender() = 0;
+
+		// Renderer Data
 		virtual RendererData GetRendererData() = 0;
+		virtual ShrPtr<RendererDefinisionMaterial> GetMaterialDefinision() = 0;
+		virtual ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) = 0;
+
+	
 	};
 }

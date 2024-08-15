@@ -40,6 +40,10 @@ namespace Skhole
 
 		m_renderer = std::make_shared<SimpleRaytracer>();
 		m_renderer->Init(rendererDesc);
+
+		// Scene Initialization
+		m_scene = std::make_shared<Scene>();
+
 	}
 
 	void Editor::Run() {
@@ -63,40 +67,25 @@ namespace Skhole
 
 	void Editor::ShowGUI() {
 		RendererData rendererData = m_renderer->GetRendererData();
+		
 
+		//Renderer Imformation
 		ImGui::Begin("Rendering Infomation");
 		std::string rendererName = "Renderer Name :" + rendererData.rendererName;
 		ImGui::Text(rendererName.c_str());
 
-		for (auto& parameter : rendererData.materials.materialParameters) {
-			if (std::holds_alternative<MaterialParameterBool>(parameter.parameter)) {
-				auto& b = std::get<MaterialParameterBool>(parameter.parameter);
-				ImGui::Checkbox(b.name.c_str(), &b.value);
-			}
-			else if (std::holds_alternative<MaterialParameterFloat>(parameter.parameter))
-			{
-				auto& f = std::get<MaterialParameterFloat>(parameter.parameter);
-				ImGui::SliderFloat(f.name.c_str(), &f.value, 0, 1);
-			}
-			else if (std::holds_alternative<MaterialParameterVector>(parameter.parameter)) {
-				auto& value = std::get<MaterialParameterVector>(parameter.parameter);
-				ImGui::DragFloat3(value.name.c_str(), value.value.v, 0.1f, 0.0f, 1.0f);
-			}
-			else if (std::holds_alternative<MaterialParameterColor>(parameter.parameter)) {
-				auto& value = std::get<MaterialParameterColor>(parameter.parameter);
-				ImGui::ColorEdit4(value.name.c_str(), value.value.v);	
-			}
-			else if (std::holds_alternative<MaterialParameterTexture>(parameter.parameter)) {
-				SKHOLE_UNIMPL("Not Implemented Texture");
-			}
-			else {
-				SKHOLE_UNIMPL("Not Implemented Material Parameter");
-			}
-
+		ImGui::Text("Renderer Material");
+		auto& mat = rendererData.materials;
+		for (auto& matParam : mat.materialParameters) {
+			ImGui::Text(matParam->getParamName().c_str());
 		}
 
-		ImGui::End();
 
-		// Rendering Information
+
+		ImGui::End();
+	}
+
+	void Editor::ShowRendererGUI() {
+
 	}
 }

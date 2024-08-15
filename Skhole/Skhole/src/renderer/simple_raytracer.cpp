@@ -81,16 +81,16 @@ namespace Skhole {
 		subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics); //Utagai
 		subpass.setColorAttachmentCount(1);
 		subpass.setPColorAttachments(&colorAttachmentRef);
-		
+
 		vk::RenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.setAttachmentCount(1);
 		renderPassInfo.setPAttachments(&colorAttachment);
 		renderPassInfo.setSubpassCount(1);
 		renderPassInfo.setPSubpasses(&subpass);
-		
+
 		m_imGuiRenderPass = m_device->createRenderPassUnique(renderPassInfo);
-		
-		init_info.RenderPass = *m_imGuiRenderPass; 
+
+		init_info.RenderPass = *m_imGuiRenderPass;
 		ImGui_ImplVulkan_Init(&init_info);
 
 		ImGui_ImplVulkan_CreateFontsTexture();
@@ -141,9 +141,9 @@ namespace Skhole {
 			m_swapchainImageViews.push_back(
 				m_device->createImageViewUnique(createInfo));
 		}
-		
 
-	
+
+
 
 		vkutils::oneTimeSubmit(*m_device, *m_commandPool, m_queue,
 			[&](vk::CommandBuffer commandBuffer) {
@@ -530,7 +530,7 @@ namespace Skhole {
 		UpdateDescriptorSet(*m_swapchainImageViews[imageIndex]);
 
 		// Record command buffer
-		RecordCommandBuffer(m_swapchainImages[imageIndex],*m_frameBuffer[imageIndex]);
+		RecordCommandBuffer(m_swapchainImages[imageIndex], *m_frameBuffer[imageIndex]);
 
 		// Submit command buffer
 		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
@@ -555,7 +555,7 @@ namespace Skhole {
 		frame++;
 	}
 
-	void SimpleRaytracer::RecordCommandBuffer(vk::Image image,vk::Framebuffer frameBuffer) {
+	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
@@ -584,8 +584,8 @@ namespace Skhole {
 		//--------------------
 		vk::RenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
-		renderPassInfo.setFramebuffer(frameBuffer); 
-		vk::Rect2D rect({0,0},{(uint32_t)m_desc.Width,(uint32_t)m_desc.Height});
+		renderPassInfo.setFramebuffer(frameBuffer);
+		vk::Rect2D rect({ 0,0 }, { (uint32_t)m_desc.Width,(uint32_t)m_desc.Height });
 
 		renderPassInfo.setRenderArea(rect);
 
@@ -640,16 +640,7 @@ namespace Skhole {
 	{
 		RendererData data;
 		data.rendererName = "Simple Raytracer";
-
-		std::vector<MaterialParameter> materials = {
-			MaterialParameterColor("BaseColor", {1.0f,0.0f,0.0f,1.0f}),
-			MaterialParameterFloat("Roughness",1.0f),
-			MaterialParameterFloat("Metallic",0.0f),
-			MaterialParameterBool("IsTransmit",false),
-			MaterialParameterVector("Normal",vec3(1.0)),
-		};
-
-		data.materials.materialParameters = materials;
+		data.materials.materialParameters = m_matParams;
 
 		return data;
 	}
@@ -658,4 +649,31 @@ namespace Skhole {
 	{
 		SKHOLE_UNIMPL("InitVulkan");
 	}
+
+	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterialDefinision() 
+	{
+		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
+		materialDef->materialParameters = m_matParams;
+		return materialDef;
+	}
+
+	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material) 
+	{
+		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
+		materialDef->materialParameters = m_matParams; // Copy
+
+		materialDef->materialParameters[0]->setParamValue(material->basecolor); // BaseColor
+		materialDef->materialParameters[1]->setParamValue(material->metallic); // Metallic
+		materialDef->materialParameters[2]->setParamValue(material->roughness); // Roughness
+		
+		return materialDef;	
+	}
+
+
+	//void SimpleRaytracer::DefineMaterial()
+	//{
+	//	m_matParams.resize(12);
+	//	m_matParams[0] = MakeShr<MatParamBool>("bool", false);
+	//}
+
 }
