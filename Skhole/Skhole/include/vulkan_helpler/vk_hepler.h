@@ -87,17 +87,30 @@ namespace VkHelper {
 			descriptorPool = device.createDescriptorPool(poolInfo);
 		}
 
+		void SetDescriptorSet(vk::Device device) {
+			vk::DescriptorSetAllocateInfo allocInfo = {};
+			allocInfo.setDescriptorPool(descriptorPool);
+			allocInfo.setDescriptorSetCount(1);
+			allocInfo.setPSetLayouts(&descriptorSetLayout);
+
+			descriptorSet = device.allocateDescriptorSets(allocInfo)[0];
+		}
+
+		void StartWriting() {
+			writeDescriptorSets.clear();
+		}
+
 		void WriteAS(vk::AccelerationStructureKHR& as, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
+
+			vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
+			accelInfo.setAccelerationStructures(as);
+
 			vk::WriteDescriptorSet writeDescriptorSet = {};
-
-			vk::WriteDescriptorSetAccelerationStructureKHR asInfo = {};
-			asInfo.setAccelerationStructures(as);
-
 			writeDescriptorSet.setDstSet(descriptorSet);
 			writeDescriptorSet.setDstBinding(bindNumber);
 			writeDescriptorSet.setDescriptorCount(descriptorCount);
 			writeDescriptorSet.setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR);
-			writeDescriptorSet.setPNext(&asInfo);
+			writeDescriptorSet.setPNext(&accelInfo);
 
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
@@ -139,13 +152,18 @@ namespace VkHelper {
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
 
-		void UploadDescriptorSet(vk::Device device) {
+		void EndWriting(vk::Device device) {
 			if (writeDescriptorSets.size() > 0){
 				device.updateDescriptorSets(writeDescriptorSets, nullptr);
 			}
 			else{
 				SKHOLE_ERROR("Write Descriptor Set is Empty");
 			}
+		}
+			
+		void Release(vk::Device device) {
+			device.destroyDescriptorSetLayout(descriptorSetLayout);
+			device.destroyDescriptorPool(descriptorPool);
 		}
 
 	};

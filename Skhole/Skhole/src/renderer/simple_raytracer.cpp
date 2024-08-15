@@ -98,20 +98,6 @@ namespace Skhole {
 			*m_device
 		);
 
-		CreateBottomLevelAS();
-		CreateTopLevelAS();
-
-		PrepareShader();
-
-		CreateDescriptorPool();
-		CreateDescSetLayout();
-		CreateDescSet();
-
-		CreatePipeline();
-		CreateShaderBindingTable();
-
-		InitImGui();
-
 		m_frameBuffer.resize(m_swapchainImageViews.size());
 		for (int i = 0; i < m_swapchainImageViews.size(); i++) {
 			vk::ImageView attachments[] = {
@@ -128,6 +114,21 @@ namespace Skhole {
 
 			m_frameBuffer[i] = m_device->createFramebufferUnique(framebufferInfo);
 		}
+
+		CreateBottomLevelAS();
+		CreateTopLevelAS();
+
+		PrepareShader();
+
+		CreateDescSetLayout();
+		CreateDescriptorPool();
+		CreateDescSet();
+
+		CreatePipeline();
+		CreateShaderBindingTable();
+
+		InitImGui();
+
 
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
@@ -274,45 +275,24 @@ namespace Skhole {
 
 	void SimpleRaytracer::CreateDescriptorPool()
 	{
-		std::vector<vk::DescriptorPoolSize> poolSize = {
-			{vk::DescriptorType::eAccelerationStructureKHR, 1},
-			{vk::DescriptorType::eStorageImage, 1},
-		};
-
-		vk::DescriptorPoolCreateInfo poolCreateInfo;
-		poolCreateInfo.setPoolSizes(poolSize);
-		poolCreateInfo.setMaxSets(1);
-		poolCreateInfo.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-		descPool = m_device->createDescriptorPoolUnique(poolCreateInfo);
+		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_device);
 	}
 
 	void SimpleRaytracer::CreateDescSetLayout() {
-		std::vector<vk::DescriptorSetLayoutBinding> bindings(2);
 
-		bindings[0].setBinding(0);
-		bindings[0].setDescriptorType(
-			vk::DescriptorType::eAccelerationStructureKHR);
-		bindings[0].setDescriptorCount(1);
-		bindings[0].setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
+		m_bindingManager.bindings = {
+			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR}
+		};
 
-		bindings[1].setBinding(1);
-		bindings[1].setDescriptorType(vk::DescriptorType::eStorageImage);
-		bindings[1].setDescriptorCount(1);
-		bindings[1].setStageFlags(vk::ShaderStageFlagBits::eRaygenKHR);
-
-		vk::DescriptorSetLayoutCreateInfo createInfo{};
-		createInfo.setBindings(bindings);
-		descSetLayout = m_device->createDescriptorSetLayoutUnique(createInfo);
+		m_bindingManager.SetLayout(*m_device);
 	}
 
 	void SimpleRaytracer::CreateDescSet() {
 		std::cout << "Create desc set\n";
 
-		vk::DescriptorSetAllocateInfo allocateInfo{};
-		allocateInfo.setDescriptorPool(*descPool);
-		allocateInfo.setSetLayouts(*descSetLayout);
-		descSet = std::move(
-			m_device->allocateDescriptorSetsUnique(allocateInfo).front());
+		m_bindingManager.SetDescriptorSet(*m_device);
+
 	}
 
 	void SimpleRaytracer::CreatePipeline() {
@@ -320,7 +300,7 @@ namespace Skhole {
 
 		// Create pipeline layout
 		vk::PipelineLayoutCreateInfo layoutCreateInfo{};
-		layoutCreateInfo.setSetLayouts(*descSetLayout);
+		layoutCreateInfo.setSetLayouts(m_bindingManager.descriptorSetLayout);
 		m_pipelineLayout = m_device->createPipelineLayoutUnique(layoutCreateInfo);
 
 		// Create pipeline
@@ -424,7 +404,8 @@ namespace Skhole {
 	void SimpleRaytracer::Destroy()
 	{
 		m_device->waitIdle();
-
+		
+		m_bindingManager.Release(*m_device);
 
 		ImGui_ImplVulkan_DestroyFontsTexture();
 		ImGui_ImplVulkan_Shutdown();
@@ -510,7 +491,7 @@ namespace Skhole {
 			vk::PipelineBindPoint::eRayTracingKHR,
 			*m_pipelineLayout,
 			0,
-			*descSet,
+			m_bindingManager.descriptorSet,
 			nullptr
 		);
 
@@ -553,7 +534,7 @@ namespace Skhole {
 
 		vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
 		accelInfo.setAccelerationStructures(*m_topAccel.accel);
-		writes[0].setDstSet(*descSet);
+		writes[0].setDstSet(m_bindingManager.descriptorSet);
 		writes[0].setDstBinding(0);
 		writes[0].setDescriptorCount(1);
 		writes[0].setDescriptorType(
@@ -563,12 +544,26 @@ namespace Skhole {
 		vk::DescriptorImageInfo imageInfo{};
 		imageInfo.setImageView(imageView);
 		imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
-		writes[1].setDstSet(*descSet);
+		writes[1].setDstSet(m_bindingManager.descriptorSet);
 		writes[1].setDstBinding(1);
 		writes[1].setDescriptorType(vk::DescriptorType::eStorageImage);
 		writes[1].setImageInfo(imageInfo);
 
-		m_device->updateDescriptorSets(writes, nullptr);
+		m_bindingManager.StartWriting();
+
+		m_bindingManager.writeDescriptorSets = writes;
+
+
+		//m_bindingManager.WriteAS(
+		//	*m_topAccel.accel, 0, 1, *m_device
+		//);
+
+		//m_bindingManager.WriteImage(
+		//	imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+		//	vk::DescriptorType::eStorageImage, 1, 1, *m_device
+		//);
+
+		m_bindingManager.EndWriting(*m_device);
 	}
 
 
@@ -591,14 +586,14 @@ namespace Skhole {
 		SKHOLE_UNIMPL("InitVulkan");
 	}
 
-	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterialDefinision() 
+	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterialDefinision()
 	{
 		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
 		materialDef->materialParameters = m_matParams;
 		return materialDef;
 	}
 
-	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material) 
+	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material)
 	{
 		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
 		materialDef->materialName = material->materialName;
@@ -608,8 +603,8 @@ namespace Skhole {
 		materialDef->materialParameters[0]->setParamValue(material->basecolor); // BaseColor
 		materialDef->materialParameters[1]->setParamValue(material->metallic); // Metallic
 		materialDef->materialParameters[2]->setParamValue(material->roughness); // Roughness
-		
-		return materialDef;	
+
+		return materialDef;
 	}
 
 

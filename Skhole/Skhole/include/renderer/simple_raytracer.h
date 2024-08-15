@@ -39,7 +39,6 @@ namespace Skhole
 
 	private:
 
-
 		std::string rendererName = "Simple RayTracer";
 		//MaterialParameterFormat materialFormat;
 		RendererDesc m_desc;
@@ -100,9 +99,7 @@ namespace Skhole
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
 		std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
 
-		vk::UniqueDescriptorPool descPool;
-		vk::UniqueDescriptorSetLayout descSetLayout;
-		vk::UniqueDescriptorSet descSet;
+		VkHelper::BindingManager m_bindingManager;
 
 		vk::UniquePipeline m_pipeline;
 		vk::UniquePipelineLayout m_pipelineLayout;
@@ -114,8 +111,6 @@ namespace Skhole
 
 		void InitImGui();
 		ImGuiContext* m_context;
-
-		vk::UniqueDescriptorPool m_imGuiDescriptorPool;
 		vk::UniqueRenderPass m_imGuiRenderPass;
 
 
