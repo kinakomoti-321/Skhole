@@ -5,7 +5,7 @@ namespace Skhole
 	Editor::Editor() {
 
 	}
-	
+
 	Editor::~Editor() {
 
 	}
@@ -15,13 +15,13 @@ namespace Skhole
 		// Editor Initialization
 		m_windowWidth = editorDesc.windowWidth;
 		m_windowHeight = editorDesc.windowHeight;
-		m_applicationName = editorDesc.applicationName;	
+		m_applicationName = editorDesc.applicationName;
 
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-		m_window = glfwCreateWindow(m_windowWidth,m_windowHeight,m_applicationName.c_str(),nullptr,nullptr);
+		m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, m_applicationName.c_str(), nullptr, nullptr);
 
 		if (!m_window) {
 			SKHOLE_ERROR("Failed to create window");
@@ -46,6 +46,9 @@ namespace Skhole
 
 		while (!glfwWindowShouldClose(m_window)) {
 			glfwPollEvents();
+			m_renderer->SetNewFrame();
+			ShowGUI();
+			m_renderer->Update();
 			m_renderer->Render();
 		}
 
@@ -56,5 +59,44 @@ namespace Skhole
 	void Editor::Destroy() {
 		glfwDestroyWindow(m_window);
 		glfwTerminate();
+	}
+
+	void Editor::ShowGUI() {
+		RendererData rendererData = m_renderer->GetRendererData();
+
+		ImGui::Begin("Rendering Infomation");
+		std::string rendererName = "Renderer Name :" + rendererData.rendererName;
+		ImGui::Text(rendererName.c_str());
+
+		for (auto& parameter : rendererData.materials.materialParameters) {
+			if (std::holds_alternative<MaterialParameterBool>(parameter.parameter)) {
+				auto& b = std::get<MaterialParameterBool>(parameter.parameter);
+				ImGui::Checkbox(b.name.c_str(), &b.value);
+			}
+			else if (std::holds_alternative<MaterialParameterFloat>(parameter.parameter))
+			{
+				auto& f = std::get<MaterialParameterFloat>(parameter.parameter);
+				ImGui::SliderFloat(f.name.c_str(), &f.value, 0, 1);
+			}
+			else if (std::holds_alternative<MaterialParameterVector>(parameter.parameter)) {
+				auto& value = std::get<MaterialParameterVector>(parameter.parameter);
+				ImGui::DragFloat3(value.name.c_str(), value.value.v, 0.1f, 0.0f, 1.0f);
+			}
+			else if (std::holds_alternative<MaterialParameterColor>(parameter.parameter)) {
+				auto& value = std::get<MaterialParameterColor>(parameter.parameter);
+				ImGui::ColorEdit4(value.name.c_str(), value.value.v);	
+			}
+			else if (std::holds_alternative<MaterialParameterTexture>(parameter.parameter)) {
+				SKHOLE_UNIMPL("Not Implemented Texture");
+			}
+			else {
+				SKHOLE_UNIMPL("Not Implemented Material Parameter");
+			}
+
+		}
+
+		ImGui::End();
+
+		// Rendering Information
 	}
 }

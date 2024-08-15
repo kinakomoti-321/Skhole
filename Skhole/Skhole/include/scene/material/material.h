@@ -9,59 +9,80 @@ namespace Skhole {
 	enum MaterialParameterType
 	{
 		FLOAT,
+		VECTOR,
 		COLOR,
 		BOOL,
 		TEXTURE,
 	};
 
-	struct MaterialParameter{
-		MaterialParameterType type;
-		std::string paramName;
-		
-		float paramFloat;
-		vec4 paramColor;
-		bool paramBool;
-		Texture paramMatTex;
+	struct MaterialParameterBool {
+		MaterialParameterBool(std::string name, bool value) : value(value), name(name) {}
 
-		std::string GetMaterialParamInfo() {
-			std::string paramString = "";
-			paramString += "[Name] " + paramName + " [Type] ";
-			switch (type)
-			{
-			case Skhole::FLOAT:
-				paramString = "FLOAT";
-				break;
-			case Skhole::COLOR:
-				paramString = "COLOR";
-				break;
-			case Skhole::BOOL:
-				paramString = "BOOL";
-				break;
-			case Skhole::TEXTURE:
-				paramString = "TEXTURE";
-				break;
-			default:
-				SKHOLE_UNIMPL("Material Type");
-				break;
-			}
+		MaterialParameterType type = MaterialParameterType::BOOL;
+		bool value;
+		std::string name;
+	};
 
-			return paramString;
+	struct MaterialParameterFloat {
+		MaterialParameterFloat(std::string name, float value) : value(value), name(name) {}
+		float& Value(){return value;}
+
+		MaterialParameterType type = MaterialParameterType::FLOAT;
+		float value;
+		std::string name;
+	};
+	struct MaterialParameterVector {
+		MaterialParameterVector(std::string name, vec3 value) : value(value), name(name) {}
+		vec3& Value() { return value; }
+
+		MaterialParameterType type = MaterialParameterType::VECTOR;
+		vec3 value;
+		std::string name;
+	};
+	struct MaterialParameterColor {
+		MaterialParameterColor(std::string name, vec4 value) : value(value), name(name) {}
+		vec4& Value() { return value; }
+
+		MaterialParameterType type = MaterialParameterType::COLOR;
+		vec4 value;
+		std::string name;
+	};
+	struct MaterialParameterTexture {
+		MaterialParameterTexture(std::string name, Texture value) : value(value), name(name) {}
+		Texture& Value() { return value; }
+
+		MaterialParameterType type = MaterialParameterType::TEXTURE;
+		Texture value;
+		std::string name;
+	};
+
+	struct MaterialParameter {
+		MaterialParameter(MaterialParameterBool value) : parameter(value) {}
+		MaterialParameter(MaterialParameterFloat value) : parameter(value) {}
+		MaterialParameter(MaterialParameterVector value) : parameter(value) {}
+		MaterialParameter(MaterialParameterColor value) : parameter(value) {}
+		MaterialParameter(MaterialParameterTexture value) : parameter(value) {}
+
+		std::variant<
+			MaterialParameterBool,
+			MaterialParameterFloat,
+			MaterialParameterVector,
+			MaterialParameterColor,
+			MaterialParameterTexture
+		> parameter;
+	};
+
+	struct RendererDefinisionMaterial {
+		std::vector<MaterialParameter> materialParameters;
+
+		RendererDefinisionMaterial Copy()
+		{
+			RendererDefinisionMaterial copiedMaterial;
+			copiedMaterial.materialParameters = materialParameters;
+			return copiedMaterial;
 		}
 	};
 
-	struct RendererMaterialParameter {
-		std::vector<MaterialParameter> material_parameters;
-
-		std::string GetMaterialInfoString() {
-			std::string materialInfoString = "";
-
-			for (auto& param : material_parameters) {
-				materialInfoString += param.GetMaterialParamInfo() + "\n";
-			}
-
-			return materialInfoString;
-		}
-	};
 
 	struct BasicMaterial {
 		vec4 basecolor;

@@ -24,6 +24,9 @@ namespace Skhole
 		void Resize(unsigned int width, unsigned int height) override;
 		void Render() override;
 
+		void Update() override;
+
+		void SetNewFrame() override;
 		void Wait() override;
 
 		void OffscreenRender() override;

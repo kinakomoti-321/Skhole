@@ -166,6 +166,8 @@ namespace Skhole {
 		CreatePipeline();
 		CreateShaderBindingTable();
 
+		InitImGui();
+
 		m_frameBuffer.resize(m_swapchainImageViews.size());
 		for (int i = 0; i < m_swapchainImageViews.size(); i++) {
 			vk::ImageView attachments[] = {
@@ -492,22 +494,23 @@ namespace Skhole {
 		SKHOLE_UNIMPL("Resize");
 	}
 
-	void SimpleRaytracer::Render()
+
+	void SimpleRaytracer::SetNewFrame()
 	{
 		ImGui_ImplGlfw_NewFrame();
 		ImGui_ImplVulkan_NewFrame();
 		ImGui::NewFrame();
+	}
 
-		ImGui::Begin("Hello, world!");
-		float f = 0.0f;
-		ImGui::DragFloat("Drag",&f);
-		bool b = false;
-		ImGui::Checkbox("Check Box", &b);
-		ImGui::Text("Yeah");
-		ImGui::End();
+	void SimpleRaytracer::Update()
+	{
+
+	}
+
+	void SimpleRaytracer::Render()
+	{
 
 		static int frame = 0;
-		std::cout << frame << '\n';
 
 		// Create semaphore
 		vk::UniqueSemaphore imageAvailableSemaphore =
@@ -575,6 +578,10 @@ namespace Skhole {
 			m_desc.Width, m_desc.Height, 1
 		);
 
+
+		//--------------------
+		// ImGUI
+		//--------------------
 		vk::RenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
 		renderPassInfo.setFramebuffer(frameBuffer); 
@@ -588,6 +595,10 @@ namespace Skhole {
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
 
 		m_commandBuffer->endRenderPass();
+
+		//--------------------
+		// ImGUI End
+		//--------------------
 
 		m_commandBuffer->end();
 
@@ -627,7 +638,20 @@ namespace Skhole {
 
 	RendererData SimpleRaytracer::GetRendererData()
 	{
-		return RendererData();
+		RendererData data;
+		data.rendererName = "Simple Raytracer";
+
+		std::vector<MaterialParameter> materials = {
+			MaterialParameterColor("BaseColor", {1.0f,0.0f,0.0f,1.0f}),
+			MaterialParameterFloat("Roughness",1.0f),
+			MaterialParameterFloat("Metallic",0.0f),
+			MaterialParameterBool("IsTransmit",false),
+			MaterialParameterVector("Normal",vec3(1.0)),
+		};
+
+		data.materials.materialParameters = materials;
+
+		return data;
 	}
 
 	void SimpleRaytracer::InitVulkan()

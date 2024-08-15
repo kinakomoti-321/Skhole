@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <map>
 #include <set>
+#include <variant>
 
 #define NOMINMAX // avoid conflict with std::min, std::max and min, max macro in windows.h
 
@@ -24,7 +25,6 @@
 // Vulkan
 #define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
 #include <vulkan/vulkan.hpp>
-
 
 // VLG
 #include <vector_like_glsl.h>

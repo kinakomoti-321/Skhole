@@ -22,6 +22,8 @@ namespace Skhole {
 		void Destroy();
 
 	private:
+		void ShowGUI();
+
 		void SaveScene();
 
 		GLFWwindow* m_window;

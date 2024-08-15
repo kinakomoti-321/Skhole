@@ -18,7 +18,7 @@ namespace Skhole
 	struct RendererData 
 	{
 		std::string rendererName;
-		std::vector<MaterialParameter> materialParameters;
+		RendererDefinisionMaterial materials;
 	};
 
 	class Renderer {
@@ -31,6 +31,11 @@ namespace Skhole
 		virtual void Destroy() = 0;
 
 		virtual void Resize(unsigned int width,unsigned int height) = 0;
+
+		virtual void SetNewFrame() = 0;
+
+		virtual void Update() = 0;
+
 		virtual void Render() = 0;
 
 		virtual void Wait() = 0;
