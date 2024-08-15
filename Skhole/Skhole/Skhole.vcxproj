@@ -183,6 +183,8 @@
     <ClInclude Include="include\scene\scene.h" />
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp" />
     <ClInclude Include="include\vulkan_helpler\vk_buffer.h" />
+    <ClInclude Include="include\vulkan_helpler\vk_hepler.h" />
+    <ClInclude Include="include\vulkan_helpler\vk_imgui.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />

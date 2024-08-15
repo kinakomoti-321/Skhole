@@ -25,76 +25,16 @@ namespace Skhole {
 		ImGui::StyleColorsDark();
 		ImGui_ImplGlfw_InitForVulkan(m_desc.window, true);
 
-		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = *m_instance;
-		init_info.PhysicalDevice = m_physicalDevice;
-		init_info.Device = *m_device;
-		init_info.QueueFamily = m_queueIndex;
-		init_info.Queue = m_queue;
-		init_info.PipelineCache = VK_NULL_HANDLE;
-
-		// Not share
-		std::vector<vk::DescriptorPoolSize> poolSize = {
-			{vk::DescriptorType::eSampler,1000},
-			{vk::DescriptorType::eCombinedImageSampler,1000},
-			{vk::DescriptorType::eSampledImage,1000},
-			{vk::DescriptorType::eStorageImage,1000},
-			{vk::DescriptorType::eUniformTexelBuffer,1000},
-			{vk::DescriptorType::eStorageTexelBuffer,1000},
-			{vk::DescriptorType::eUniformBuffer,1000},
-			{vk::DescriptorType::eStorageBuffer,1000},
-			{vk::DescriptorType::eUniformBufferDynamic,1000},
-			{vk::DescriptorType::eStorageBufferDynamic,1000},
-			{vk::DescriptorType::eInputAttachment,1000}
-		};
-
-		vk::DescriptorPoolCreateInfo poolInfo = {};
-		poolInfo.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-		poolInfo.setMaxSets(1000);
-		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSize.size());
-		poolInfo.pPoolSizes = poolSize.data();
-
-		m_imGuiDescriptorPool = m_device->createDescriptorPoolUnique(poolInfo);
-
-		init_info.DescriptorPool = *m_imGuiDescriptorPool;
-		init_info.Allocator = nullptr;
-		init_info.MinImageCount = 2;
-		init_info.ImageCount = m_swapchainImages.size();
-		init_info.CheckVkResultFn = nullptr;
-
-		//Create RenderPass;
-		vk::AttachmentDescription colorAttachment = {};
-		colorAttachment.setFormat(vk::Format::eB8G8R8A8Unorm);
-		colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
-		colorAttachment.setLoadOp(vk::AttachmentLoadOp::eLoad);
-		colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-		colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-		colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
-		colorAttachment.setInitialLayout(vk::ImageLayout::eGeneral);
-		colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
-
-		vk::AttachmentReference colorAttachmentRef = {};
-		colorAttachmentRef.setAttachment(0);
-		colorAttachmentRef.setLayout(vk::ImageLayout::eGeneral);
-
-		vk::SubpassDescription subpass = {};
-		subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics); //Utagai
-		subpass.setColorAttachmentCount(1);
-		subpass.setPColorAttachments(&colorAttachmentRef);
-
-		vk::RenderPassCreateInfo renderPassInfo = {};
-		renderPassInfo.setAttachmentCount(1);
-		renderPassInfo.setPAttachments(&colorAttachment);
-		renderPassInfo.setSubpassCount(1);
-		renderPassInfo.setPSubpasses(&subpass);
-
-		m_imGuiRenderPass = m_device->createRenderPassUnique(renderPassInfo);
-
-		init_info.RenderPass = *m_imGuiRenderPass;
-		ImGui_ImplVulkan_Init(&init_info);
-
-		ImGui_ImplVulkan_CreateFontsTexture();
-
+		VkHelper::InitImGuiInVulkan(
+			*m_instance,
+			m_physicalDevice,
+			*m_device,
+			m_queueIndex,
+			m_queue,
+			*m_imGuiRenderPass,
+			2,
+			m_swapchainImages.size()
+		);
 	}
 
 	void SimpleRaytracer::Init(RendererDesc& desc)
@@ -142,9 +82,6 @@ namespace Skhole {
 				m_device->createImageViewUnique(createInfo));
 		}
 
-
-
-
 		vkutils::oneTimeSubmit(*m_device, *m_commandPool, m_queue,
 			[&](vk::CommandBuffer commandBuffer) {
 				for (auto& image : m_swapchainImages) {
@@ -153,6 +90,13 @@ namespace Skhole {
 						vk::ImageLayout::ePresentSrcKHR);
 				}
 			});
+
+		m_imGuiRenderPass = VkHelper::CreateRenderPass(
+			vk::Format::eB8G8R8A8Unorm,
+			vk::ImageLayout::eGeneral,
+			vk::ImageLayout::ePresentSrcKHR,
+			*m_device
+		);
 
 		CreateBottomLevelAS();
 		CreateTopLevelAS();
@@ -607,7 +551,6 @@ namespace Skhole {
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
 		std::vector<vk::WriteDescriptorSet> writes(2);
 
-		// [0]: For AS
 		vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
 		accelInfo.setAccelerationStructures(*m_topAccel.accel);
 		writes[0].setDstSet(*descSet);
@@ -617,7 +560,6 @@ namespace Skhole {
 			vk::DescriptorType::eAccelerationStructureKHR);
 		writes[0].setPNext(&accelInfo);
 
-		// [0]: For storage image
 		vk::DescriptorImageInfo imageInfo{};
 		imageInfo.setImageView(imageView);
 		imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
@@ -626,7 +568,6 @@ namespace Skhole {
 		writes[1].setDescriptorType(vk::DescriptorType::eStorageImage);
 		writes[1].setImageInfo(imageInfo);
 
-		// Update
 		m_device->updateDescriptorSets(writes, nullptr);
 	}
 

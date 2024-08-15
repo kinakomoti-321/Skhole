@@ -3,6 +3,9 @@
 #include <renderer/renderer.h>
 #include <vulkan_helpler/vkutils.hpp>
 #include <vulkan_helpler/vk_buffer.h>
+#include <vulkan_helpler/vk_hepler.h>
+#include <vulkan_helpler/vk_imgui.h>
+
 #include <scene/scene.h>
 
 namespace Skhole
