@@ -110,13 +110,10 @@ namespace Skhole
 		vk::StridedDeviceAddressRegionKHR hitRegion{};
 
 		void InitImGui();
-		ImGuiContext* m_context;
+		VkHelper::VulkanImGuiManager m_imGuiManager;
 		vk::UniqueRenderPass m_imGuiRenderPass;
 
-
 		// Material
-		//void DefineMaterial();
-
 		const std::vector<ShrPtr<MaterialParameter>> m_matParams =
 		{	
 			MakeShr<MatParamColor>("BaseColor", vec4(0.8f)),
