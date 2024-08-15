@@ -20,12 +20,6 @@ namespace Skhole {
 
 	void SimpleRaytracer::InitImGui()
 	{
-		//m_context = ImGui::CreateContext();
-		//ImGui::SetCurrentContext(m_context);
-		//ImGui::StyleColorsDark();
-		//ImGui_ImplGlfw_InitForVulkan(m_desc.window, true);
-
-		
 		m_imGuiManager.Init(
 			m_desc.window,
 			*m_instance,
@@ -133,6 +127,23 @@ namespace Skhole {
 		InitImGui();
 
 
+		//UniformBuffer 
+		uniformBufferObject.frame = 0;
+		uniformBufferObject.spp = 100;
+		uniformBufferObject.width = m_desc.Width;
+		uniformBufferObject.height = m_desc.Height;
+
+		uniformBufferObject.cameraDir = vec3(0.0f, 0.0f, -1.0f);
+		uniformBufferObject.cameraPos = vec3(0.0,30.0,50.0);
+		uniformBufferObject.cameraUp = vec3(0.0f, 1.0f, 0.0f);
+		uniformBufferObject.cameraRight = vec3(1.0f, 0.0f, 0.0f);
+
+		m_uniformBuffer.init(m_physicalDevice, *m_device, sizeof(UniformBufferObject),
+			vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			&uniformBufferObject
+		);
+
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
@@ -175,6 +186,7 @@ namespace Skhole {
 
 		uint32_t primitiveCount = static_cast<uint32_t>(indices.size() / 3);
 		m_bottomAccel.init(m_physicalDevice, *m_device, *m_commandPool, m_queue, vk::AccelerationStructureTypeKHR::eBottomLevel, geometry, primitiveCount);
+
 	}
 
 	void SimpleRaytracer::CreateTopLevelAS() {
@@ -216,6 +228,7 @@ namespace Skhole {
 			vk::AccelerationStructureTypeKHR::eTopLevel,
 			ias, gasCount);
 		SKHOLE_LOG("Instance AS was Created");
+
 	}
 
 #define SHADER_FILE_PATH "shader/"
@@ -276,20 +289,6 @@ namespace Skhole {
 		shaderGroups[hitGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
 	}
 
-	void SimpleRaytracer::CreateDescriptorPool()
-	{
-		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_device);
-	}
-
-	void SimpleRaytracer::CreateDescSetLayout() {
-
-		m_bindingManager.bindings = {
-			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR}
-		};
-
-		m_bindingManager.SetLayout(*m_device);
-	}
 
 	void SimpleRaytracer::CreateDescSet() {
 		std::cout << "Create desc set\n";
@@ -527,33 +526,30 @@ namespace Skhole {
 
 	}
 
+	void SimpleRaytracer::CreateDescriptorPool()
+	{
+		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_device);
+	}
+
+	void SimpleRaytracer::CreateDescSetLayout() {
+
+		m_bindingManager.bindings = {
+			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR }
+		};
+
+		m_bindingManager.SetLayout(*m_device);
+	}
+
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
 		std::vector<vk::WriteDescriptorSet> writes(2);
-
-		//vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
-		//accelInfo.setAccelerationStructures(*m_topAccel.accel);
-		//writes[0].setDstSet(m_bindingManager.descriptorSet);
-		//writes[0].setDstBinding(0);
-		//writes[0].setDescriptorCount(1);
-		//writes[0].setDescriptorType(
-		//	vk::DescriptorType::eAccelerationStructureKHR);
-		//writes[0].setPNext(&accelInfo);
-
-		//vk::DescriptorImageInfo imageInfo{};
-		//imageInfo.setImageView(imageView);
-		//imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
-		//writes[1].setDstSet(m_bindingManager.descriptorSet);
-		//writes[1].setDstBinding(1);
-		//writes[1].setDescriptorType(vk::DescriptorType::eStorageImage);
-		//writes[1].setImageInfo(imageInfo);
 
 		VkHelper::BindingManager::WritingInfo info;
 		info.numAS = 1;
 		info.numImage = 1;
+		info.numBuffer = 1;
 		m_bindingManager.StartWriting(info);
-
-		//m_bindingManager.writeDescriptorSets = writes;
-
 
 		m_bindingManager.WriteAS(
 			*m_topAccel.accel, 0, 1, *m_device
@@ -562,6 +558,11 @@ namespace Skhole {
 		m_bindingManager.WriteImage(
 			imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
 			vk::DescriptorType::eStorageImage, 1, 1, *m_device
+		);
+
+		m_bindingManager.WriteBuffer(
+			*m_uniformBuffer.buffer, 0, sizeof(UniformBufferObject),
+			vk::DescriptorType::eUniformBuffer, 2, 1, *m_device
 		);
 
 		m_bindingManager.EndWriting(*m_device);

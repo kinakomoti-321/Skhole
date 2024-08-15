@@ -53,6 +53,15 @@ namespace Skhole {
 				address = device.getBufferAddressKHR(&addressInfo);
 			}
 		}
+
+		void* Map(vk::Device device, uint32_t offset, uint32_t size) {
+			return device.mapMemory(*memory, offset, size);
+		}
+
+		void Ummap(vk::Device device) {
+			device.unmapMemory(*memory);
+		}
+
 	};
 
 	struct DeviceBuffer {

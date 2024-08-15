@@ -121,5 +121,18 @@ namespace Skhole
 			MakeShr<MatParamFloat>("Metallic", 0.0f),
 		};
 
+		struct UniformBufferObject {
+			uint32_t spp;
+			uint32_t frame;
+			uint32_t width;
+			uint32_t height;
+
+			vec3 cameraPos;
+			vec3 cameraDir;
+			vec3 cameraUp;
+			vec3 cameraRight;
+		};
+		UniformBufferObject uniformBufferObject;
+		Buffer m_uniformBuffer;
 	};
 }

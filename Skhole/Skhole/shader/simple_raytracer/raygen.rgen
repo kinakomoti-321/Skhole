@@ -10,10 +10,21 @@ layout(location = 0) rayPayloadEXT PayLoadStruct payload;
 layout(binding = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, rgba8) uniform image2D image;
 
+
+layout(binding = 2) uniform UBO {
+    uint spp;
+    uint frame;
+
+    uint width;
+    uint height;
+
+    vec3 cameraPos;
+} ubo;
+
 void main()
 {
     vec2 uv = (vec2(gl_LaunchIDEXT.xy) + vec2(0.5)) / vec2(gl_LaunchSizeEXT.xy);
-    vec3 origin = vec3(0, 0, 5);
+    vec3 origin = ubo.cameraPos;
     vec3 target = vec3(uv * 2.0 - 1.0, 2);
     vec3 direction = normalize(target - origin);
 
