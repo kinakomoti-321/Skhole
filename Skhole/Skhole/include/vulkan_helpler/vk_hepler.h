@@ -95,76 +95,96 @@ namespace VkHelper {
 
 			descriptorSet = device.allocateDescriptorSets(allocInfo)[0];
 		}
+		
+		struct WritingInfo {
+			uint32_t numBuffer = 0;
+			uint32_t numImage = 0;
+			uint32_t numAS = 0;
+		};
 
-		void StartWriting() {
-			writeDescriptorSets.clear();
+		std::vector<vk::DescriptorBufferInfo> writeBufferInfo;
+		std::vector<vk::DescriptorImageInfo> writeImageInfo;
+		std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> writeASInfo;
+
+		void StartWriting(WritingInfo& info) {
+			writeBufferInfo.reserve(info.numBuffer);
+			writeImageInfo.reserve(info.numImage);
+			writeASInfo.reserve(info.numAS);
+
+			uint32_t sum = info.numBuffer + info.numImage + info.numAS;
+			writeDescriptorSets.reserve(sum);
 		}
 
 		void WriteAS(vk::AccelerationStructureKHR& as, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
-
-			vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
-			accelInfo.setAccelerationStructures(as);
+			vk::WriteDescriptorSetAccelerationStructureKHR asInfo = {};
+			asInfo.setAccelerationStructures(as);
+			writeASInfo.push_back(asInfo);
 
 			vk::WriteDescriptorSet writeDescriptorSet = {};
 			writeDescriptorSet.setDstSet(descriptorSet);
 			writeDescriptorSet.setDstBinding(bindNumber);
 			writeDescriptorSet.setDescriptorCount(descriptorCount);
 			writeDescriptorSet.setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR);
-			writeDescriptorSet.setPNext(&accelInfo);
+			writeDescriptorSet.setPNext(&writeASInfo[writeASInfo.size() - 1]);
 
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
 
 		void WriteBuffer(vk::Buffer buffer, uint32_t offset, uint32_t range,
-			vk::DescriptorType type,uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
-
-			vk::WriteDescriptorSet writeDescriptorSet = {};
-
+			vk::DescriptorType type, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
+			
 			vk::DescriptorBufferInfo bufferInfo = {};
 			bufferInfo.setBuffer(buffer);
 			bufferInfo.setOffset(0);
 			bufferInfo.setRange(range);
 
+			writeBufferInfo.push_back(bufferInfo);
+		
+			vk::WriteDescriptorSet writeDescriptorSet = {};
 			writeDescriptorSet.setDstSet(descriptorSet);
 			writeDescriptorSet.setDstBinding(bindNumber);
 			writeDescriptorSet.setDescriptorCount(descriptorCount);
 			writeDescriptorSet.setDescriptorType(type);
-			writeDescriptorSet.setPBufferInfo(&bufferInfo);
+			writeDescriptorSet.setPBufferInfo(&writeBufferInfo[writeBufferInfo.size() - 1]);
 
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
 
-		void WriteImage(vk::ImageView imageView,vk::ImageLayout layout, vk::Sampler sampler,
-			vk::DescriptorType type,uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
+		void WriteImage(vk::ImageView imageView, vk::ImageLayout layout, vk::Sampler sampler,
+			vk::DescriptorType type, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
 
-			vk::DescriptorImageInfo imageInfo = {};
+			vk::DescriptorImageInfo imageInfo = {};	
 			imageInfo.setImageView(imageView);
 			imageInfo.setImageLayout(layout);
-			if(VK_NULL_HANDLE == sampler) imageInfo.setSampler(sampler);
+			if (VK_NULL_HANDLE != sampler) imageInfo.setSampler(sampler);
 
-			vk::WriteDescriptorSet writeDescriptorSet = {};	
+			writeImageInfo.push_back(imageInfo);
+
+			vk::WriteDescriptorSet writeDescriptorSet = {};
 			writeDescriptorSet.setDstSet(descriptorSet);
 			writeDescriptorSet.setDstBinding(bindNumber);
 			writeDescriptorSet.setDescriptorCount(descriptorCount);
 			writeDescriptorSet.setDescriptorType(type);
-			writeDescriptorSet.setPImageInfo(&imageInfo);
+			writeDescriptorSet.setPImageInfo(&writeImageInfo[writeImageInfo.size() - 1]);
 
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
 
 		void EndWriting(vk::Device device) {
-			if (writeDescriptorSets.size() > 0){
-				device.updateDescriptorSets(writeDescriptorSets, nullptr);
-			}
-			else{
-				SKHOLE_ERROR("Write Descriptor Set is Empty");
-			}
+			device.updateDescriptorSets(writeDescriptorSets, nullptr);
+
+			writeDescriptorSets.clear();
+			writeBufferInfo.clear();
+			writeImageInfo.clear();
+			writeASInfo.clear();
 		}
-			
+
 		void Release(vk::Device device) {
 			device.destroyDescriptorSetLayout(descriptorSetLayout);
 			device.destroyDescriptorPool(descriptorPool);
 		}
 
+	private:
+		
 	};
 };

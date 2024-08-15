@@ -410,12 +410,6 @@ namespace Skhole {
 		
 		m_bindingManager.Release(*m_device);
 		m_imGuiManager.Destroy(*m_device);
-
-		//ImGui_ImplVulkan_DestroyFontsTexture();
-		//ImGui_ImplVulkan_Shutdown();
-		//ImGui_ImplGlfw_Shutdown();
-		//ImGui::DestroyContext();
-
 	}
 
 	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
@@ -536,36 +530,39 @@ namespace Skhole {
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
 		std::vector<vk::WriteDescriptorSet> writes(2);
 
-		vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
-		accelInfo.setAccelerationStructures(*m_topAccel.accel);
-		writes[0].setDstSet(m_bindingManager.descriptorSet);
-		writes[0].setDstBinding(0);
-		writes[0].setDescriptorCount(1);
-		writes[0].setDescriptorType(
-			vk::DescriptorType::eAccelerationStructureKHR);
-		writes[0].setPNext(&accelInfo);
+		//vk::WriteDescriptorSetAccelerationStructureKHR accelInfo{};
+		//accelInfo.setAccelerationStructures(*m_topAccel.accel);
+		//writes[0].setDstSet(m_bindingManager.descriptorSet);
+		//writes[0].setDstBinding(0);
+		//writes[0].setDescriptorCount(1);
+		//writes[0].setDescriptorType(
+		//	vk::DescriptorType::eAccelerationStructureKHR);
+		//writes[0].setPNext(&accelInfo);
 
-		vk::DescriptorImageInfo imageInfo{};
-		imageInfo.setImageView(imageView);
-		imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
-		writes[1].setDstSet(m_bindingManager.descriptorSet);
-		writes[1].setDstBinding(1);
-		writes[1].setDescriptorType(vk::DescriptorType::eStorageImage);
-		writes[1].setImageInfo(imageInfo);
+		//vk::DescriptorImageInfo imageInfo{};
+		//imageInfo.setImageView(imageView);
+		//imageInfo.setImageLayout(vk::ImageLayout::eGeneral);
+		//writes[1].setDstSet(m_bindingManager.descriptorSet);
+		//writes[1].setDstBinding(1);
+		//writes[1].setDescriptorType(vk::DescriptorType::eStorageImage);
+		//writes[1].setImageInfo(imageInfo);
 
-		m_bindingManager.StartWriting();
+		VkHelper::BindingManager::WritingInfo info;
+		info.numAS = 1;
+		info.numImage = 1;
+		m_bindingManager.StartWriting(info);
 
-		m_bindingManager.writeDescriptorSets = writes;
+		//m_bindingManager.writeDescriptorSets = writes;
 
 
-		//m_bindingManager.WriteAS(
-		//	*m_topAccel.accel, 0, 1, *m_device
-		//);
+		m_bindingManager.WriteAS(
+			*m_topAccel.accel, 0, 1, *m_device
+		);
 
-		//m_bindingManager.WriteImage(
-		//	imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
-		//	vk::DescriptorType::eStorageImage, 1, 1, *m_device
-		//);
+		m_bindingManager.WriteImage(
+			imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+			vk::DescriptorType::eStorageImage, 1, 1, *m_device
+		);
 
 		m_bindingManager.EndWriting(*m_device);
 	}
