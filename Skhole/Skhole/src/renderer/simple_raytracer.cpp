@@ -20,12 +20,14 @@ namespace Skhole {
 
 	void SimpleRaytracer::InitImGui()
 	{
-		m_context = ImGui::CreateContext();
-		ImGui::SetCurrentContext(m_context);
-		ImGui::StyleColorsDark();
-		ImGui_ImplGlfw_InitForVulkan(m_desc.window, true);
+		//m_context = ImGui::CreateContext();
+		//ImGui::SetCurrentContext(m_context);
+		//ImGui::StyleColorsDark();
+		//ImGui_ImplGlfw_InitForVulkan(m_desc.window, true);
 
-		VkHelper::InitImGuiInVulkan(
+		
+		m_imGuiManager.Init(
+			m_desc.window,
 			*m_instance,
 			m_physicalDevice,
 			*m_device,
@@ -35,6 +37,7 @@ namespace Skhole {
 			2,
 			m_swapchainImages.size()
 		);
+
 	}
 
 	void SimpleRaytracer::Init(RendererDesc& desc)
@@ -406,11 +409,12 @@ namespace Skhole {
 		m_device->waitIdle();
 		
 		m_bindingManager.Release(*m_device);
+		m_imGuiManager.Destroy(*m_device);
 
-		ImGui_ImplVulkan_DestroyFontsTexture();
-		ImGui_ImplVulkan_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
+		//ImGui_ImplVulkan_DestroyFontsTexture();
+		//ImGui_ImplVulkan_Shutdown();
+		//ImGui_ImplGlfw_Shutdown();
+		//ImGui::DestroyContext();
 
 	}
 
