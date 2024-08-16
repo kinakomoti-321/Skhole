@@ -3,6 +3,7 @@
 #include <include.h>
 #include <renderer/renderer.h>
 #include <renderer/simple_raytracer.h>
+#include <common/math.h>
 
 namespace Skhole {
 
@@ -49,10 +50,52 @@ namespace Skhole {
 		}
 	};
 
-	struct CameraContoller {
-		CameraContoller() {}	
+	struct CamereController {
+		CamereController() {}
 
-		float cameraSpeed = 0.01;	
+		void SetCamera(ShrPtr<RendererDefinisionCamera>& camera) {
+			this->camera = camera;
+		}
+
+		void Rotate(vec2 offset) {
+			vec2 angleT = offset * sensitivity;
+
+			vec3 cameraDir =camera->basicParameter.cameraDir;
+			vec3 cameraUp =camera->basicParameter.cameraUp;
+			vec3 cameraRight = camera->basicParameter.cameraRight;
+
+			mat3 rotY = rotateY(-angleT.x);
+			mat3 rotUp = rotateMaterixFromAxis(angleT.y * 2.0, cameraRight);
+
+			cameraDir = rotUp * (rotY * cameraDir);
+			cameraRight = rotUp * (rotY * cameraRight);
+			cameraUp = rotUp * (rotY * cameraUp);
+
+			camera->basicParameter.cameraDir = normalize(cameraDir);
+			camera->basicParameter.cameraRight = normalize(cameraRight);
+			camera->basicParameter.cameraUp = normalize(cameraUp);
+		}
+
+		void UpPosition(float magnitude) {
+			camera->basicParameter.position += camera->basicParameter.cameraDir * cameraSpeed * magnitude;
+		}
+		void DownPosition(float magnitude) {
+			camera->basicParameter.position -= camera->basicParameter.cameraDir * cameraSpeed * magnitude;
+		}
+		void LeftPosition(float magnitude) {
+			camera->basicParameter.position -= camera->basicParameter.cameraRight * cameraSpeed * magnitude;
+		}
+		void RightPosition(float magnitude) {
+			camera->basicParameter.position += camera->basicParameter.cameraRight * cameraSpeed * magnitude;
+		}
+
+		ShrPtr<RendererDefinisionCamera> camera;
+
+		float yow = 0;
+		float pitch = 0;
+
+		float cameraSpeed = 0.01;
+		float sensitivity = 0.0015;
 	};
 
 	class Editor {
@@ -75,6 +118,8 @@ namespace Skhole {
 		void ShowObjectGUI();
 		void ShowMateralGUI();
 
+		void ControlCamera();
+
 
 		void SaveScene();
 
@@ -93,6 +138,8 @@ namespace Skhole {
 
 		static EditorInputManager m_inputManager;
 		vec2 angle;
+
+		CamereController m_cameraController;
 	};
 }
 

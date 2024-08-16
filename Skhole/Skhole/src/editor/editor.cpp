@@ -24,7 +24,7 @@ namespace Skhole
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		
+
 		m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, m_applicationName.c_str(), nullptr, nullptr);
 
 		if (!m_window) {
@@ -57,60 +57,46 @@ namespace Skhole
 		m_renderer->SetScene(m_scene);
 	}
 
+	void Editor::ControlCamera() {
+		m_cameraController.SetCamera(m_scene->m_camera);
+		// Input 
+		{
+			m_inputManager.CheckKeyInput(m_window);
+
+			if (m_inputManager.leftMouseButtonPressed) {
+				vec2 offset = m_inputManager.mousePosition - m_inputManager.preMousePosition;
+				if (std::abs(offset.x) < 1.5) offset.x = 0;
+				if (std::abs(offset.y) < 1.5) offset.y = 0;
+				m_cameraController.Rotate(offset);
+			}
+
+			float magnitude = 1.0;
+			if (m_inputManager.shiftPressed) magnitude = 2.0;
+
+			if (m_inputManager.wPressed) {
+				m_cameraController.UpPosition(magnitude);
+			}
+
+			if (m_inputManager.sPressed) {
+				m_cameraController.DownPosition(magnitude);
+			}
+
+			if (m_inputManager.aPressed) {
+				m_cameraController.LeftPosition(magnitude);
+			}
+
+			if (m_inputManager.dPressed) {
+				m_cameraController.RightPosition(magnitude);
+			}
+
+		}
+	}
 	void Editor::Run() {
 
 		while (!glfwWindowShouldClose(m_window)) {
 			glfwPollEvents();
-			
-			// Input 
-			{
-				m_inputManager.CheckKeyInput(m_window);
 
-				float speed = 0.02;
-				if (m_inputManager.shiftPressed)
-					speed *= 2.0;
-				vec2 ddxy = m_inputManager.mousePosition - m_inputManager.preMousePosition;
-
-				if (std::abs(ddxy.x) <= 1.0) ddxy.x = 0.0;
-				if (std::abs(ddxy.y) <= 1.0) ddxy.y = 0.0;
-
-				if (m_inputManager.leftMouseButtonPressed) {
-					float speedA = 0.0015;
-					vec2 angleT = ddxy * speedA;
-
-					vec3 cameraDir = m_scene->m_camera->basicParameter.cameraDir;
-					vec3 cameraUp = m_scene->m_camera->basicParameter.cameraUp;
-					vec3 cameraRight = m_scene->m_camera->basicParameter.cameraRight;
-
-					mat3 rotY =	rotateY(-angleT.x);
-					mat3 rotUp = rotateMaterixFromAxis(angleT.y * 2.0,cameraRight);
-
-					cameraDir = rotUp * (rotY * cameraDir);
-					cameraRight = rotUp * (rotY * cameraRight);
-					cameraUp =  rotUp * (rotY * cameraUp);
-
-					m_scene->m_camera->basicParameter.cameraDir = normalize(cameraDir);
-					m_scene->m_camera->basicParameter.cameraRight = normalize(cameraRight);
-					m_scene->m_camera->basicParameter.cameraUp = normalize(cameraUp);
-				}
-				
-				if (m_inputManager.wPressed) {
-					m_scene->m_camera->basicParameter.position += speed * m_scene->m_camera->basicParameter.cameraDir;
-				}
-
-				if (m_inputManager.sPressed) {
-					m_scene->m_camera->basicParameter.position -= speed * m_scene->m_camera->basicParameter.cameraDir;
-				}
-
-				if (m_inputManager.aPressed) {
-					m_scene->m_camera->basicParameter.position -= speed * m_scene->m_camera->basicParameter.cameraRight;
-				}
-
-				if (m_inputManager.dPressed) {
-					m_scene->m_camera->basicParameter.position += speed * m_scene->m_camera->basicParameter.cameraRight;
-				}
-
-			}
+			ControlCamera();
 
 			m_renderer->SetNewFrame();
 			ShowGUI();
@@ -162,8 +148,8 @@ namespace Skhole
 				ImGui::Text("Renderer Camera");
 				auto& camera = m_scene->m_camera;
 
-				ImGui::InputFloat3("Position",camera->basicParameter.position.v);
-				ImGui::InputFloat3("Direction Vector",camera->basicParameter.cameraDir.v);
+				ImGui::InputFloat3("Position", camera->basicParameter.position.v);
+				ImGui::InputFloat3("Direction Vector", camera->basicParameter.cameraDir.v);
 				ImGui::InputFloat3("Up Vector", camera->basicParameter.cameraUp.v);
 				ImGui::InputFloat("FOV", &camera->basicParameter.fov);
 
@@ -195,6 +181,10 @@ namespace Skhole
 						break;
 					}
 				}
+
+				ImGui::InputFloat("Speed", &m_cameraController.cameraSpeed);
+				ImGui::InputFloat("Sensitivity", &m_cameraController.sensitivity);
+
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -290,7 +280,7 @@ namespace Skhole
 
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			m_inputManager.rightMouseButtonPressed = true;
-		} 
+		}
 	}
 
 	void Editor::MouseCallback(GLFWwindow* window, double xpos, double ypos) {
