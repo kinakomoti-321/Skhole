@@ -19,14 +19,39 @@ layout(binding = 2) uniform UBO {
     uint height;
 
     vec3 cameraPos;
+    vec3 cameraDir;
+    vec3 cameraUp;
+    vec3 cameraRight;
+
 } ubo;
+
+struct Ray{
+    vec3 origin;
+    vec3 direction;
+};
+
+vec3 GetPinholeCameraDir(vec3 cameraDir,vec3 cameraUp,vec3 cameraRight,vec2 uv, float f){
+    return normalize(uv.y * cameraUp + uv.x * cameraRight + f * cameraDir);
+}
 
 void main()
 {
     vec2 uv = (vec2(gl_LaunchIDEXT.xy) + vec2(0.5)) / vec2(gl_LaunchSizeEXT.xy);
+    float aspect = float(ubo.width) / float(ubo.height);
     vec3 origin = ubo.cameraPos;
     vec3 target = vec3(uv * 2.0 - 1.0, 2);
     vec3 direction = normalize(target - origin);
+    Ray ray;
+    ray.origin = ubo.cameraPos;
+
+    ray.direction = GetPinholeCameraDir(
+        ubo.cameraDir,
+        ubo.cameraUp,
+        ubo.cameraRight,
+        uv * 2.0 - 1.0,
+        2.0
+    );
+     
 
     payload.basecolor = vec3(0);
     payload.normal = vec3(0);
@@ -37,9 +62,9 @@ void main()
         gl_RayFlagsOpaqueEXT,
         0xff,       // cullMask
         0, 0, 0,    // sbtRecordOffset, sbtRecordStride, missIndex
-        origin,
+        ray.origin,
         0.001,      // tMin
-        direction,
+        ray.direction,
         10000.0,    // tMax
         0           // payloadLocation
     );

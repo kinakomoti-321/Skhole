@@ -47,6 +47,7 @@ namespace Skhole
 
 		m_scene->RendererSet(m_renderer);
 
+		m_renderer->SetScene(m_scene);
 	}
 
 	void Editor::Run() {
@@ -55,6 +56,8 @@ namespace Skhole
 			glfwPollEvents();
 			m_renderer->SetNewFrame();
 			ShowGUI();
+			m_renderer->UpdateCamera();
+
 			m_renderer->Update();
 			m_renderer->Render();
 		}
@@ -78,15 +81,61 @@ namespace Skhole
 		RendererData rendererData = m_renderer->GetRendererData();
 
 		//Renderer Imformation
-		ImGui::Begin("Rendering Infomation");
-		std::string rendererName = "Renderer Name :" + rendererData.rendererName;
-		ImGui::Text(rendererName.c_str());
 
-		ImGui::Text("Renderer Material");
-		auto& mat = rendererData.materials;
-		for (auto& matParam : mat.materialParameters) {
-			ImGui::Text(matParam->getParamName().c_str());
+
+
+		ImGui::Begin("Rendering Infomation");
+
+		if (ImGui::BeginTabBar("MyTab"))
+		{
+			if (ImGui::BeginTabItem("Renderer"))
+			{
+				std::string rendererName = "Renderer Name:" + rendererData.rendererName;
+				ImGui::Text(rendererName.c_str());
+
+				ImGui::Text("Renderer");
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Camera"))
+			{
+				ImGui::Text("Renderer Camera");
+				auto& camera = m_scene->m_camera;
+				for (auto& camParam : camera->cameraParameters) {
+					ShrPtr<ParamFloat> floatParam;
+					ShrPtr<ParamVec> vec3Param;
+					ShrPtr<ParamUint> textureIDParam;
+
+					switch (camParam->getParamType())
+					{
+					case ParameterType::FLOAT:
+						floatParam = std::static_pointer_cast<ParamFloat>(camParam);
+						ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
+						break;
+
+					case ParameterType::VECTOR:
+						vec3Param = std::static_pointer_cast<ParamVec>(camParam);
+						ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
+						break;
+
+					case ParameterType::UINT:
+						textureIDParam = std::static_pointer_cast<ParamUint>(camParam);
+						ImGui::Text(textureIDParam->getParamName().c_str());
+						break;
+
+					default:
+						SKHOLE_UNIMPL();
+						break;
+					}
+				}
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
 		}
+
+
+
+
 
 		ImGui::End();
 	}
@@ -105,7 +154,7 @@ namespace Skhole
 		}
 
 		static int selectedIndex = 0;
-		ImGui::ListBox("List",&selectedIndex,objectNames.data(),objectNames.size());
+		ImGui::ListBox("List", &selectedIndex, objectNames.data(), objectNames.size());
 
 		ImGui::End();
 	}
@@ -117,44 +166,45 @@ namespace Skhole
 		materialNames.reserve(m_scene->m_basicMaterials.size());
 		for (auto& material : m_scene->m_materials) {
 			materialNames.push_back(material->materialName.c_str());
-		}	
+		}
 
 		static int selectedIndex = 0;
 		ImGui::ListBox("List", &selectedIndex, materialNames.data(), materialNames.size());
 
+		bool materialUpdate = false;
 		auto& mat = m_scene->m_materials[selectedIndex];
 		for (auto& matParam : mat->materialParameters) {
 			//ImGui::Text(matParam->getParamName().c_str());
-			ShrPtr<MatParamBool> boolParam;
-			ShrPtr<MatParamFloat> floatParam;
-			ShrPtr<MatParamVector> vec3Param;
-			ShrPtr<MatParamColor> vec4Param;
-			ShrPtr<MatParamTexID> textureIDParam;
+			ShrPtr<ParamBool> boolParam;
+			ShrPtr<ParamFloat> floatParam;
+			ShrPtr<ParamVec> vec3Param;
+			ShrPtr<ParamCol> vec4Param;
+			ShrPtr<ParamUint> textureIDParam;
 
 			switch (matParam->getParamType())
 			{
-			case MaterialParameterType::BOOL:
-				boolParam = std::static_pointer_cast<MatParamBool>(matParam);
+			case ParameterType::BOOL:
+				boolParam = std::static_pointer_cast<ParamBool>(matParam);
 				ImGui::Checkbox(boolParam->getParamName().c_str(), &boolParam->value);
 				break;
 
-			case MaterialParameterType::FLOAT:
-				floatParam = std::static_pointer_cast<MatParamFloat>(matParam);
+			case ParameterType::FLOAT:
+				floatParam = std::static_pointer_cast<ParamFloat>(matParam);
 				ImGui::SliderFloat(floatParam->getParamName().c_str(), &floatParam->value, 0.0f, 1.0f);
 				break;
 
-			case MaterialParameterType::VECTOR:
-				vec3Param = std::static_pointer_cast<MatParamVector>(matParam);
+			case ParameterType::VECTOR:
+				vec3Param = std::static_pointer_cast<ParamVec>(matParam);
 				ImGui::SliderFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v, 0.0f, 1.0f);
 				break;
 
-			case MaterialParameterType::COLOR:
-				vec4Param = std::static_pointer_cast<MatParamColor>(matParam);
+			case ParameterType::COLOR:
+				vec4Param = std::static_pointer_cast<ParamCol>(matParam);
 				ImGui::ColorEdit4(vec4Param->getParamName().c_str(), vec4Param->value.v);
 				break;
 
-			case MaterialParameterType::TEXTURE_ID:
-				textureIDParam = std::static_pointer_cast<MatParamTexID>(matParam);
+			case ParameterType::UINT:
+				textureIDParam = std::static_pointer_cast<ParamUint>(matParam);
 				ImGui::Text(textureIDParam->getParamName().c_str());
 				break;
 
@@ -163,8 +213,6 @@ namespace Skhole
 				break;
 			}
 		}
-
-
 
 		ImGui::End();
 	}

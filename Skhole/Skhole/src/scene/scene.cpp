@@ -34,7 +34,12 @@ namespace Skhole {
 		{
 			m_materials.push_back(renderer->GetMaterial(mat));
 		}
+
+		m_basicCamera = MakeShr<BasicCamera>();
+
+		m_camera = renderer->GetCamera(m_basicCamera);
 	}
+
 
 	void Scene::LoadModelFile() {
 		SKHOLE_UNIMPL();	

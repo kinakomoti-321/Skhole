@@ -431,14 +431,21 @@ namespace Skhole {
 
 	void SimpleRaytracer::Render()
 	{
+		
+		auto& camera = m_scene->m_camera;
+		uniformBufferObject.cameraPos = std::static_pointer_cast<ParamVec>(camera->cameraParameters[0])->value;
+		uniformBufferObject.cameraDir = std::static_pointer_cast<ParamVec>(camera->cameraParameters[1])->value;
+		uniformBufferObject.cameraUp = std::static_pointer_cast<ParamVec>(camera->cameraParameters[2])->value;
+
+		void* map = m_uniformBuffer.Map(*m_device,0,sizeof(UniformBufferObject));
+		memcpy(map,&uniformBufferObject,sizeof(UniformBufferObject));
+		m_uniformBuffer.Ummap(*m_device);
 
 		static int frame = 0;
 
-		// Create semaphore
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_device->createSemaphoreUnique({});
 
-		// Acquire next image
 		auto result = m_device->acquireNextImageKHR(
 			*m_swapchain, std::numeric_limits<uint64_t>::max(),
 			*imageAvailableSemaphore);
@@ -447,14 +454,11 @@ namespace Skhole {
 			std::abort();
 		}
 
-		// Update descriptor sets using current image
 		uint32_t imageIndex = result.value;
 		UpdateDescriptorSet(*m_swapchainImageViews[imageIndex]);
 
-		// Record command buffer
 		RecordCommandBuffer(m_swapchainImages[imageIndex], *m_frameBuffer[imageIndex]);
 
-		// Submit command buffer
 		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
 		vk::SubmitInfo submitInfo{};
 		submitInfo.setWaitDstStageMask(waitStage);
@@ -462,10 +466,8 @@ namespace Skhole {
 		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
 		m_queue.submit(submitInfo);
 
-		// Wait
 		m_queue.waitIdle();
 
-		// Present
 		vk::PresentInfoKHR presentInfo{};
 		presentInfo.setSwapchains(*m_swapchain);
 		presentInfo.setImageIndices(imageIndex);
@@ -588,11 +590,23 @@ namespace Skhole {
 		SKHOLE_UNIMPL("InitVulkan");
 	}
 
-	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterialDefinision()
+	//ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterialDefinision()
+	//{
+	//	ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
+	//	materialDef->materialParameters = m_matParams;
+	//	return materialDef;
+	//} 
+	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
+		m_scene = scene;
+	}
+
+	void SimpleRaytracer::UpdateMaterial()
 	{
-		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
-		materialDef->materialParameters = m_matParams;
-		return materialDef;
+		SKHOLE_UNIMPL();
+	}	
+
+	void SimpleRaytracer::UpdateCamera() {
+		//SKHOLE_UNIMPL();
 	}
 
 	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material)
@@ -609,6 +623,21 @@ namespace Skhole {
 		return materialDef;
 	}
 
+	ShrPtr<RendererDefinisionCamera> SimpleRaytracer::GetCamera(const ShrPtr<BasicCamera>& camera)
+	{
+		ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
+		cameraDef->cameraName = camera->cameraName;
+
+		cameraDef->cameraParameters = m_camParams; // Copy
+
+		cameraDef->cameraParameters[0]->setParamValue(camera->position); // CameraPos
+		cameraDef->cameraParameters[1]->setParamValue(camera->cameraDir); // CameraDir
+		cameraDef->cameraParameters[2]->setParamValue(camera->cameraUp); // CameraUp
+		cameraDef->cameraParameters[3]->setParamValue(camera->fov);
+
+
+		return cameraDef;
+	}
 
 	//void SimpleRaytracer::DefineMaterial()
 	//{

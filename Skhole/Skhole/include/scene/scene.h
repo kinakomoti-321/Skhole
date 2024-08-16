@@ -7,6 +7,8 @@
 #include <scene/object/object.h>
 #include <scene/object/geometry.h>
 #include <scene/object/instance.h>
+#include <scene/camera/camera.h>
+
 
 #include <renderer/renderer.h>
 
@@ -32,6 +34,9 @@ namespace Skhole {
 		std::vector<ShrPtr<RendererDefinisionMaterial>> m_materials;
 		std::vector<ShrPtr<BasicMaterial>> m_basicMaterials;
 		std::vector<ShrPtr<Texture>> m_textures;
+
+		ShrPtr<BasicCamera> m_basicCamera;
+		ShrPtr<RendererDefinisionCamera> m_camera;
 
 		std::string m_scenenName;
 	};

@@ -2,7 +2,6 @@
 
 #include <include.h>
 
-// https://github.com/yknishidate/vulkan_raytracing_from_scratch/blob/master/code/vkutils.hpp
 namespace vkutils {
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsMessengerCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

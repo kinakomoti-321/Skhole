@@ -3,8 +3,11 @@
 #include <include.h>
 #include <scene/scene.h>
 
+
 namespace Skhole
 {
+	class Scene;
+
 	struct RendererDesc 
 	{
 		std::string Name;
@@ -42,11 +45,15 @@ namespace Skhole
 
 		virtual void OffscreenRender() = 0;
 
+		virtual void SetScene(ShrPtr<Scene> scene) = 0;
+
 		// Renderer Data
 		virtual RendererData GetRendererData() = 0;
-		virtual ShrPtr<RendererDefinisionMaterial> GetMaterialDefinision() = 0;
-		virtual ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) = 0;
 
-	
+		virtual ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) = 0;
+		virtual void UpdateMaterial() = 0;
+
+		virtual ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<BasicCamera>& basicCamera) = 0;
+		virtual void UpdateCamera() = 0;
 	};
 }

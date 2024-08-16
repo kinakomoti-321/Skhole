@@ -166,6 +166,7 @@
     <ClInclude Include="extern\imgui\imstb_truetype.h" />
     <ClInclude Include="include\application.h" />
     <ClInclude Include="include\common\log.h" />
+    <ClInclude Include="include\scene\camera\camera.h" />
     <ClInclude Include="include\scene\object\sample_geometry.h" />
     <ClInclude Include="include\common\timer.h" />
     <ClInclude Include="include\editor\editor.h" />
@@ -180,6 +181,7 @@
     <ClInclude Include="include\scene\object\light.h" />
     <ClInclude Include="include\scene\object\object.h" />
     <ClInclude Include="include\scene\object\volume.h" />
+    <ClInclude Include="include\scene\parameter\parameter.h" />
     <ClInclude Include="include\scene\scene.h" />
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp" />
     <ClInclude Include="include\vulkan_helpler\vk_buffer.h" />

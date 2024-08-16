@@ -32,10 +32,16 @@ namespace Skhole
 		void SetNewFrame() override;
 		void Wait() override;
 
+		void SetScene(ShrPtr<Scene> scene) override;
+
 		void OffscreenRender() override;
 		RendererData GetRendererData() override;
-		ShrPtr<RendererDefinisionMaterial> GetMaterialDefinision() override;
+		//ShrPtr<RendererDefinisionMaterial> GetMaterialDefinision() override;
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
+		void UpdateMaterial() override;
+
+		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<BasicCamera>& basicCamera) override;
+		void UpdateCamera() override;
 
 	private:
 
@@ -114,11 +120,21 @@ namespace Skhole
 		vk::UniqueRenderPass m_imGuiRenderPass;
 
 		// Material
-		const std::vector<ShrPtr<MaterialParameter>> m_matParams =
+		const std::vector<ShrPtr<Parameter>> m_matParams =
 		{	
-			MakeShr<MatParamColor>("BaseColor", vec4(0.8f)),
-			MakeShr<MatParamFloat>("Roughness", 0.0f),
-			MakeShr<MatParamFloat>("Metallic", 0.0f),
+			MakeShr<ParamCol>("BaseColor", vec4(0.8f)),
+			MakeShr<ParamFloat>("Roughness", 0.0f),
+			MakeShr<ParamFloat>("Metallic", 0.0f),
+		};
+
+		// Camera
+		const std::vector<ShrPtr<Parameter>> m_camParams = 
+		{
+			MakeShr<ParamVec>("CameraPos", vec3(0.0f, 0.0f, 0.0f)),
+			MakeShr<ParamVec>("CameraDir", vec3(0.0f, 0.0f, 1.0f)),	
+			MakeShr<ParamVec>("CameraUp", vec3(0.0f, 1.0f, 0.0f)),
+			MakeShr<ParamFloat>("Fov", 45.0f),
+			MakeShr<ParamVec>("LookPoint",vec3(0.0f)),
 		};
 
 		struct UniformBufferObject {
@@ -132,7 +148,11 @@ namespace Skhole
 			vec3 cameraUp;
 			vec3 cameraRight;
 		};
+
 		UniformBufferObject uniformBufferObject;
 		Buffer m_uniformBuffer;
+
+		ShrPtr<Scene> m_scene;
+
 	};
 }
