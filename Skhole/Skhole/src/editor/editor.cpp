@@ -1,7 +1,10 @@
 #include <editor/editor.h>
+#include <common/math.h>
 
 namespace Skhole
 {
+	EditorInputManager Editor::m_inputManager;
+
 	Editor::Editor() {
 
 	}
@@ -20,7 +23,8 @@ namespace Skhole
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
+		glfwWindowHint(GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		
 		m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, m_applicationName.c_str(), nullptr, nullptr);
 
 		if (!m_window) {
@@ -28,6 +32,9 @@ namespace Skhole
 			glfwTerminate();
 			return;
 		}
+
+		glfwSetMouseButtonCallback(m_window, MouseButtonCallback);
+		glfwSetCursorPosCallback(m_window, MouseCallback);
 
 		// ImGui Initialization
 
@@ -54,12 +61,65 @@ namespace Skhole
 
 		while (!glfwWindowShouldClose(m_window)) {
 			glfwPollEvents();
+			
+			// Input 
+			{
+				m_inputManager.CheckKeyInput(m_window);
+
+				float speed = 0.02;
+				if (m_inputManager.shiftPressed)
+					speed *= 2.0;
+				vec2 ddxy = m_inputManager.mousePosition - m_inputManager.preMousePosition;
+
+				if (std::abs(ddxy.x) <= 1.0) ddxy.x = 0.0;
+				if (std::abs(ddxy.y) <= 1.0) ddxy.y = 0.0;
+
+				if (m_inputManager.leftMouseButtonPressed) {
+					float speedA = 0.0015;
+					vec2 angleT = ddxy * speedA;
+
+					vec3 cameraDir = m_scene->m_camera->basicParameter.cameraDir;
+					vec3 cameraUp = m_scene->m_camera->basicParameter.cameraUp;
+					vec3 cameraRight = m_scene->m_camera->basicParameter.cameraRight;
+
+					mat3 rotY =	rotateY(-angleT.x);
+					mat3 rotUp = rotateMaterixFromAxis(angleT.y * 2.0,cameraRight);
+
+					cameraDir = rotUp * (rotY * cameraDir);
+					cameraRight = rotUp * (rotY * cameraRight);
+					cameraUp =  rotUp * (rotY * cameraUp);
+
+					m_scene->m_camera->basicParameter.cameraDir = normalize(cameraDir);
+					m_scene->m_camera->basicParameter.cameraRight = normalize(cameraRight);
+					m_scene->m_camera->basicParameter.cameraUp = normalize(cameraUp);
+				}
+				
+				if (m_inputManager.wPressed) {
+					m_scene->m_camera->basicParameter.position += speed * m_scene->m_camera->basicParameter.cameraDir;
+				}
+
+				if (m_inputManager.sPressed) {
+					m_scene->m_camera->basicParameter.position -= speed * m_scene->m_camera->basicParameter.cameraDir;
+				}
+
+				if (m_inputManager.aPressed) {
+					m_scene->m_camera->basicParameter.position -= speed * m_scene->m_camera->basicParameter.cameraRight;
+				}
+
+				if (m_inputManager.dPressed) {
+					m_scene->m_camera->basicParameter.position += speed * m_scene->m_camera->basicParameter.cameraRight;
+				}
+
+			}
+
 			m_renderer->SetNewFrame();
 			ShowGUI();
 			m_renderer->UpdateCamera();
 
 			m_renderer->Update();
 			m_renderer->Render();
+
+			//m_inputManager.ResetState();
 		}
 
 		m_renderer->Destroy();
@@ -150,10 +210,6 @@ namespace Skhole
 	void Editor::ShowObjectGUI() {
 		ImGui::Begin("Object Information");
 
-		//ImGui::BeginChild(ImGui::GetID((void*)0), ImVec2(250, 100), ImGuiWindowFlags_NoTitleBar);
-		//// Object Information
-		//ImGui::EndChild();
-
 		std::vector<const char*> objectNames;
 		objectNames.reserve(m_scene->m_objects.size());
 		for (auto& object : m_scene->m_objects) {
@@ -181,7 +237,7 @@ namespace Skhole
 		bool materialUpdate = false;
 		auto& mat = m_scene->m_materials[selectedIndex];
 		for (auto& matParam : mat->materialParameters) {
-			//ImGui::Text(matParam->getParamName().c_str());
+
 			ShrPtr<ParamBool> boolParam;
 			ShrPtr<ParamFloat> floatParam;
 			ShrPtr<ParamVec> vec3Param;
@@ -224,4 +280,21 @@ namespace Skhole
 		ImGui::End();
 	}
 
+	void Editor::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+			m_inputManager.leftMouseButtonPressed = true;
+		}
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+			m_inputManager.leftMouseButtonPressed = false;
+		}
+
+		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+			m_inputManager.rightMouseButtonPressed = true;
+		} 
+	}
+
+	void Editor::MouseCallback(GLFWwindow* window, double xpos, double ypos) {
+		m_inputManager.preMousePosition = m_inputManager.mousePosition;
+		m_inputManager.mousePosition = vec2(xpos, ypos);
+	}
 }

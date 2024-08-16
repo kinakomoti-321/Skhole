@@ -143,6 +143,7 @@ namespace Skhole
 			vec3 cameraDir;
 			vec3 cameraUp;
 			vec3 cameraRight;
+			vec4 cameraParam;
 		};
 
 		UniformBufferObject uniformBufferObject;

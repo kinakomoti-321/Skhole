@@ -436,8 +436,8 @@ namespace Skhole {
 		uniformBufferObject.cameraPos = camera->basicParameter.position;
 		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
 		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
-		uniformBufferObject.cameraRight = normalize(cross(uniformBufferObject.cameraDir,uniformBufferObject.cameraUp));
-
+		uniformBufferObject.cameraRight = camera->basicParameter.cameraRight;
+		uniformBufferObject.cameraParam.x = camera->basicParameter.fov;
 		//uniformBufferObject.frame++;
 
 		void* map = m_uniformBuffer.Map(*m_device,0,sizeof(UniformBufferObject));

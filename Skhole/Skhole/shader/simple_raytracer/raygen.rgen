@@ -10,6 +10,7 @@ layout(location = 0) rayPayloadEXT PayLoadStruct payload;
 layout(binding = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, rgba8) uniform image2D image;
 
+#define PI 3.14159265359
 
 layout(binding = 2) uniform UBO {
     uint spp;
@@ -23,6 +24,7 @@ layout(binding = 2) uniform UBO {
     vec3 cameraUp;
     vec3 cameraRight;
 
+    vec4 cameraParam;
 } ubo;
 
 struct Ray{
@@ -43,13 +45,16 @@ void main()
     vec3 direction = normalize(target - origin);
     Ray ray;
     ray.origin = ubo.cameraPos;
+        
+    float fov = ubo.cameraParam.x;
+    float f = 1.0 / (atan(fov * 0.5 * PI / 180.0f));
 
     ray.direction = GetPinholeCameraDir(
         ubo.cameraDir,
         ubo.cameraUp,
         ubo.cameraRight,
         uv * 2.0 - 1.0,
-        2.0
+        f
     );
      
 
