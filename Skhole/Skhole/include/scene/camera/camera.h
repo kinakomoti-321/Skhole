@@ -6,11 +6,6 @@
 
 namespace Skhole
 {
-	struct RendererDefinisionCamera {
-		std::vector<ShrPtr<Parameter>> cameraParameters;
-		std::string cameraName = "Camera";
-	};
-
 	struct BasicCamera {
 		std::string cameraName = "Camera";
 
@@ -20,5 +15,12 @@ namespace Skhole
 
 		float fov = 45.0f;
 	};
+
+	struct RendererDefinisionCamera {
+		BasicCamera basicParameter;
+		std::vector<ShrPtr<Parameter>> extensionParameters;
+		std::string cameraName = "Camera";
+	};
+
 
 }

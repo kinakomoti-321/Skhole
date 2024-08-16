@@ -433,9 +433,12 @@ namespace Skhole {
 	{
 		
 		auto& camera = m_scene->m_camera;
-		uniformBufferObject.cameraPos = std::static_pointer_cast<ParamVec>(camera->cameraParameters[0])->value;
-		uniformBufferObject.cameraDir = std::static_pointer_cast<ParamVec>(camera->cameraParameters[1])->value;
-		uniformBufferObject.cameraUp = std::static_pointer_cast<ParamVec>(camera->cameraParameters[2])->value;
+		uniformBufferObject.cameraPos = camera->basicParameter.position;
+		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
+		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
+		uniformBufferObject.cameraRight = normalize(cross(uniformBufferObject.cameraDir,uniformBufferObject.cameraUp));
+
+		//uniformBufferObject.frame++;
 
 		void* map = m_uniformBuffer.Map(*m_device,0,sizeof(UniformBufferObject));
 		memcpy(map,&uniformBufferObject,sizeof(UniformBufferObject));
@@ -628,13 +631,12 @@ namespace Skhole {
 		ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
 		cameraDef->cameraName = camera->cameraName;
 
-		cameraDef->cameraParameters = m_camParams; // Copy
-
-		cameraDef->cameraParameters[0]->setParamValue(camera->position); // CameraPos
-		cameraDef->cameraParameters[1]->setParamValue(camera->cameraDir); // CameraDir
-		cameraDef->cameraParameters[2]->setParamValue(camera->cameraUp); // CameraUp
-		cameraDef->cameraParameters[3]->setParamValue(camera->fov);
-
+		cameraDef->basicParameter.position = camera->position;
+		cameraDef->basicParameter.cameraDir = camera->cameraDir;
+		cameraDef->basicParameter.cameraUp = camera->cameraUp;
+		cameraDef->basicParameter.fov = camera->fov;
+		
+		cameraDef->extensionParameters = m_camExtensionParams;
 
 		return cameraDef;
 	}

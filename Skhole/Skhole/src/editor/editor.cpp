@@ -101,7 +101,14 @@ namespace Skhole
 			{
 				ImGui::Text("Renderer Camera");
 				auto& camera = m_scene->m_camera;
-				for (auto& camParam : camera->cameraParameters) {
+
+				ImGui::InputFloat3("Position",camera->basicParameter.position.v);
+				ImGui::InputFloat3("Direction Vector",camera->basicParameter.cameraDir.v);
+				ImGui::InputFloat3("Up Vector", camera->basicParameter.cameraUp.v);
+				ImGui::InputFloat("FOV", &camera->basicParameter.fov);
+
+
+				for (auto& camParam : camera->extensionParameters) {
 					ShrPtr<ParamFloat> floatParam;
 					ShrPtr<ParamVec> vec3Param;
 					ShrPtr<ParamUint> textureIDParam;

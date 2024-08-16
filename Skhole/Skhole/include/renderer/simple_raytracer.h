@@ -128,12 +128,8 @@ namespace Skhole
 		};
 
 		// Camera
-		const std::vector<ShrPtr<Parameter>> m_camParams = 
+		const std::vector<ShrPtr<Parameter>> m_camExtensionParams = 
 		{
-			MakeShr<ParamVec>("CameraPos", vec3(0.0f, 0.0f, 0.0f)),
-			MakeShr<ParamVec>("CameraDir", vec3(0.0f, 0.0f, 1.0f)),	
-			MakeShr<ParamVec>("CameraUp", vec3(0.0f, 1.0f, 0.0f)),
-			MakeShr<ParamFloat>("Fov", 45.0f),
 			MakeShr<ParamVec>("LookPoint",vec3(0.0f)),
 		};
 
