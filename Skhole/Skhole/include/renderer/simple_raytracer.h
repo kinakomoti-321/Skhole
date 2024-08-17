@@ -58,15 +58,7 @@ namespace Skhole
 		void UpdateDescriptorSet(vk::ImageView imageView);
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
 
-		vk::UniqueInstance m_instance;
-		vk::UniqueDebugUtilsMessengerEXT m_debugMessenger;
-		vk::UniqueSurfaceKHR m_surface;
-
-		vk::PhysicalDevice m_physicalDevice;
-		vk::UniqueDevice m_device;
-
-		vk::Queue m_queue;
-		uint32_t m_queueIndex;
+		VkHelper::Context m_context;
 
 		vk::SurfaceFormatKHR m_surfaceFormat;
 		vk::UniqueSwapchainKHR m_swapchain;

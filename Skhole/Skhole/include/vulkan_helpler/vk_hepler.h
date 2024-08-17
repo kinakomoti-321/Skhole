@@ -191,13 +191,14 @@ namespace VkHelper {
 
 	class Context {
 	public:
-		Context();
-		~Context();
+		Context() {};
+		~Context() {};
 
 		struct VulkanInitialzeInfo {
+			VulkanInitialzeInfo() {}
 			uint32_t apiVersion;
-			std::vector<const char*>& layers;
-			std::vector<const char*>& extensions;
+			std::vector<const char*> layers;
+			std::vector<const char*> extensions;
 			
 			//Window;
 			bool useWindow;
