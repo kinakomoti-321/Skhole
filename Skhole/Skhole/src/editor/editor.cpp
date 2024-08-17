@@ -51,7 +51,6 @@ namespace Skhole
 		// Scene Initialization
 		m_scene = std::make_shared<Scene>();
 		m_scene->Initialize();
-
 		m_scene->RendererSet(m_renderer);
 
 		m_renderer->SetScene(m_scene);
@@ -98,14 +97,17 @@ namespace Skhole
 
 			ControlCamera();
 
-			m_renderer->SetNewFrame();
+			m_renderer->InitFrameGUI();
+
 			ShowGUI();
-			m_renderer->UpdateCamera();
 
-			m_renderer->Update();
-			m_renderer->Render();
+			UpdateCommand command;
+			m_renderer->UpdateScene(command);
 
-			//m_inputManager.ResetState();
+			RenderInfo renderInfo;
+			renderInfo.frame = 0;
+			renderInfo.spp = 100;
+			m_renderer->Render(renderInfo);
 		}
 
 		m_renderer->Destroy();

@@ -72,6 +72,13 @@ namespace VkHelper {
 			ImGui_ImplVulkan_CreateFontsTexture();
 		}
 
+		void NewFrame()
+		{
+			ImGui_ImplGlfw_NewFrame();
+			ImGui_ImplVulkan_NewFrame();
+			ImGui::NewFrame();
+		}
+
 		void Destroy(vk::Device device) {
 			ImGui_ImplVulkan_DestroyFontsTexture();
 			ImGui_ImplVulkan_Shutdown();

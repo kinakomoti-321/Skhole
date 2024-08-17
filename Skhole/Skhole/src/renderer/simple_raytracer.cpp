@@ -14,9 +14,9 @@ namespace Skhole {
 
 	}
 
-	void SimpleRaytracer::Wait() {
-		m_device->waitIdle();
-	}
+	//void SimpleRaytracer::Wait() {
+	//	m_device->waitIdle();
+	//}
 
 	void SimpleRaytracer::InitImGui()
 	{
@@ -144,14 +144,20 @@ namespace Skhole {
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
+	void SimpleRaytracer::DestroyScene() {
+
+	}
+
+	void SimpleRaytracer::UpdateScene(const UpdateCommand& command) {
+
+	}
+
+	void SimpleRaytracer::InitFrameGUI() {
+		m_imGuiManager.NewFrame();
+	}
+
 	void SimpleRaytracer::CreateBottomLevelAS() {
 		SKHOLE_LOG("Create Buttom AS");
-		//std::vector<Vertex> vertices = {
-		//	{{1.0f, 1.0f, 0.0f}},
-		//	{{-1.0f, 1.0f, 0.0f}},
-		//	{{0.0f, -1.0f, 0.0f}},
-		//};
-		//std::vector<uint32_t> indices = { 0, 1, 2 };
 
 		auto& geom = m_scene->m_geometies[0];
 		auto& vertices = geom->m_vertices;
@@ -432,22 +438,8 @@ namespace Skhole {
 		SKHOLE_UNIMPL("Resize");
 	}
 
-
-	void SimpleRaytracer::SetNewFrame()
+	void SimpleRaytracer::Render(const RenderInfo& renderInfo)
 	{
-		ImGui_ImplGlfw_NewFrame();
-		ImGui_ImplVulkan_NewFrame();
-		ImGui::NewFrame();
-	}
-
-	void SimpleRaytracer::Update()
-	{
-
-	}
-
-	void SimpleRaytracer::Render()
-	{
-
 		auto& camera = m_scene->m_camera;
 		uniformBufferObject.cameraPos = camera->basicParameter.position;
 		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
@@ -590,12 +582,6 @@ namespace Skhole {
 		m_bindingManager.EndWriting(*m_device);
 	}
 
-
-	void SimpleRaytracer::OffscreenRender()
-	{
-		SKHOLE_UNIMPL("OffscreenRender");
-	}
-
 	RendererData SimpleRaytracer::GetRendererData()
 	{
 		RendererData data;
@@ -616,14 +602,6 @@ namespace Skhole {
 		CreateAccelerationStructures();	
 	}
 
-	void SimpleRaytracer::UpdateMaterial()
-	{
-		SKHOLE_UNIMPL();
-	}
-
-	void SimpleRaytracer::UpdateCamera() {
-		//SKHOLE_UNIMPL();
-	}
 
 	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material)
 	{

@@ -18,25 +18,23 @@ namespace Skhole
 		~SimpleRaytracer();
 
 		void Init(RendererDesc& desc) override;
+
 		void Destroy() override;
 
 		void Resize(unsigned int width, unsigned int height) override;
-		void Render() override;
-
-		void Update() override;
-
-		void SetNewFrame() override;
-		void Wait() override;
 
 		void SetScene(ShrPtr<Scene> scene) override;
+		void DestroyScene() override;
 
-		void OffscreenRender() override;
 		RendererData GetRendererData() override;
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
-		void UpdateMaterial() override;
-
 		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<BasicCamera>& basicCamera) override;
-		void UpdateCamera() override;
+
+		void InitFrameGUI() override;
+
+		void UpdateScene(const UpdateCommand& command) override;
+
+		void Render(const RenderInfo& renderInfo) override;
 
 	private:
 
