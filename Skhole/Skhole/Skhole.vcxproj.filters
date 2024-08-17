@@ -152,6 +152,9 @@
     <ClInclude Include="include\common\math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\common\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />

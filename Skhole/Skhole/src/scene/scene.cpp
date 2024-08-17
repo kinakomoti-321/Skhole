@@ -12,10 +12,16 @@ namespace Skhole {
 	}
 
 	void Scene::Initialize() {
-		ShrPtr<Geometry> geometry = MakeShr<Geometry>(BoxGeometry());
+		ShrPtr<Geometry> geometry = MakeShr<Geometry>();
+		Geometry geom = BoxGeometry();
+		geometry->m_vertices = geom.m_vertices;
+		geometry->m_indices = geom.m_indices;
+		geometry->m_materialIndices = geom.m_materialIndices;
+
 		ShrPtr<Instance> object = MakeShr<Instance>();
 		object->m_instanceName = "Instance";
 		object->m_geometryIndex = 0;
+
 
 		ShrPtr<BasicMaterial> material = MakeShr<BasicMaterial>();
 		material->basecolor = vec4(1.0f, 0.0f, 0.0f, 1.0f);

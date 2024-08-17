@@ -5,16 +5,12 @@
 #include <vulkan_helpler/vk_buffer.h>
 #include <vulkan_helpler/vk_hepler.h>
 #include <vulkan_helpler/vk_imgui.h>
+#include <common/util.h>
 
 #include <scene/scene.h>
 
 namespace Skhole
 {
-	struct Vertex {
-		float pos[3];
-	};
-
-
 	class SimpleRaytracer : public Renderer
 	{
 	public:
@@ -36,7 +32,6 @@ namespace Skhole
 
 		void OffscreenRender() override;
 		RendererData GetRendererData() override;
-		//ShrPtr<RendererDefinisionMaterial> GetMaterialDefinision() override;
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
 		void UpdateMaterial() override;
 
@@ -46,15 +41,18 @@ namespace Skhole
 	private:
 
 		std::string rendererName = "Simple RayTracer";
-		//MaterialParameterFormat materialFormat;
 		RendererDesc m_desc;
 
 		void InitVulkan();
 
 		void PrepareShader();
 		void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);
+
+
+		void CreateAccelerationStructures();
 		void CreateBottomLevelAS();
 		void CreateTopLevelAS();
+
 		void CreateDescriptorPool();
 		void CreateDescSetLayout();
 		void CreateDescSet();
@@ -100,6 +98,9 @@ namespace Skhole
 
 		AccelStruct m_bottomAccel;
 		AccelStruct m_topAccel;
+
+		std::vector<AccelStruct> m_buttonAccels;
+		std::vector<AccelStruct> m_topAcces;
 
 		std::vector<vk::UniqueShaderModule> shaderModules;
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;

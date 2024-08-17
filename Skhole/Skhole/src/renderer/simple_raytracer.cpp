@@ -112,20 +112,17 @@ namespace Skhole {
 			m_frameBuffer[i] = m_device->createFramebufferUnique(framebufferInfo);
 		}
 
-		CreateBottomLevelAS();
-		CreateTopLevelAS();
-
 		PrepareShader();
 
 		CreateDescSetLayout();
 		CreateDescriptorPool();
 		CreateDescSet();
 
+
 		CreatePipeline();
 		CreateShaderBindingTable();
 
 		InitImGui();
-
 
 		//UniformBuffer 
 		uniformBufferObject.frame = 0;
@@ -134,7 +131,7 @@ namespace Skhole {
 		uniformBufferObject.height = m_desc.Height;
 
 		uniformBufferObject.cameraDir = vec3(0.0f, 0.0f, -1.0f);
-		uniformBufferObject.cameraPos = vec3(0.0,30.0,50.0);
+		uniformBufferObject.cameraPos = vec3(0.0, 30.0, 50.0);
 		uniformBufferObject.cameraUp = vec3(0.0f, 1.0f, 0.0f);
 		uniformBufferObject.cameraRight = vec3(1.0f, 0.0f, 0.0f);
 
@@ -149,12 +146,16 @@ namespace Skhole {
 
 	void SimpleRaytracer::CreateBottomLevelAS() {
 		SKHOLE_LOG("Create Buttom AS");
-		std::vector<Vertex> vertices = {
-			{{1.0f, 1.0f, 0.0f}},
-			{{-1.0f, 1.0f, 0.0f}},
-			{{0.0f, -1.0f, 0.0f}},
-		};
-		std::vector<uint32_t> indices = { 0, 1, 2 };
+		//std::vector<Vertex> vertices = {
+		//	{{1.0f, 1.0f, 0.0f}},
+		//	{{-1.0f, 1.0f, 0.0f}},
+		//	{{0.0f, -1.0f, 0.0f}},
+		//};
+		//std::vector<uint32_t> indices = { 0, 1, 2 };
+
+		auto& geom = m_scene->m_geometies[0];
+		auto& vertices = geom->m_vertices;
+		auto& indices = geom->m_indices;
 
 		vk::BufferUsageFlags bufferUsage{
 			vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
@@ -166,15 +167,15 @@ namespace Skhole {
 		};
 
 		Buffer vertexBuffer;
-		vertexBuffer.init(m_physicalDevice, *m_device, vertices.size() * sizeof(Vertex), bufferUsage, memoryProperty, vertices.data());
+		vertexBuffer.init(m_physicalDevice, *m_device, GetVectorByteSize(vertices), bufferUsage, memoryProperty, vertices.data());
 
 		Buffer indexBuffer;
-		indexBuffer.init(m_physicalDevice, *m_device, indices.size() * sizeof(uint32_t), bufferUsage, memoryProperty, indices.data());
+		indexBuffer.init(m_physicalDevice, *m_device, GetVectorByteSize(indices), bufferUsage, memoryProperty, indices.data());
 
 		vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
 		triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
 		triangles.setVertexData(vertexBuffer.address);
-		triangles.setVertexStride(sizeof(Vertex));
+		triangles.setVertexStride(GetTypeSize(vertices));
 		triangles.setMaxVertex(vertices.size());
 		triangles.setIndexType(vk::IndexType::eUint32);
 		triangles.setIndexData(indexBuffer.address);
@@ -197,20 +198,35 @@ namespace Skhole {
 			std::array{0.0f, 0.0f, 1.0f, 0.0f}
 		};
 
-		vk::AccelerationStructureInstanceKHR accelInstance{};
-		accelInstance.setTransform(transform);
-		accelInstance.setInstanceCustomIndex(0);
-		accelInstance.setMask(0xFF);
-		accelInstance.setInstanceShaderBindingTableRecordOffset(0);
-		accelInstance.setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-		accelInstance.setAccelerationStructureReference(m_bottomAccel.buffer.address);
+		std::vector<vk::AccelerationStructureInstanceKHR> accels;
+		accels.resize(2);
+
+		accels[0].setTransform(transform);
+		accels[0].setInstanceCustomIndex(0);
+		accels[0].setMask(0xFF);
+		accels[0].setInstanceShaderBindingTableRecordOffset(0);
+		accels[0].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+		accels[0].setAccelerationStructureReference(m_bottomAccel.buffer.address);
+
+		vk::TransformMatrixKHR transform1 = std::array{
+			std::array{1.0f, 0.0f, 0.0f, 0.0f},
+			std::array{0.0f, 1.0f, 0.0f, 0.0f},
+			std::array{0.0f, 0.0f, 1.0f, -10.0f}
+		};
+
+		accels[1].setTransform(transform1);
+		accels[1].setInstanceCustomIndex(1);
+		accels[1].setMask(0xFF);
+		accels[1].setInstanceShaderBindingTableRecordOffset(0);
+		accels[1].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+		accels[1].setAccelerationStructureReference(m_bottomAccel.buffer.address);
 
 		Buffer instanceBuffer;
 		instanceBuffer.init(m_physicalDevice, *m_device,
-			sizeof(vk::AccelerationStructureInstanceKHR),
+			sizeof(vk::AccelerationStructureInstanceKHR) * accels.size(),
 			vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-			&accelInstance
+			accels.data()
 		);
 
 		vk::AccelerationStructureGeometryInstancesDataKHR instancesData{};
@@ -222,7 +238,7 @@ namespace Skhole {
 		ias.setGeometry({ instancesData });
 		ias.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
 
-		constexpr uint32_t gasCount = 1;
+		constexpr uint32_t gasCount = 2;
 		m_topAccel.init(
 			m_physicalDevice, *m_device, *m_commandPool, m_queue,
 			vk::AccelerationStructureTypeKHR::eTopLevel,
@@ -406,7 +422,7 @@ namespace Skhole {
 	void SimpleRaytracer::Destroy()
 	{
 		m_device->waitIdle();
-		
+
 		m_bindingManager.Release(*m_device);
 		m_imGuiManager.Destroy(*m_device);
 	}
@@ -431,17 +447,18 @@ namespace Skhole {
 
 	void SimpleRaytracer::Render()
 	{
-		
+
 		auto& camera = m_scene->m_camera;
 		uniformBufferObject.cameraPos = camera->basicParameter.position;
 		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
 		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
 		uniformBufferObject.cameraRight = camera->basicParameter.cameraRight;
 		uniformBufferObject.cameraParam.x = camera->basicParameter.fov;
+		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
 		//uniformBufferObject.frame++;
 
-		void* map = m_uniformBuffer.Map(*m_device,0,sizeof(UniformBufferObject));
-		memcpy(map,&uniformBufferObject,sizeof(UniformBufferObject));
+		void* map = m_uniformBuffer.Map(*m_device, 0, sizeof(UniformBufferObject));
+		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
 		m_uniformBuffer.Ummap(*m_device);
 
 		static int frame = 0;
@@ -593,20 +610,16 @@ namespace Skhole {
 		SKHOLE_UNIMPL("InitVulkan");
 	}
 
-	//ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterialDefinision()
-	//{
-	//	ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
-	//	materialDef->materialParameters = m_matParams;
-	//	return materialDef;
-	//} 
 	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
 		m_scene = scene;
+
+		CreateAccelerationStructures();	
 	}
 
 	void SimpleRaytracer::UpdateMaterial()
 	{
 		SKHOLE_UNIMPL();
-	}	
+	}
 
 	void SimpleRaytracer::UpdateCamera() {
 		//SKHOLE_UNIMPL();
@@ -635,12 +648,16 @@ namespace Skhole {
 		cameraDef->basicParameter.cameraDir = camera->cameraDir;
 		cameraDef->basicParameter.cameraUp = camera->cameraUp;
 		cameraDef->basicParameter.fov = camera->fov;
-		
+
 		cameraDef->extensionParameters = m_camExtensionParams;
 
 		return cameraDef;
 	}
 
+	void SimpleRaytracer::CreateAccelerationStructures() {
+		CreateBottomLevelAS();
+		CreateTopLevelAS();
+	}
 	//void SimpleRaytracer::DefineMaterial()
 	//{
 	//	m_matParams.resize(12);
