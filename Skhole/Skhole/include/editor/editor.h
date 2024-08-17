@@ -120,7 +120,6 @@ namespace Skhole {
 
 		void ControlCamera();
 
-
 		void SaveScene();
 
 		GLFWwindow* m_window;

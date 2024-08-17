@@ -14,6 +14,9 @@ namespace Skhole
 	class SimpleRaytracer : public Renderer
 	{
 	public:
+		//--------------------------------------
+		// Interface Method
+		//--------------------------------------
 		SimpleRaytracer();
 		~SimpleRaytracer();
 
@@ -37,11 +40,9 @@ namespace Skhole
 		void Render(const RenderInfo& renderInfo) override;
 
 	private:
-
-		std::string rendererName = "Simple RayTracer";
-		RendererDesc m_desc;
-
-
+		//--------------------------------------
+		// Private Method
+		//--------------------------------------
 		void CreateAccelerationStructures();
 		void CreateBottomLevelAS();
 		void CreateTopLevelAS();
@@ -58,11 +59,55 @@ namespace Skhole
 		void UpdateDescriptorSet(vk::ImageView imageView);
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
 
+		void InitImGui();
+
+	private: 
+		//--------------------------------------
+		// Renderer Structures
+		//--------------------------------------
+		struct UniformBufferObject {
+			uint32_t spp;
+			uint32_t frame;
+			uint32_t width;
+			uint32_t height;
+
+			vec3 cameraPos;
+			vec3 cameraDir;
+			vec3 cameraUp;
+			vec3 cameraRight;
+			vec4 cameraParam;
+		};
+
+	private:
+		//--------------------------------------
+		// Renderer Data
+		//--------------------------------------
+		std::string rendererName = "Simple RayTracer";
+		RendererDesc m_desc;
+
+		const std::vector<ShrPtr<Parameter>> m_matParams =
+		{	
+			MakeShr<ParamCol>("BaseColor", vec4(0.8f)),
+			MakeShr<ParamFloat>("Roughness", 0.0f),
+			MakeShr<ParamFloat>("Metallic", 0.0f),
+		};
+
+		const std::vector<ShrPtr<Parameter>> m_camExtensionParams = 
+		{
+			MakeShr<ParamVec>("LookPoint",vec3(0.0f)),
+		};
+
+		//--------------------------------------
+		// Vulkan
+		//--------------------------------------
 		VkHelper::Context m_context;
 		VkHelper::SwapchainContext m_swapchainContext;
 
 		vk::UniqueCommandPool m_commandPool;
 		vk::UniqueCommandBuffer m_commandBuffer;
+
+		VkHelper::VulkanImGuiManager m_imGuiManager;
+		vk::UniqueRenderPass m_imGuiRenderPass;
 
 		std::vector<const char*> m_layer = {
 			"VK_LAYER_KHRONOS_validation"
@@ -99,41 +144,13 @@ namespace Skhole
 		vk::StridedDeviceAddressRegionKHR missRegion{};
 		vk::StridedDeviceAddressRegionKHR hitRegion{};
 
-		void InitImGui();
-		VkHelper::VulkanImGuiManager m_imGuiManager;
-		vk::UniqueRenderPass m_imGuiRenderPass;
-
-		// Material
-		const std::vector<ShrPtr<Parameter>> m_matParams =
-		{	
-			MakeShr<ParamCol>("BaseColor", vec4(0.8f)),
-			MakeShr<ParamFloat>("Roughness", 0.0f),
-			MakeShr<ParamFloat>("Metallic", 0.0f),
-		};
-
-		// Camera
-		const std::vector<ShrPtr<Parameter>> m_camExtensionParams = 
-		{
-			MakeShr<ParamVec>("LookPoint",vec3(0.0f)),
-		};
-
-		struct UniformBufferObject {
-			uint32_t spp;
-			uint32_t frame;
-			uint32_t width;
-			uint32_t height;
-
-			vec3 cameraPos;
-			vec3 cameraDir;
-			vec3 cameraUp;
-			vec3 cameraRight;
-			vec4 cameraParam;
-		};
 
 		UniformBufferObject uniformBufferObject;
 		Buffer m_uniformBuffer;
 
+		//--------------------------------------
+		// Scene
+		//--------------------------------------
 		ShrPtr<Scene> m_scene;
-
 	};
 }
