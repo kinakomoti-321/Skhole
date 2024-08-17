@@ -60,11 +60,6 @@ namespace Skhole
 
 		VkHelper::Context m_context;
 
-		vk::SurfaceFormatKHR m_surfaceFormat;
-		vk::UniqueSwapchainKHR m_swapchain;
-		std::vector<vk::Image> m_swapchainImages;
-		std::vector<vk::UniqueImageView> m_swapchainImageViews;
-		std::vector<vk::UniqueFramebuffer> m_frameBuffer;
 
 		vk::UniqueCommandPool m_commandPool;
 		vk::UniqueCommandBuffer m_commandBuffer;

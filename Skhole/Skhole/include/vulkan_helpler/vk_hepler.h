@@ -199,7 +199,7 @@ namespace VkHelper {
 			uint32_t apiVersion;
 			std::vector<const char*> layers;
 			std::vector<const char*> extensions;
-			
+
 			//Window;
 			bool useWindow;
 			GLFWwindow* window;
@@ -208,7 +208,7 @@ namespace VkHelper {
 		void InitCore(const VulkanInitialzeInfo& info) {
 			instance = vkutils::createInstance(VK_API_VERSION_1_2, info.layers);
 			debugMessage = vkutils::createDebugMessenger(*instance);
-			
+
 			surface = vkutils::createSurface(*instance, info.window);
 
 			physicalDevice = vkutils::pickPhysicalDevice(*instance, *surface, info.extensions);
@@ -216,13 +216,6 @@ namespace VkHelper {
 			device = vkutils::createLogicalDevice(physicalDevice, queueIndex, info.extensions);
 			queue = device->getQueue(queueIndex, 0);
 		}
-		
-
-		void InitSwapChain() {
-
-		}
-
-		void Resize(){}
 
 		vk::UniqueInstance instance;
 		vk::UniqueDebugUtilsMessengerEXT debugMessage;
@@ -235,13 +228,96 @@ namespace VkHelper {
 		uint32_t queueIndex;
 	};
 
+	struct SwapChainInfo {
+		vk::PhysicalDevice physicalDevice;
+		vk::Device device;
+		vk::SurfaceKHR surface;
+		uint32_t queueIndex;
+		vk::Queue queue;
+		vk::RenderPass renderPass;
+		vk::CommandPool commandPool;
 
-	class Screen {
-	public:
-		Screen();
-		~Screen();
+		vk::ImageUsageFlagBits swapcahinImageUsage;
 
-		void Init();
+		uint32_t width;
+		uint32_t height;
 	};
 
+	struct SwapchainContext {
+		SwapchainContext() {}
+		~SwapchainContext() {}
+
+		void Init(const SwapChainInfo& info) {
+			surfaceFormat = vkutils::chooseSurfaceFormat(info.physicalDevice, info.surface);
+
+			swapchain = vkutils::createSwapchain(
+				info.physicalDevice, info.device, info.surface, info.queueIndex,
+				info.swapcahinImageUsage, surfaceFormat,  //
+				info.width, info.height);
+
+			swapchainImages = info.device.getSwapchainImagesKHR(*swapchain);
+
+			SKHOLE_LOG("Create Swapchain Image View");
+			for (auto& image : swapchainImages) {
+
+				vk::ImageViewCreateInfo createInfo{};
+				createInfo.setImage(image);
+				createInfo.setViewType(vk::ImageViewType::e2D);
+				createInfo.setFormat(surfaceFormat.format);
+				createInfo.setComponents(
+					{ vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
+						vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA });
+				createInfo.setSubresourceRange(
+					{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+
+				swapchainImageViews.push_back(info.device.createImageViewUnique(createInfo));
+			}
+
+			vkutils::oneTimeSubmit(info.device, info.commandPool, info.queue,
+				[&](vk::CommandBuffer commandBuffer) {
+					for (auto& image : swapchainImages) {
+						vkutils::setImageLayout(commandBuffer, image,
+							vk::ImageLayout::eUndefined,
+							vk::ImageLayout::ePresentSrcKHR);
+					}
+				});
+
+
+			frameBuffer.resize(swapchainImageViews.size());
+			for (int i = 0; i < swapchainImageViews.size(); i++) {
+				vk::ImageView attachments[] = {
+					*swapchainImageViews[i]
+				};
+
+				vk::FramebufferCreateInfo framebufferInfo{};
+				framebufferInfo.setRenderPass(info.renderPass);
+				framebufferInfo.setAttachmentCount(1);
+				framebufferInfo.setPAttachments(attachments);
+				framebufferInfo.setWidth(info.width);
+				framebufferInfo.setHeight(info.height);
+				framebufferInfo.setLayers(1);
+
+				frameBuffer[i] = info.device.createFramebufferUnique(framebufferInfo);
+			}
+		}
+
+		void Destroy(vk::Device device) {
+			for (auto& frame : frameBuffer)
+				device.destroyFramebuffer(*frame);
+
+			for (auto& view : swapchainImageViews)
+				device.destroyImageView(*view);
+
+			for (auto& image : swapchainImages)
+				device.destroyImage(image);
+
+			device.destroySwapchainKHR(*swapchain);
+		}
+
+		vk::SurfaceFormatKHR surfaceFormat;
+		vk::UniqueSwapchainKHR swapchain;
+		std::vector<vk::Image> swapchainImages;
+		std::vector<vk::UniqueImageView> swapchainImageViews;
+		std::vector<vk::UniqueFramebuffer> frameBuffer;
+	};
 };

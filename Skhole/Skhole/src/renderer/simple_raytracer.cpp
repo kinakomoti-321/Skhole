@@ -48,6 +48,13 @@ namespace Skhole {
 		m_commandPool = vkutils::createCommandPool(*m_context.device, m_context.queueIndex);
 		m_commandBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
 
+		m_imGuiRenderPass = VkHelper::CreateRenderPass(
+			vk::Format::eB8G8R8A8Unorm,
+			vk::ImageLayout::eGeneral,
+			vk::ImageLayout::ePresentSrcKHR,
+			*m_context.device
+		);
+
 		m_surfaceFormat = vkutils::chooseSurfaceFormat(m_context.physicalDevice, *m_context.surface);
 
 		m_swapchain = vkutils::createSwapchain(  //
@@ -83,12 +90,6 @@ namespace Skhole {
 				}
 			});
 
-		m_imGuiRenderPass = VkHelper::CreateRenderPass(
-			vk::Format::eB8G8R8A8Unorm,
-			vk::ImageLayout::eGeneral,
-			vk::ImageLayout::ePresentSrcKHR,
-			*m_context.device
-		);
 
 		m_frameBuffer.resize(m_swapchainImageViews.size());
 		for (int i = 0; i < m_swapchainImageViews.size(); i++) {
