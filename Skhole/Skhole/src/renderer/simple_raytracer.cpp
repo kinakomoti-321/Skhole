@@ -25,7 +25,7 @@ namespace Skhole {
 			m_context.queue,
 			*m_imGuiRenderPass,
 			2,
-			m_swapchainImages.size()
+			m_swapchainContext.swapchainImages.size()
 		);
 
 	}
@@ -55,58 +55,22 @@ namespace Skhole {
 			*m_context.device
 		);
 
-		m_surfaceFormat = vkutils::chooseSurfaceFormat(m_context.physicalDevice, *m_context.surface);
 
-		m_swapchain = vkutils::createSwapchain(  //
-			m_context.physicalDevice, *m_context.device, *m_context.surface, m_context.queueIndex,
-			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment, m_surfaceFormat,  //
-			m_desc.Width, m_desc.Height);
+		VkHelper::SwapChainInfo swapchainInfo{};	
+		swapchainInfo.physicalDevice = m_context.physicalDevice;
+		swapchainInfo.device = *m_context.device;
+		swapchainInfo.surface = *m_context.surface;
+		swapchainInfo.queueIndex = m_context.queueIndex;	
+		swapchainInfo.queue = m_context.queue;
+		swapchainInfo.commandPool = *m_commandPool;
+		swapchainInfo.renderPass = m_imGuiRenderPass.get();
 
-		m_swapchainImages = m_context.device->getSwapchainImagesKHR(*m_swapchain);
+		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment;
 
-		SKHOLE_LOG("Create Swapchain Image View");
-		for (auto& image : m_swapchainImages) {
+		swapchainInfo.width = desc.Width;
+		swapchainInfo.height = desc.Height;
 
-			vk::ImageViewCreateInfo createInfo{};
-			createInfo.setImage(image);
-			createInfo.setViewType(vk::ImageViewType::e2D);
-			createInfo.setFormat(m_surfaceFormat.format);
-			createInfo.setComponents(
-				{ vk::ComponentSwizzle::eR, vk::ComponentSwizzle::eG,
-					vk::ComponentSwizzle::eB, vk::ComponentSwizzle::eA });
-			createInfo.setSubresourceRange(
-				{ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
-
-			m_swapchainImageViews.push_back(
-				m_context.device->createImageViewUnique(createInfo));
-		}
-
-		vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
-			[&](vk::CommandBuffer commandBuffer) {
-				for (auto& image : m_swapchainImages) {
-					vkutils::setImageLayout(commandBuffer, image,
-						vk::ImageLayout::eUndefined,
-						vk::ImageLayout::ePresentSrcKHR);
-				}
-			});
-
-
-		m_frameBuffer.resize(m_swapchainImageViews.size());
-		for (int i = 0; i < m_swapchainImageViews.size(); i++) {
-			vk::ImageView attachments[] = {
-				*m_swapchainImageViews[i]
-			};
-
-			vk::FramebufferCreateInfo framebufferInfo{};
-			framebufferInfo.setRenderPass(*m_imGuiRenderPass);
-			framebufferInfo.setAttachmentCount(1);
-			framebufferInfo.setPAttachments(attachments);
-			framebufferInfo.setWidth(m_desc.Width);
-			framebufferInfo.setHeight(m_desc.Height);
-			framebufferInfo.setLayers(1);
-
-			m_frameBuffer[i] = m_context.device->createFramebufferUnique(framebufferInfo);
-		}
+		m_swapchainContext.Init(swapchainInfo);
 
 		PrepareShader();
 
@@ -184,8 +148,13 @@ namespace Skhole {
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
 
+		auto& swapchain = m_swapchainContext.swapchain;
+		auto& swapchainImages = m_swapchainContext.swapchainImages;
+		auto& swapchainImageViews = m_swapchainContext.swapchainImageViews;
+		auto& swapchainFramebuffers = m_swapchainContext.frameBuffers;
+
 		auto result = m_context.device->acquireNextImageKHR(
-			*m_swapchain, std::numeric_limits<uint64_t>::max(),
+			*swapchain, std::numeric_limits<uint64_t>::max(),
 			*imageAvailableSemaphore);
 		if (result.result != vk::Result::eSuccess) {
 			std::cerr << "Failed to acquire next image.\n";
@@ -193,9 +162,9 @@ namespace Skhole {
 		}
 
 		uint32_t imageIndex = result.value;
-		UpdateDescriptorSet(*m_swapchainImageViews[imageIndex]);
+		UpdateDescriptorSet(*swapchainImageViews[imageIndex]);
 
-		RecordCommandBuffer(m_swapchainImages[imageIndex], *m_frameBuffer[imageIndex]);
+		RecordCommandBuffer(swapchainImages[imageIndex], *swapchainFramebuffers[imageIndex]);
 
 		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
 		vk::SubmitInfo submitInfo{};
@@ -207,7 +176,7 @@ namespace Skhole {
 		m_context.queue.waitIdle();
 
 		vk::PresentInfoKHR presentInfo{};
-		presentInfo.setSwapchains(*m_swapchain);
+		presentInfo.setSwapchains(*swapchain);
 		presentInfo.setImageIndices(imageIndex);
 		if (m_context.queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
 			std::cerr << "Failed to present.\n";

@@ -59,7 +59,7 @@ namespace Skhole
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
 
 		VkHelper::Context m_context;
-
+		VkHelper::SwapchainContext m_swapchainContext;
 
 		vk::UniqueCommandPool m_commandPool;
 		vk::UniqueCommandBuffer m_commandBuffer;

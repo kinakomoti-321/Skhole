@@ -237,7 +237,7 @@ namespace VkHelper {
 		vk::RenderPass renderPass;
 		vk::CommandPool commandPool;
 
-		vk::ImageUsageFlagBits swapcahinImageUsage;
+		vk::ImageUsageFlags swapcahinImageUsage;
 
 		uint32_t width;
 		uint32_t height;
@@ -283,7 +283,7 @@ namespace VkHelper {
 				});
 
 
-			frameBuffer.resize(swapchainImageViews.size());
+			frameBuffers.resize(swapchainImageViews.size());
 			for (int i = 0; i < swapchainImageViews.size(); i++) {
 				vk::ImageView attachments[] = {
 					*swapchainImageViews[i]
@@ -297,12 +297,12 @@ namespace VkHelper {
 				framebufferInfo.setHeight(info.height);
 				framebufferInfo.setLayers(1);
 
-				frameBuffer[i] = info.device.createFramebufferUnique(framebufferInfo);
+				frameBuffers[i] = info.device.createFramebufferUnique(framebufferInfo);
 			}
 		}
 
 		void Destroy(vk::Device device) {
-			for (auto& frame : frameBuffer)
+			for (auto& frame : frameBuffers)
 				device.destroyFramebuffer(*frame);
 
 			for (auto& view : swapchainImageViews)
@@ -318,6 +318,6 @@ namespace VkHelper {
 		vk::UniqueSwapchainKHR swapchain;
 		std::vector<vk::Image> swapchainImages;
 		std::vector<vk::UniqueImageView> swapchainImageViews;
-		std::vector<vk::UniqueFramebuffer> frameBuffer;
+		std::vector<vk::UniqueFramebuffer> frameBuffers;
 	};
 };
