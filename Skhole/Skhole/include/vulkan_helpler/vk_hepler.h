@@ -95,7 +95,7 @@ namespace VkHelper {
 
 			descriptorSet = device.allocateDescriptorSets(allocInfo)[0];
 		}
-		
+
 		struct WritingInfo {
 			uint32_t numBuffer = 0;
 			uint32_t numImage = 0;
@@ -132,14 +132,14 @@ namespace VkHelper {
 
 		void WriteBuffer(vk::Buffer buffer, uint32_t offset, uint32_t range,
 			vk::DescriptorType type, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
-			
+
 			vk::DescriptorBufferInfo bufferInfo = {};
 			bufferInfo.setBuffer(buffer);
 			bufferInfo.setOffset(0);
 			bufferInfo.setRange(range);
 
 			writeBufferInfo.push_back(bufferInfo);
-		
+
 			vk::WriteDescriptorSet writeDescriptorSet = {};
 			writeDescriptorSet.setDstSet(descriptorSet);
 			writeDescriptorSet.setDstBinding(bindNumber);
@@ -153,7 +153,7 @@ namespace VkHelper {
 		void WriteImage(vk::ImageView imageView, vk::ImageLayout layout, vk::Sampler sampler,
 			vk::DescriptorType type, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
 
-			vk::DescriptorImageInfo imageInfo = {};	
+			vk::DescriptorImageInfo imageInfo = {};
 			imageInfo.setImageView(imageView);
 			imageInfo.setImageLayout(layout);
 			if (VK_NULL_HANDLE != sampler) imageInfo.setSampler(sampler);
@@ -185,6 +185,62 @@ namespace VkHelper {
 		}
 
 	private:
-		
+
 	};
+
+
+	class Context {
+	public:
+		Context();
+		~Context();
+
+		struct VulkanInitialzeInfo {
+			uint32_t apiVersion;
+			std::vector<const char*>& layers;
+			std::vector<const char*>& extensions;
+			
+			//Window;
+			bool useWindow;
+			GLFWwindow* window;
+		};
+
+		void InitCore(const VulkanInitialzeInfo& info) {
+			instance = vkutils::createInstance(VK_API_VERSION_1_2, info.layers);
+			debugMessage = vkutils::createDebugMessenger(*instance);
+			
+			surface = vkutils::createSurface(*instance, info.window);
+
+			physicalDevice = vkutils::pickPhysicalDevice(*instance, *surface, info.extensions);
+			queueIndex = vkutils::findGeneralQueueFamily(physicalDevice, *surface);
+			device = vkutils::createLogicalDevice(physicalDevice, queueIndex, info.extensions);
+			queue = device->getQueue(queueIndex, 0);
+		}
+		
+
+		void InitSwapChain() {
+
+		}
+
+		void Resize(){}
+
+		vk::UniqueInstance instance;
+		vk::UniqueDebugUtilsMessengerEXT debugMessage;
+		vk::UniqueSurfaceKHR surface;
+
+		vk::PhysicalDevice physicalDevice;
+		vk::UniqueDevice device;
+
+		vk::Queue queue;
+		uint32_t queueIndex;
+	};
+
+
+	class Screen {
+	public:
+		Screen();
+		~Screen();
+
+		void Init();
+	};
+
 };

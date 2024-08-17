@@ -41,11 +41,6 @@ namespace Skhole
 		std::string rendererName = "Simple RayTracer";
 		RendererDesc m_desc;
 
-		void InitVulkan();
-
-		void PrepareShader();
-		void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);
-
 
 		void CreateAccelerationStructures();
 		void CreateBottomLevelAS();
@@ -56,6 +51,9 @@ namespace Skhole
 		void CreateDescSet();
 		void CreatePipeline();
 		void CreateShaderBindingTable();
+
+		void PrepareShader();
+		void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);
 
 		void UpdateDescriptorSet(vk::ImageView imageView);
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);

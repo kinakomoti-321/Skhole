@@ -14,10 +14,6 @@ namespace Skhole {
 
 	}
 
-	//void SimpleRaytracer::Wait() {
-	//	m_device->waitIdle();
-	//}
-
 	void SimpleRaytracer::InitImGui()
 	{
 		m_imGuiManager.Init(
@@ -154,6 +150,213 @@ namespace Skhole {
 
 	void SimpleRaytracer::InitFrameGUI() {
 		m_imGuiManager.NewFrame();
+	}
+
+	void SimpleRaytracer::Destroy()
+	{
+		m_device->waitIdle();
+
+		m_bindingManager.Release(*m_device);
+		m_imGuiManager.Destroy(*m_device);
+	}
+
+	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
+	{
+		SKHOLE_UNIMPL("Resize");
+	}
+
+	void SimpleRaytracer::Render(const RenderInfo& renderInfo)
+	{
+		auto& camera = m_scene->m_camera;
+		uniformBufferObject.cameraPos = camera->basicParameter.position;
+		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
+		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
+		uniformBufferObject.cameraRight = camera->basicParameter.cameraRight;
+		uniformBufferObject.cameraParam.x = camera->basicParameter.fov;
+		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
+
+		void* map = m_uniformBuffer.Map(*m_device, 0, sizeof(UniformBufferObject));
+		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
+		m_uniformBuffer.Ummap(*m_device);
+
+		static int frame = 0;
+
+		vk::UniqueSemaphore imageAvailableSemaphore =
+			m_device->createSemaphoreUnique({});
+
+		auto result = m_device->acquireNextImageKHR(
+			*m_swapchain, std::numeric_limits<uint64_t>::max(),
+			*imageAvailableSemaphore);
+		if (result.result != vk::Result::eSuccess) {
+			std::cerr << "Failed to acquire next image.\n";
+			std::abort();
+		}
+
+		uint32_t imageIndex = result.value;
+		UpdateDescriptorSet(*m_swapchainImageViews[imageIndex]);
+
+		RecordCommandBuffer(m_swapchainImages[imageIndex], *m_frameBuffer[imageIndex]);
+
+		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
+		vk::SubmitInfo submitInfo{};
+		submitInfo.setWaitDstStageMask(waitStage);
+		submitInfo.setCommandBuffers(*m_commandBuffer);
+		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
+		m_queue.submit(submitInfo);
+
+		m_queue.waitIdle();
+
+		vk::PresentInfoKHR presentInfo{};
+		presentInfo.setSwapchains(*m_swapchain);
+		presentInfo.setImageIndices(imageIndex);
+		if (m_queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+			std::cerr << "Failed to present.\n";
+			std::abort();
+		}
+
+		frame++;
+	}
+
+	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
+		m_scene = scene;
+
+		CreateAccelerationStructures();
+	}
+
+
+	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material)
+	{
+		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
+		materialDef->materialName = material->materialName;
+
+		materialDef->materialParameters = m_matParams; // Copy
+
+		materialDef->materialParameters[0]->setParamValue(material->basecolor); // BaseColor
+		materialDef->materialParameters[1]->setParamValue(material->metallic); // Metallic
+		materialDef->materialParameters[2]->setParamValue(material->roughness); // Roughness
+
+		return materialDef;
+	}
+
+	ShrPtr<RendererDefinisionCamera> SimpleRaytracer::GetCamera(const ShrPtr<BasicCamera>& camera)
+	{
+		ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
+		cameraDef->cameraName = camera->cameraName;
+
+		cameraDef->basicParameter.position = camera->position;
+		cameraDef->basicParameter.cameraDir = camera->cameraDir;
+		cameraDef->basicParameter.cameraUp = camera->cameraUp;
+		cameraDef->basicParameter.fov = camera->fov;
+
+		cameraDef->extensionParameters = m_camExtensionParams;
+
+		return cameraDef;
+	}
+
+	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
+		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
+		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
+
+		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *m_pipeline);
+
+		m_commandBuffer->bindDescriptorSets(
+			vk::PipelineBindPoint::eRayTracingKHR,
+			*m_pipelineLayout,
+			0,
+			m_bindingManager.descriptorSet,
+			nullptr
+		);
+
+		m_commandBuffer->traceRaysKHR(
+			raygenRegion,
+			missRegion,
+			hitRegion,
+			{},
+			m_desc.Width, m_desc.Height, 1
+		);
+
+
+		//--------------------
+		// ImGUI
+		//--------------------
+		vk::RenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
+		renderPassInfo.setFramebuffer(frameBuffer);
+		vk::Rect2D rect({ 0,0 }, { (uint32_t)m_desc.Width,(uint32_t)m_desc.Height });
+
+		renderPassInfo.setRenderArea(rect);
+
+		m_commandBuffer->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
+
+		m_commandBuffer->endRenderPass();
+
+		//--------------------
+		// ImGUI End
+		//--------------------
+
+		m_commandBuffer->end();
+
+	}
+
+	void SimpleRaytracer::CreateDescriptorPool()
+	{
+		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_device);
+	}
+
+	void SimpleRaytracer::CreateDescSetLayout() {
+
+		m_bindingManager.bindings = {
+			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR }
+		};
+
+		m_bindingManager.SetLayout(*m_device);
+	}
+
+	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
+		std::vector<vk::WriteDescriptorSet> writes(2);
+
+		VkHelper::BindingManager::WritingInfo info;
+		info.numAS = 1;
+		info.numImage = 1;
+		info.numBuffer = 1;
+		m_bindingManager.StartWriting(info);
+
+		m_bindingManager.WriteAS(
+			*m_topAccel.accel, 0, 1, *m_device
+		);
+
+		m_bindingManager.WriteImage(
+			imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+			vk::DescriptorType::eStorageImage, 1, 1, *m_device
+		);
+
+		m_bindingManager.WriteBuffer(
+			*m_uniformBuffer.buffer, 0, sizeof(UniformBufferObject),
+			vk::DescriptorType::eUniformBuffer, 2, 1, *m_device
+		);
+
+		m_bindingManager.EndWriting(*m_device);
+	}
+
+	RendererData SimpleRaytracer::GetRendererData()
+	{
+		RendererData data;
+		data.rendererName = "Simple Raytracer";
+		data.materials.materialParameters = m_matParams;
+
+		return data;
+	}
+
+
+
+	void SimpleRaytracer::CreateAccelerationStructures() {
+		CreateBottomLevelAS();
+		CreateTopLevelAS();
 	}
 
 	void SimpleRaytracer::CreateBottomLevelAS() {
@@ -424,222 +627,5 @@ namespace Skhole {
 		hitRegion.setDeviceAddress(sbt.address + raygenRegion.size +
 			missRegion.size);
 	}
-
-	void SimpleRaytracer::Destroy()
-	{
-		m_device->waitIdle();
-
-		m_bindingManager.Release(*m_device);
-		m_imGuiManager.Destroy(*m_device);
-	}
-
-	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
-	{
-		SKHOLE_UNIMPL("Resize");
-	}
-
-	void SimpleRaytracer::Render(const RenderInfo& renderInfo)
-	{
-		auto& camera = m_scene->m_camera;
-		uniformBufferObject.cameraPos = camera->basicParameter.position;
-		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
-		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
-		uniformBufferObject.cameraRight = camera->basicParameter.cameraRight;
-		uniformBufferObject.cameraParam.x = camera->basicParameter.fov;
-		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
-		//uniformBufferObject.frame++;
-
-		void* map = m_uniformBuffer.Map(*m_device, 0, sizeof(UniformBufferObject));
-		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
-		m_uniformBuffer.Ummap(*m_device);
-
-		static int frame = 0;
-
-		vk::UniqueSemaphore imageAvailableSemaphore =
-			m_device->createSemaphoreUnique({});
-
-		auto result = m_device->acquireNextImageKHR(
-			*m_swapchain, std::numeric_limits<uint64_t>::max(),
-			*imageAvailableSemaphore);
-		if (result.result != vk::Result::eSuccess) {
-			std::cerr << "Failed to acquire next image.\n";
-			std::abort();
-		}
-
-		uint32_t imageIndex = result.value;
-		UpdateDescriptorSet(*m_swapchainImageViews[imageIndex]);
-
-		RecordCommandBuffer(m_swapchainImages[imageIndex], *m_frameBuffer[imageIndex]);
-
-		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
-		vk::SubmitInfo submitInfo{};
-		submitInfo.setWaitDstStageMask(waitStage);
-		submitInfo.setCommandBuffers(*m_commandBuffer);
-		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
-		m_queue.submit(submitInfo);
-
-		m_queue.waitIdle();
-
-		vk::PresentInfoKHR presentInfo{};
-		presentInfo.setSwapchains(*m_swapchain);
-		presentInfo.setImageIndices(imageIndex);
-		if (m_queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
-			std::cerr << "Failed to present.\n";
-			std::abort();
-		}
-
-		frame++;
-	}
-
-	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
-
-		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
-
-		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *m_pipeline);
-
-		m_commandBuffer->bindDescriptorSets(
-			vk::PipelineBindPoint::eRayTracingKHR,
-			*m_pipelineLayout,
-			0,
-			m_bindingManager.descriptorSet,
-			nullptr
-		);
-
-		m_commandBuffer->traceRaysKHR(
-			raygenRegion,
-			missRegion,
-			hitRegion,
-			{},
-			m_desc.Width, m_desc.Height, 1
-		);
-
-
-		//--------------------
-		// ImGUI
-		//--------------------
-		vk::RenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
-		renderPassInfo.setFramebuffer(frameBuffer);
-		vk::Rect2D rect({ 0,0 }, { (uint32_t)m_desc.Width,(uint32_t)m_desc.Height });
-
-		renderPassInfo.setRenderArea(rect);
-
-		m_commandBuffer->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-
-		ImGui::Render();
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
-
-		m_commandBuffer->endRenderPass();
-
-		//--------------------
-		// ImGUI End
-		//--------------------
-
-		m_commandBuffer->end();
-
-	}
-
-	void SimpleRaytracer::CreateDescriptorPool()
-	{
-		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_device);
-	}
-
-	void SimpleRaytracer::CreateDescSetLayout() {
-
-		m_bindingManager.bindings = {
-			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR }
-		};
-
-		m_bindingManager.SetLayout(*m_device);
-	}
-
-	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
-		std::vector<vk::WriteDescriptorSet> writes(2);
-
-		VkHelper::BindingManager::WritingInfo info;
-		info.numAS = 1;
-		info.numImage = 1;
-		info.numBuffer = 1;
-		m_bindingManager.StartWriting(info);
-
-		m_bindingManager.WriteAS(
-			*m_topAccel.accel, 0, 1, *m_device
-		);
-
-		m_bindingManager.WriteImage(
-			imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
-			vk::DescriptorType::eStorageImage, 1, 1, *m_device
-		);
-
-		m_bindingManager.WriteBuffer(
-			*m_uniformBuffer.buffer, 0, sizeof(UniformBufferObject),
-			vk::DescriptorType::eUniformBuffer, 2, 1, *m_device
-		);
-
-		m_bindingManager.EndWriting(*m_device);
-	}
-
-	RendererData SimpleRaytracer::GetRendererData()
-	{
-		RendererData data;
-		data.rendererName = "Simple Raytracer";
-		data.materials.materialParameters = m_matParams;
-
-		return data;
-	}
-
-	void SimpleRaytracer::InitVulkan()
-	{
-		SKHOLE_UNIMPL("InitVulkan");
-	}
-
-	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
-		m_scene = scene;
-
-		CreateAccelerationStructures();	
-	}
-
-
-	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material)
-	{
-		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
-		materialDef->materialName = material->materialName;
-
-		materialDef->materialParameters = m_matParams; // Copy
-
-		materialDef->materialParameters[0]->setParamValue(material->basecolor); // BaseColor
-		materialDef->materialParameters[1]->setParamValue(material->metallic); // Metallic
-		materialDef->materialParameters[2]->setParamValue(material->roughness); // Roughness
-
-		return materialDef;
-	}
-
-	ShrPtr<RendererDefinisionCamera> SimpleRaytracer::GetCamera(const ShrPtr<BasicCamera>& camera)
-	{
-		ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
-		cameraDef->cameraName = camera->cameraName;
-
-		cameraDef->basicParameter.position = camera->position;
-		cameraDef->basicParameter.cameraDir = camera->cameraDir;
-		cameraDef->basicParameter.cameraUp = camera->cameraUp;
-		cameraDef->basicParameter.fov = camera->fov;
-
-		cameraDef->extensionParameters = m_camExtensionParams;
-
-		return cameraDef;
-	}
-
-	void SimpleRaytracer::CreateAccelerationStructures() {
-		CreateBottomLevelAS();
-		CreateTopLevelAS();
-	}
-	//void SimpleRaytracer::DefineMaterial()
-	//{
-	//	m_matParams.resize(12);
-	//	m_matParams[0] = MakeShr<MatParamBool>("bool", false);
-	//}
 
 }

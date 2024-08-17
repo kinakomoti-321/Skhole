@@ -111,11 +111,13 @@ inline vk::UniqueSurfaceKHR createSurface(vk::Instance instance,
 }
 
 inline uint32_t findGeneralQueueFamily(vk::PhysicalDevice physicalDevice,
-                                       vk::SurfaceKHR surface) {
+                                       vk::SurfaceKHR surface = VK_NULL_HANDLE) {
     auto queueFamilies = physicalDevice.getQueueFamilyProperties();
     for (uint32_t i = 0; i < queueFamilies.size(); i++) {
-        vk::Bool32 presentSupport =
-            physicalDevice.getSurfaceSupportKHR(i, surface);
+        vk::Bool32 presentSupport;
+        if(VK_NULL_HANDLE == surface)  presentSupport = true; 
+        else presentSupport = physicalDevice.getSurfaceSupportKHR(i, surface);
+
         if (queueFamilies[i].queueFlags & vk::QueueFlagBits::eGraphics &&
             presentSupport) {
             return i;
