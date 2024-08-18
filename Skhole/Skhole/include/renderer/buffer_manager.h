@@ -177,10 +177,11 @@ namespace Skhole {
 						std::array{transform[2][0], transform[2][1], transform[2][2], transform[2][3]}
 					};
 
+
 					instData.invTransform = std::array{
-						std::array{1,0,0,0},
-						std::array{0,1,0,0},
-						std::array{0,0,1,0}
+						std::array{1.0f, 0.0f, 0.0f, 0.0f},
+						std::array{0.0f, 1.0f, 0.0f, 0.0f},
+						std::array{0.0f, 0.0f, 1.0f, 0.0f}
 					};
 
 					instanceData.push_back(instData);
@@ -220,10 +221,12 @@ namespace Skhole {
 		~ASManager() {};
 
 		void BuildBLAS(ShrPtr<SceneBufferaManager>& bufferManager, vk::PhysicalDevice physicalDevice, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
-
 			auto& geomOffset = bufferManager->geometryOffset;
+			BLASes.clear();
+			BLASes.resize(geomOffset.size());
 
-			for (auto& geom : geomOffset) {
+			for (int i = 0; i < geomOffset.size(); i++){
+				auto& geom = geomOffset[i];
 				vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
 				triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
 				triangles.setVertexData(bufferManager->geometryBuffer.address + geom.vertexOffsetByte);
@@ -238,12 +241,10 @@ namespace Skhole {
 				geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
 
 				uint32_t primitiveCount = geom.numIndex / 3;
-				AccelStruct blas;
-				blas.init(physicalDevice, device, commandPool, queue,
+
+				BLASes[i].init(physicalDevice, device, commandPool, queue,
 					vk::AccelerationStructureTypeKHR::eBottomLevel,
 					geometry, primitiveCount);
-
-				BLASes.push_back(blas);
 			}
 		}
 

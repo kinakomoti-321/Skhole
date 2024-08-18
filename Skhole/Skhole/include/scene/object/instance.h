@@ -15,7 +15,7 @@ namespace Skhole {
 		ObjectType GetObjectType() override {return ObjectType::INSTANCE;};
 
 	public:
-		std::optional<uint32_t> m_geometryIndex;
+		std::optional<uint32_t> geometryIndex;
 	};
 
 }

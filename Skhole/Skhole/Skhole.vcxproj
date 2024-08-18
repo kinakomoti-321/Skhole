@@ -153,6 +153,7 @@
     <ClCompile Include="src\editor\editor.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\renderer\simple_raytracer.cpp" />
+    <ClCompile Include="src\scene\object\object.cpp" />
     <ClCompile Include="src\scene\scene.cpp" />
   </ItemGroup>
   <ItemGroup>
