@@ -49,7 +49,7 @@ namespace Skhole {
 
 			vk::BufferUsageFlags bufferUsage{
 				vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-				//vk::BufferUsageFlagBits::eStorageBuffer |
+				vk::BufferUsageFlagBits::eStorageBuffer |
 				vk::BufferUsageFlagBits::eShaderDeviceAddress
 			};
 
@@ -99,11 +99,15 @@ namespace Skhole {
 				geomOffset.numIndex = indices.size();
 				geometryOffset.push_back(geomOffset);
 
+				uint32_t test = sizeof(VertexData);
+
 				vertOffsetByte += vertices.size() * sizeof(VertexData);
 				indexOffsetByte += indices.size() * sizeof(uint32_t);
 
 				indexOffset += indices.size();
 			}
+			vertexBufferSize = vertOffsetByte;
+			indexBufferSize = indexOffsetByte;
 		}
 
 		void InitInstanceBuffer(vk::PhysicalDevice physicalDevice, vk::Device device) {
@@ -115,10 +119,6 @@ namespace Skhole {
 
 					InstanceData instData;
 					instData.geometryIndex = instance->geometryIndex.value();
-
-					//instData.transform[0] = std::array<float, 4>{ 1.0f, 0.0f, 0.0f, 0.0f };
-					//instData.transform[1] = std::array<float, 4>{ 0.0f, 1.0f, 0.0f, 0.0f };
-					//instData.transform[2] = std::array<float, 4>{ 0.0f, 0.0f, 1.0f, 0.0f };
 
 					instData.transform = std::array{
 						std::array{1.0f, 0.0f, 0.0f, 0.0f},
@@ -203,6 +203,9 @@ namespace Skhole {
 
 		Buffer vertexBuffer;
 		Buffer indexBuffer;
+
+		uint32_t vertexBufferSize;
+		uint32_t indexBufferSize;
 
 		std::vector<GeometryData> geometryData;
 		std::vector<GeometryBufferData> geometryOffset;

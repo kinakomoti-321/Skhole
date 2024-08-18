@@ -83,14 +83,8 @@ namespace Skhole {
 		//--------------------------------------
 		// Create Pipeline
 		//--------------------------------------
-		PrepareShader();
 
-		CreateDescSetLayout();
-		CreateDescriptorPool();
-		CreateDescSet();
-
-		CreatePipeline();
-		CreateShaderBindingTable();
+		CreateRaytracingPipeline();
 
 		InitImGui();
 
@@ -239,6 +233,35 @@ namespace Skhole {
 	//--------------------------------------
 	// Internal Method
 	//--------------------------------------
+	void SimpleRaytracer::CreateRaytracingPipeline() {
+		PrepareShader();
+
+		CreateDescSetLayout();
+		CreateDescriptorPool();
+		CreateDescSet();
+
+		CreatePipeline();
+		CreateShaderBindingTable();
+	}
+	
+	void SimpleRaytracer::CreateDescriptorPool()
+	{
+		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_context.device);
+	}
+
+	void SimpleRaytracer::CreateDescSetLayout() {
+
+		m_bindingManager.bindings = {
+			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
+			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR}
+		};
+
+		m_bindingManager.SetLayout(*m_context.device);
+	}
+
 	void SimpleRaytracer::FrameStart(float frame) {
 
 		auto& camera = m_scene->m_camera;
@@ -311,21 +334,6 @@ namespace Skhole {
 
 	}
 
-	void SimpleRaytracer::CreateDescriptorPool()
-	{
-		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_context.device);
-	}
-
-	void SimpleRaytracer::CreateDescSetLayout() {
-
-		m_bindingManager.bindings = {
-			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR }
-		};
-
-		m_bindingManager.SetLayout(*m_context.device);
-	}
 
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
 		std::vector<vk::WriteDescriptorSet> writes(2);
@@ -333,7 +341,7 @@ namespace Skhole {
 		VkHelper::BindingManager::WritingInfo info;
 		info.numAS = 1;
 		info.numImage = 1;
-		info.numBuffer = 1;
+		info.numBuffer = 3;
 		m_bindingManager.StartWriting(info);
 
 		m_bindingManager.WriteAS(
@@ -348,6 +356,16 @@ namespace Skhole {
 		m_bindingManager.WriteBuffer(
 			*m_uniformBuffer.buffer, 0, sizeof(UniformBufferObject),
 			vk::DescriptorType::eUniformBuffer, 2, 1, *m_context.device
+		);
+
+		//m_bindingManager.WriteBuffer(
+		//	*m_sceneBufferManager.vertexBuffer.buffer, 0, , 
+		//	vk::DescriptorType::eStorageBuffer, 3, 1, *m_context.device
+		//);
+
+		m_bindingManager.WriteBuffer(
+			*m_sceneBufferManager.vertexBuffer.buffer, 0,m_sceneBufferManager.vertexBufferSize, 
+			vk::DescriptorType::eStorageBuffer, 3, 1, *m_context.device
 		);
 
 		m_bindingManager.EndWriting(*m_context.device);

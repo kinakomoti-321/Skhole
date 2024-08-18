@@ -5,11 +5,11 @@ using namespace VectorLikeGLSL;
 namespace Skhole {
 
 	struct VertexData {
-		vec3 position;
-		vec3 normal;
-		vec2 texcoord0;
-		vec2 texcoord1;
-		vec3 color;
+		vec4 position;
+		vec4 normal;
+		float texcoord0[2]; // vec2 is 16bytes, Umm...
+		float texcoord1[2];
+		vec4 color;
 	};
 
 	class Geometry {
