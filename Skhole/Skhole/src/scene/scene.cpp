@@ -1,5 +1,6 @@
 #include <scene/scene.h>
 #include <scene/object/sample_geometry.h>
+#include <common/math.h>
 
 
 namespace Skhole {
@@ -21,7 +22,16 @@ namespace Skhole {
 		ShrPtr<Instance> object = MakeShr<Instance>();
 		object->objectName = "Instance";
 		object->geometryIndex = 0;
+		object->localPosition = vec3(0.0f, 0.0f, 0.0f);
+		object->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
+		object->localScale = vec3(1.0f, 1.0f, 1.0f);
 
+		ShrPtr<Instance> object2 = MakeShr<Instance>();
+		object2->objectName = "Instance2";
+		object2->geometryIndex = 0;
+		object2->localPosition = vec3(0.0f, 0.0f, -10.0f);
+		object2->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
+		object2->localScale = vec3(1.0f, 1.0f, 1.0f);
 
 		ShrPtr<BasicMaterial> material = MakeShr<BasicMaterial>();
 		material->basecolor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -32,6 +42,8 @@ namespace Skhole {
 
 		m_geometies.push_back(geometry);
 		m_objects.push_back(object);
+		m_objects.push_back(object2);
+
 		m_basicMaterials.push_back(material);
 	}
 

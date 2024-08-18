@@ -43,7 +43,7 @@ namespace Skhole {
 
 		std::optional<mat4> worldTransformMatrix;
 
-		bool useAnimation;
+		bool useAnimation = false;
 
 		vec3 localPosition;
 		vec3 localRotationEular;

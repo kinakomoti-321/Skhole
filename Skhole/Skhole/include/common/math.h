@@ -5,6 +5,15 @@
 using namespace VectorLikeGLSL;
 
 namespace Skhole {
+	inline mat4 IdentityMat4() {
+		mat4 identity(0);
+		identity[0][0] = 1.0f;
+		identity[1][1] = 1.0f;
+		identity[2][2] = 1.0f;
+		identity[3][3] = 1.0f;
+		return identity;
+	}
+
 	inline mat2 rotMat(float theta) {
 		float s = std::sin(theta);
 		float c = std::cos(theta);

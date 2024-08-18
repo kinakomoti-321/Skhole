@@ -46,23 +46,34 @@ namespace Skhole
 		//--------------------------------------
 		// Private Method
 		//--------------------------------------
-		void CreateAccelerationStructures();
-		void CreateBottomLevelAS();
-		void CreateTopLevelAS();
+		void InitImGui();
 
+		// Resources
+		void InitBufferManager();
+		void InitAccelerationStructures();
+		void InitBottomLevelAS();
+		void InitTopLevelAS();
+
+
+		// Pipeline
+		void CreateRaytracingPipeline();
 		void CreateDescriptorPool();
 		void CreateDescSetLayout();
 		void CreateDescSet();
+
 		void CreatePipeline();
 		void CreateShaderBindingTable();
 
 		void PrepareShader();
 		void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);
 
+		// Render
 		void UpdateDescriptorSet(vk::ImageView imageView);
+
+		void FrameUpdateAS(float frame);
+
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
 
-		void InitImGui();
 
 	private: 
 		//--------------------------------------
@@ -129,9 +140,6 @@ namespace Skhole
 
 		AccelStruct m_bottomAccel;
 		AccelStruct m_topAccel;
-
-		std::vector<AccelStruct> m_buttonAccels;
-		std::vector<AccelStruct> m_topAcces;
 
 		std::vector<vk::UniqueShaderModule> shaderModules;
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;

@@ -64,11 +64,11 @@ namespace Skhole {
 		//--------------------------------------
 		// swapChain Initialize
 		//--------------------------------------
-		VkHelper::SwapChainInfo swapchainInfo{};	
+		VkHelper::SwapChainInfo swapchainInfo{};
 		swapchainInfo.physicalDevice = m_context.physicalDevice;
 		swapchainInfo.device = *m_context.device;
 		swapchainInfo.surface = *m_context.surface;
-		swapchainInfo.queueIndex = m_context.queueIndex;	
+		swapchainInfo.queueIndex = m_context.queueIndex;
 		swapchainInfo.queue = m_context.queue;
 		swapchainInfo.commandPool = *m_commandPool;
 		swapchainInfo.renderPass = m_imGuiRenderPass.get();
@@ -200,8 +200,17 @@ namespace Skhole {
 
 	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
 		m_scene = scene;
+		InitBufferManager();
+		InitAccelerationStructures();
+	}
 
-		CreateAccelerationStructures();
+	void SimpleRaytracer::InitBufferManager() {
+		SKHOLE_LOG("Init Buffer Manager");
+
+		m_sceneBufferManager.SetScene(m_scene);
+
+		m_sceneBufferManager.InitGeometryBuffer(m_context.physicalDevice, *m_context.device);
+		m_sceneBufferManager.InitInstanceBuffer(m_context.physicalDevice, *m_context.device);
 	}
 
 
@@ -276,7 +285,6 @@ namespace Skhole {
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
 
 		m_commandBuffer->endRenderPass();
-
 		//--------------------
 		// ImGUI End
 		//--------------------
@@ -336,82 +344,70 @@ namespace Skhole {
 		return data;
 	}
 
-
-
-	void SimpleRaytracer::CreateAccelerationStructures() {
-		CreateBottomLevelAS();
-		CreateTopLevelAS();
+	void SimpleRaytracer::InitAccelerationStructures() {
+		InitBottomLevelAS();
+		InitTopLevelAS();
 	}
 
-	void SimpleRaytracer::CreateBottomLevelAS() {
+	void SimpleRaytracer::InitBottomLevelAS() {
 		SKHOLE_LOG("Create Buttom AS");
 
-		auto& geom = m_scene->m_geometies[0];
-		auto& vertices = geom->m_vertices;
-		auto& indices = geom->m_indices;
+		//auto& geom = m_scene->m_geometies[0];
+		//auto& vertices = geom->m_vertices;
+		//auto& indices = geom->m_indices;
 
-		indices.push_back(0);
-		indices.push_back(0);
-		indices.push_back(0);
+		//indices.push_back(0);
+		//indices.push_back(0);
+		//indices.push_back(0);
 
-		vk::BufferUsageFlags bufferUsage{
-			vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-			vk::BufferUsageFlagBits::eShaderDeviceAddress
-		};
+		//vk::BufferUsageFlags bufferUsage{
+		//	vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
+		//	vk::BufferUsageFlagBits::eShaderDeviceAddress
+		//};
 
-		vk::MemoryPropertyFlags memoryProperty{
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
-		};
+		//vk::MemoryPropertyFlags memoryProperty{
+		//	vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+		//};
 
-		Buffer vertexBuffer;
-		vertexBuffer.init(m_context.physicalDevice, *m_context.device, GetVectorByteSize(vertices), bufferUsage, memoryProperty, vertices.data());
+		//Buffer vertexBuffer;
+		//vertexBuffer.init(m_context.physicalDevice, *m_context.device, GetVectorByteSize(vertices), bufferUsage, memoryProperty, vertices.data());
 
-		Buffer indexBuffer;
-		indexBuffer.init(m_context.physicalDevice, *m_context.device, GetVectorByteSize(indices), bufferUsage, memoryProperty, indices.data());
+		//Buffer indexBuffer;
+		//indexBuffer.init(m_context.physicalDevice, *m_context.device, GetVectorByteSize(indices), bufferUsage, memoryProperty, indices.data());
 
 		vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
 		triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-		triangles.setVertexData(vertexBuffer.address);
-		triangles.setVertexStride(GetTypeSize(vertices));
-		triangles.setMaxVertex(vertices.size());
+		triangles.setVertexData(m_sceneBufferManager.vertexBuffer.address);
+		triangles.setVertexStride(sizeof(VertexData));
+		triangles.setMaxVertex(32);
 		triangles.setIndexType(vk::IndexType::eUint32);
-		triangles.setIndexData(indexBuffer.address);
+		triangles.setIndexData(m_sceneBufferManager.indexBuffer.address);
 
 		vk::AccelerationStructureGeometryKHR geometry{};
 		geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
 		geometry.setGeometry({ triangles });
 		geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
 
-		uint32_t primitiveCount = static_cast<uint32_t>(indices.size() / 3);
+		uint32_t primitiveCount = static_cast<uint32_t>(12);
 		m_bottomAccel.init(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue, vk::AccelerationStructureTypeKHR::eBottomLevel, geometry, primitiveCount);
 
 	}
 
-	void SimpleRaytracer::CreateTopLevelAS() {
+	void SimpleRaytracer::InitTopLevelAS() {
 		SKHOLE_LOG("Bottom AS was Created");
-		vk::TransformMatrixKHR transform = std::array{
-			std::array{1.0f, 0.0f, 0.0f, 0.0f},
-			std::array{0.0f, 1.0f, 0.0f, 0.0f},
-			std::array{0.0f, 0.0f, 1.0f, 0.0f}
-		};
-
 		std::vector<vk::AccelerationStructureInstanceKHR> accels;
 		accels.resize(2);
 
-		accels[0].setTransform(transform);
+		m_sceneBufferManager.FrameUpdateInstance(*m_context.device, 0.0);
+
+		accels[0].setTransform(m_sceneBufferManager.instanceData[0].transform);
 		accels[0].setInstanceCustomIndex(0);
 		accels[0].setMask(0xFF);
 		accels[0].setInstanceShaderBindingTableRecordOffset(0);
 		accels[0].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
 		accels[0].setAccelerationStructureReference(m_bottomAccel.buffer.address);
 
-		vk::TransformMatrixKHR transform1 = std::array{
-			std::array{1.0f, 0.0f, 0.0f, 0.0f},
-			std::array{0.0f, 1.0f, 0.0f, 0.0f},
-			std::array{0.0f, 0.0f, 1.0f, -10.0f}
-		};
-
-		accels[1].setTransform(transform1);
+		accels[1].setTransform(m_sceneBufferManager.instanceData[1].transform);
 		accels[1].setInstanceCustomIndex(1);
 		accels[1].setMask(0xFF);
 		accels[1].setInstanceShaderBindingTableRecordOffset(0);
