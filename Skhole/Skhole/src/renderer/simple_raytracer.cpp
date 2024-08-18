@@ -319,7 +319,7 @@ namespace Skhole {
 		m_bindingManager.StartWriting(info);
 
 		m_bindingManager.WriteAS(
-			*m_topAccel.accel, 0, 1, *m_context.device
+			*m_asManager.TLAS.accel, 0, 1, *m_context.device
 		);
 
 		m_bindingManager.WriteImage(
@@ -345,100 +345,79 @@ namespace Skhole {
 	}
 
 	void SimpleRaytracer::InitAccelerationStructures() {
-		InitBottomLevelAS();
-		InitTopLevelAS();
-	}
-
-	void SimpleRaytracer::InitBottomLevelAS() {
-		SKHOLE_LOG("Create Buttom AS");
-
-		//auto& geom = m_scene->m_geometies[0];
-		//auto& vertices = geom->m_vertices;
-		//auto& indices = geom->m_indices;
-
-		//indices.push_back(0);
-		//indices.push_back(0);
-		//indices.push_back(0);
-
-		//vk::BufferUsageFlags bufferUsage{
-		//	vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |
-		//	vk::BufferUsageFlagBits::eShaderDeviceAddress
-		//};
-
-		//vk::MemoryPropertyFlags memoryProperty{
-		//	vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
-		//};
-
-		//Buffer vertexBuffer;
-		//vertexBuffer.init(m_context.physicalDevice, *m_context.device, GetVectorByteSize(vertices), bufferUsage, memoryProperty, vertices.data());
-
-		//Buffer indexBuffer;
-		//indexBuffer.init(m_context.physicalDevice, *m_context.device, GetVectorByteSize(indices), bufferUsage, memoryProperty, indices.data());
-
-		vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
-		triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-		triangles.setVertexData(m_sceneBufferManager.vertexBuffer.address);
-		triangles.setVertexStride(sizeof(VertexData));
-		triangles.setMaxVertex(32);
-		triangles.setIndexType(vk::IndexType::eUint32);
-		triangles.setIndexData(m_sceneBufferManager.indexBuffer.address);
-
-		vk::AccelerationStructureGeometryKHR geometry{};
-		geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
-		geometry.setGeometry({ triangles });
-		geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
-
-		uint32_t primitiveCount = static_cast<uint32_t>(12);
-		m_bottomAccel.init(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue, vk::AccelerationStructureTypeKHR::eBottomLevel, geometry, primitiveCount);
-
-	}
-
-	void SimpleRaytracer::InitTopLevelAS() {
-		SKHOLE_LOG("Bottom AS was Created");
-		std::vector<vk::AccelerationStructureInstanceKHR> accels;
-		accels.resize(2);
-
 		m_sceneBufferManager.FrameUpdateInstance(*m_context.device, 0.0);
 
-		accels[0].setTransform(m_sceneBufferManager.instanceData[0].transform);
-		accels[0].setInstanceCustomIndex(0);
-		accels[0].setMask(0xFF);
-		accels[0].setInstanceShaderBindingTableRecordOffset(0);
-		accels[0].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-		accels[0].setAccelerationStructureReference(m_bottomAccel.buffer.address);
-
-		accels[1].setTransform(m_sceneBufferManager.instanceData[1].transform);
-		accels[1].setInstanceCustomIndex(1);
-		accels[1].setMask(0xFF);
-		accels[1].setInstanceShaderBindingTableRecordOffset(0);
-		accels[1].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-		accels[1].setAccelerationStructureReference(m_bottomAccel.buffer.address);
-
-		Buffer instanceBuffer;
-		instanceBuffer.init(m_context.physicalDevice, *m_context.device,
-			sizeof(vk::AccelerationStructureInstanceKHR) * accels.size(),
-			vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-			accels.data()
-		);
-
-		vk::AccelerationStructureGeometryInstancesDataKHR instancesData{};
-		instancesData.setArrayOfPointers(false);
-		instancesData.setData(instanceBuffer.address);
-
-		vk::AccelerationStructureGeometryKHR ias{};
-		ias.setGeometryType(vk::GeometryTypeKHR::eInstances);
-		ias.setGeometry({ instancesData });
-		ias.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
-
-		constexpr uint32_t gasCount = 2;
-		m_topAccel.init(
-			m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue,
-			vk::AccelerationStructureTypeKHR::eTopLevel,
-			ias, gasCount);
-		SKHOLE_LOG("Instance AS was Created");
-
+		m_asManager.BuildBLAS(m_sceneBufferManager,m_context.physicalDevice,*m_context.device,*m_commandPool,m_context.queue);
+		m_asManager.BuildTLAS(m_sceneBufferManager,m_context.physicalDevice,*m_context.device,*m_commandPool,m_context.queue);
 	}
+
+	//void SimpleRaytracer::InitBottomLevelAS() {
+	//	SKHOLE_LOG("Create Buttom AS");
+
+	//	vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
+	//	triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
+	//	triangles.setVertexData(m_sceneBufferManager.vertexBuffer.address);
+	//	triangles.setVertexStride(sizeof(VertexData));
+	//	triangles.setMaxVertex(32);
+	//	triangles.setIndexType(vk::IndexType::eUint32);
+	//	triangles.setIndexData(m_sceneBufferManager.indexBuffer.address);
+
+	//	vk::AccelerationStructureGeometryKHR geometry{};
+	//	geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
+	//	geometry.setGeometry({ triangles });
+	//	geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
+
+	//	uint32_t primitiveCount = static_cast<uint32_t>(12);
+	//	m_bottomAccel.init(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue, vk::AccelerationStructureTypeKHR::eBottomLevel, geometry, primitiveCount);
+
+	//}
+
+	//void SimpleRaytracer::InitTopLevelAS() {
+	//	SKHOLE_LOG("Bottom AS was Created");
+	//	std::vector<vk::AccelerationStructureInstanceKHR> accels;
+	//	accels.resize(2);
+
+	//	m_sceneBufferManager.FrameUpdateInstance(*m_context.device, 0.0);
+
+	//	accels[0].setTransform(m_sceneBufferManager.instanceData[0].transform);
+	//	accels[0].setInstanceCustomIndex(0);
+	//	accels[0].setMask(0xFF);
+	//	accels[0].setInstanceShaderBindingTableRecordOffset(0);
+	//	accels[0].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+	//	accels[0].setAccelerationStructureReference(m_bottomAccel.buffer.address);
+
+	//	accels[1].setTransform(m_sceneBufferManager.instanceData[1].transform);
+	//	accels[1].setInstanceCustomIndex(1);
+	//	accels[1].setMask(0xFF);
+	//	accels[1].setInstanceShaderBindingTableRecordOffset(0);
+	//	accels[1].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
+	//	accels[1].setAccelerationStructureReference(m_bottomAccel.buffer.address);
+
+	//	Buffer instanceBuffer;
+	//	instanceBuffer.init(m_context.physicalDevice, *m_context.device,
+	//		sizeof(vk::AccelerationStructureInstanceKHR) * accels.size(),
+	//		vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
+	//		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+	//		accels.data()
+	//	);
+
+	//	vk::AccelerationStructureGeometryInstancesDataKHR instancesData{};
+	//	instancesData.setArrayOfPointers(false);
+	//	instancesData.setData(instanceBuffer.address);
+
+	//	vk::AccelerationStructureGeometryKHR ias{};
+	//	ias.setGeometryType(vk::GeometryTypeKHR::eInstances);
+	//	ias.setGeometry({ instancesData });
+	//	ias.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
+
+	//	constexpr uint32_t gasCount = 2;
+	//	m_topAccel.init(
+	//		m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue,
+	//		vk::AccelerationStructureTypeKHR::eTopLevel,
+	//		ias, gasCount);
+	//	SKHOLE_LOG("Instance AS was Created");
+
+	//}
 
 #define SHADER_FILE_PATH "shader/"
 	void SimpleRaytracer::AddShader(

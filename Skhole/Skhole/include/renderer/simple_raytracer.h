@@ -138,8 +138,8 @@ namespace Skhole
 			VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
 		};
 
-		AccelStruct m_bottomAccel;
-		AccelStruct m_topAccel;
+		//AccelStruct m_bottomAccel;
+		//AccelStruct m_topAccel;
 
 		std::vector<vk::UniqueShaderModule> shaderModules;
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;

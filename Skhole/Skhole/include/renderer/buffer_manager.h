@@ -220,8 +220,8 @@ namespace Skhole {
 		ASManager() {};
 		~ASManager() {};
 
-		void BuildBLAS(ShrPtr<SceneBufferaManager>& bufferManager, vk::PhysicalDevice physicalDevice, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
-			auto& geomOffset = bufferManager->geometryOffset;
+		void BuildBLAS(SceneBufferaManager& bufferManager, vk::PhysicalDevice physicalDevice, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
+			auto& geomOffset = bufferManager.geometryOffset;
 			BLASes.clear();
 			BLASes.resize(geomOffset.size());
 
@@ -229,11 +229,11 @@ namespace Skhole {
 				auto& geom = geomOffset[i];
 				vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
 				triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-				triangles.setVertexData(bufferManager->geometryBuffer.address + geom.vertexOffsetByte);
+				triangles.setVertexData(bufferManager.vertexBuffer.address + geom.vertexOffsetByte);
 				triangles.setVertexStride(sizeof(VertexData));
 				triangles.setMaxVertex(geom.numVert);
 				triangles.setIndexType(vk::IndexType::eUint32);
-				triangles.setIndexData(bufferManager->indexBuffer.address + geom.indexOffsetByte);
+				triangles.setIndexData(bufferManager.indexBuffer.address + geom.indexOffsetByte);
 
 				vk::AccelerationStructureGeometryKHR geometry{};
 				geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
@@ -252,13 +252,13 @@ namespace Skhole {
 			SKHOLE_UNIMPL("Update BLAS");
 		}
 
-		void BuildTLAS(const ShrPtr<SceneBufferaManager>& bufferManager, vk::PhysicalDevice physicalDevice, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
-			uint32_t instanceCount = bufferManager->instanceData.size();
+		void BuildTLAS(SceneBufferaManager& bufferManager, vk::PhysicalDevice physicalDevice, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
+			uint32_t instanceCount = bufferManager.instanceData.size();
 			std::vector<vk::AccelerationStructureInstanceKHR> accels;
 			accels.reserve(instanceCount);
 
-			for (int i = 0; i < bufferManager->instanceData.size(); i++) {
-				auto& inst = bufferManager->instanceData[i];
+			for (int i = 0; i < bufferManager.instanceData.size(); i++) {
+				auto& inst = bufferManager.instanceData[i];
 				vk::AccelerationStructureInstanceKHR accel{};
 				accel.setTransform(inst.transform);
 				accel.setInstanceCustomIndex(i);
