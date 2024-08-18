@@ -155,6 +155,7 @@ namespace Skhole
 		// Buffers
 		//--------------------------------------	
 		SceneBufferaManager m_sceneBufferManager;
+		ASManager m_asManager;
 
 		//--------------------------------------
 		// Scene

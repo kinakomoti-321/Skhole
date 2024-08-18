@@ -4,6 +4,10 @@
 
 namespace Skhole {
 
+	//--------------------------------------
+	// Interface Method
+	//--------------------------------------
+
 	SimpleRaytracer::SimpleRaytracer()
 	{
 
@@ -35,6 +39,9 @@ namespace Skhole {
 		SKHOLE_LOG_SECTION("Initialze Renderer");
 		m_desc = desc;
 
+		//--------------------------------------
+		// Vulkan Initialize
+		//--------------------------------------
 		VkHelper::Context::VulkanInitialzeInfo initInfo{};
 		initInfo.apiVersion = VK_API_VERSION_1_2;
 		initInfo.layers = m_layer;
@@ -54,6 +61,9 @@ namespace Skhole {
 			*m_context.device
 		);
 
+		//--------------------------------------
+		// swapChain Initialize
+		//--------------------------------------
 		VkHelper::SwapChainInfo swapchainInfo{};	
 		swapchainInfo.physicalDevice = m_context.physicalDevice;
 		swapchainInfo.device = *m_context.device;
@@ -70,19 +80,23 @@ namespace Skhole {
 
 		m_swapchainContext.Init(swapchainInfo);
 
+		//--------------------------------------
+		// Create Pipeline
+		//--------------------------------------
 		PrepareShader();
 
 		CreateDescSetLayout();
 		CreateDescriptorPool();
 		CreateDescSet();
 
-
 		CreatePipeline();
 		CreateShaderBindingTable();
 
 		InitImGui();
 
-		//UniformBuffer 
+		//--------------------------------------
+		// Create Buffer
+		//--------------------------------------
 		uniformBufferObject.frame = 0;
 		uniformBufferObject.spp = 100;
 		uniformBufferObject.width = m_desc.Width;
@@ -220,6 +234,9 @@ namespace Skhole {
 		return cameraDef;
 	}
 
+	//--------------------------------------
+	// Internal Method
+	//--------------------------------------
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
