@@ -168,6 +168,7 @@
     <ClInclude Include="include\common\log.h" />
     <ClInclude Include="include\common\math.h" />
     <ClInclude Include="include\common\util.h" />
+    <ClInclude Include="include\renderer\buffer_manager.h" />
     <ClInclude Include="include\scene\camera\camera.h" />
     <ClInclude Include="include\scene\object\sample_geometry.h" />
     <ClInclude Include="include\common\timer.h" />

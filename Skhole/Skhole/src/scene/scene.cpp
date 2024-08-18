@@ -19,8 +19,8 @@ namespace Skhole {
 		geometry->m_materialIndices = geom.m_materialIndices;
 
 		ShrPtr<Instance> object = MakeShr<Instance>();
-		object->m_instanceName = "Instance";
-		object->m_geometryIndex = 0;
+		object->objectName = "Instance";
+		object->geometryIndex = 0;
 
 
 		ShrPtr<BasicMaterial> material = MakeShr<BasicMaterial>();
@@ -44,6 +44,13 @@ namespace Skhole {
 		m_basicCamera = MakeShr<BasicCamera>();
 
 		m_camera = renderer->GetCamera(m_basicCamera);
+	}
+
+
+	void Scene::SetTransformMatrix(float frame){
+		for (auto& object : m_objects) {
+			object->SetWorldTransformMatrix(frame);
+		}
 	}
 
 

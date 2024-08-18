@@ -44,7 +44,6 @@ namespace Skhole {
 
 		m_context.InitCore(initInfo);
 
-
 		m_commandPool = vkutils::createCommandPool(*m_context.device, m_context.queueIndex);
 		m_commandBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
 
@@ -54,7 +53,6 @@ namespace Skhole {
 			vk::ImageLayout::ePresentSrcKHR,
 			*m_context.device
 		);
-
 
 		VkHelper::SwapChainInfo swapchainInfo{};	
 		swapchainInfo.physicalDevice = m_context.physicalDevice;
@@ -334,6 +332,10 @@ namespace Skhole {
 		auto& geom = m_scene->m_geometies[0];
 		auto& vertices = geom->m_vertices;
 		auto& indices = geom->m_indices;
+
+		indices.push_back(0);
+		indices.push_back(0);
+		indices.push_back(0);
 
 		vk::BufferUsageFlags bufferUsage{
 			vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR |

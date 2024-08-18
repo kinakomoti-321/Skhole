@@ -5,6 +5,9 @@
 #include <vulkan_helpler/vk_buffer.h>
 #include <vulkan_helpler/vk_hepler.h>
 #include <vulkan_helpler/vk_imgui.h>
+
+#include <renderer/buffer_manager.h>
+
 #include <common/util.h>
 
 #include <scene/scene.h>
@@ -147,6 +150,11 @@ namespace Skhole
 
 		UniformBufferObject uniformBufferObject;
 		Buffer m_uniformBuffer;
+
+		//--------------------------------------	
+		// Buffers
+		//--------------------------------------	
+		SceneBufferaManager m_sceneBufferManager;
 
 		//--------------------------------------
 		// Scene

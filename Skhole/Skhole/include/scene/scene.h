@@ -29,6 +29,8 @@ namespace Skhole {
 		void LoadScene(std::string path);
 		void SaveScene(std::string path);
 
+		void SetTransformMatrix(float frame);
+
 		std::vector<ShrPtr<Object>> m_objects;
 		std::vector<ShrPtr<Geometry>> m_geometies;
 		std::vector<ShrPtr<RendererDefinisionMaterial>> m_materials;

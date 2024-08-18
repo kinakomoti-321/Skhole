@@ -62,6 +62,10 @@ namespace Skhole {
 			device.unmapMemory(*memory);
 		}
 
+		void Release(vk::Device device) {
+			device.destroyBuffer(*buffer);
+			device.freeMemory(*memory);
+		}
 	};
 
 	struct DeviceBuffer {
@@ -135,6 +139,11 @@ namespace Skhole {
 			vk::AccelerationStructureDeviceAddressInfoKHR addressInfo{};
 			addressInfo.setAccelerationStructure(*accel);
 			buffer.address = device.getAccelerationStructureAddressKHR(addressInfo);
+		}
+
+		void Release(vk::Device device) {
+			device.destroyAccelerationStructureKHR(*accel);
+			buffer.Release(device);
 		}
 	};
 }
