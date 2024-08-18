@@ -205,7 +205,7 @@ namespace Skhole
 		std::vector<const char*> objectNames;
 		objectNames.reserve(m_scene->m_objects.size());
 		for (auto& object : m_scene->m_objects) {
-			objectNames.push_back(object->GetObjectName().c_str());
+			objectNames.push_back(object->GetObjectName());
 		}
 
 		static int selectedIndex = 0;

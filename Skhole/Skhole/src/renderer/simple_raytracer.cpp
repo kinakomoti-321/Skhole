@@ -143,19 +143,10 @@ namespace Skhole {
 
 	void SimpleRaytracer::Render(const RenderInfo& renderInfo)
 	{
-		auto& camera = m_scene->m_camera;
-		uniformBufferObject.cameraPos = camera->basicParameter.position;
-		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
-		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
-		uniformBufferObject.cameraRight = camera->basicParameter.cameraRight;
-		uniformBufferObject.cameraParam.x = camera->basicParameter.fov;
-		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
 
-		void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(UniformBufferObject));
-		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
-		m_uniformBuffer.Ummap(*m_context.device);
+		float frame = 0;
 
-		static int frame = 0;
+		FrameStart(frame);
 
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
@@ -196,6 +187,8 @@ namespace Skhole {
 		}
 
 		frame++;
+
+		FrameEnd();
 	}
 
 	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
@@ -246,6 +239,31 @@ namespace Skhole {
 	//--------------------------------------
 	// Internal Method
 	//--------------------------------------
+	void SimpleRaytracer::FrameStart(float frame) {
+
+		auto& camera = m_scene->m_camera;
+		uniformBufferObject.cameraPos = camera->basicParameter.position;
+		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
+		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
+		uniformBufferObject.cameraRight = camera->basicParameter.cameraRight;
+		uniformBufferObject.cameraParam.x = camera->basicParameter.fov;
+		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
+
+		void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(UniformBufferObject));
+		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
+		m_uniformBuffer.Ummap(*m_context.device);
+
+		m_scene->SetTransformMatrix(frame);
+
+		m_sceneBufferManager.FrameUpdateInstance(*m_context.device, frame);
+		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+	}
+
+	void SimpleRaytracer::FrameEnd()
+	{
+		m_asManager.ReleaseTLAS(*m_context.device);
+	}
+
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
@@ -345,79 +363,8 @@ namespace Skhole {
 	}
 
 	void SimpleRaytracer::InitAccelerationStructures() {
-		m_sceneBufferManager.FrameUpdateInstance(*m_context.device, 0.0);
-
-		m_asManager.BuildBLAS(m_sceneBufferManager,m_context.physicalDevice,*m_context.device,*m_commandPool,m_context.queue);
-		m_asManager.BuildTLAS(m_sceneBufferManager,m_context.physicalDevice,*m_context.device,*m_commandPool,m_context.queue);
+		m_asManager.BuildBLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
-
-	//void SimpleRaytracer::InitBottomLevelAS() {
-	//	SKHOLE_LOG("Create Buttom AS");
-
-	//	vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
-	//	triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-	//	triangles.setVertexData(m_sceneBufferManager.vertexBuffer.address);
-	//	triangles.setVertexStride(sizeof(VertexData));
-	//	triangles.setMaxVertex(32);
-	//	triangles.setIndexType(vk::IndexType::eUint32);
-	//	triangles.setIndexData(m_sceneBufferManager.indexBuffer.address);
-
-	//	vk::AccelerationStructureGeometryKHR geometry{};
-	//	geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
-	//	geometry.setGeometry({ triangles });
-	//	geometry.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
-
-	//	uint32_t primitiveCount = static_cast<uint32_t>(12);
-	//	m_bottomAccel.init(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue, vk::AccelerationStructureTypeKHR::eBottomLevel, geometry, primitiveCount);
-
-	//}
-
-	//void SimpleRaytracer::InitTopLevelAS() {
-	//	SKHOLE_LOG("Bottom AS was Created");
-	//	std::vector<vk::AccelerationStructureInstanceKHR> accels;
-	//	accels.resize(2);
-
-	//	m_sceneBufferManager.FrameUpdateInstance(*m_context.device, 0.0);
-
-	//	accels[0].setTransform(m_sceneBufferManager.instanceData[0].transform);
-	//	accels[0].setInstanceCustomIndex(0);
-	//	accels[0].setMask(0xFF);
-	//	accels[0].setInstanceShaderBindingTableRecordOffset(0);
-	//	accels[0].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-	//	accels[0].setAccelerationStructureReference(m_bottomAccel.buffer.address);
-
-	//	accels[1].setTransform(m_sceneBufferManager.instanceData[1].transform);
-	//	accels[1].setInstanceCustomIndex(1);
-	//	accels[1].setMask(0xFF);
-	//	accels[1].setInstanceShaderBindingTableRecordOffset(0);
-	//	accels[1].setFlags(vk::GeometryInstanceFlagBitsKHR::eTriangleFacingCullDisable);
-	//	accels[1].setAccelerationStructureReference(m_bottomAccel.buffer.address);
-
-	//	Buffer instanceBuffer;
-	//	instanceBuffer.init(m_context.physicalDevice, *m_context.device,
-	//		sizeof(vk::AccelerationStructureInstanceKHR) * accels.size(),
-	//		vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
-	//		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-	//		accels.data()
-	//	);
-
-	//	vk::AccelerationStructureGeometryInstancesDataKHR instancesData{};
-	//	instancesData.setArrayOfPointers(false);
-	//	instancesData.setData(instanceBuffer.address);
-
-	//	vk::AccelerationStructureGeometryKHR ias{};
-	//	ias.setGeometryType(vk::GeometryTypeKHR::eInstances);
-	//	ias.setGeometry({ instancesData });
-	//	ias.setFlags(vk::GeometryFlagBitsKHR::eOpaque);
-
-	//	constexpr uint32_t gasCount = 2;
-	//	m_topAccel.init(
-	//		m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue,
-	//		vk::AccelerationStructureTypeKHR::eTopLevel,
-	//		ias, gasCount);
-	//	SKHOLE_LOG("Instance AS was Created");
-
-	//}
 
 #define SHADER_FILE_PATH "shader/"
 	void SimpleRaytracer::AddShader(

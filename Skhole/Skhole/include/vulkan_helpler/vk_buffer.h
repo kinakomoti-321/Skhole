@@ -65,6 +65,9 @@ namespace Skhole {
 		void Release(vk::Device device) {
 			device.destroyBuffer(*buffer);
 			device.freeMemory(*memory);
+
+			*buffer = VK_NULL_HANDLE;
+			*memory = VK_NULL_HANDLE;
 		}
 	};
 
@@ -141,9 +144,11 @@ namespace Skhole {
 			buffer.address = device.getAccelerationStructureAddressKHR(addressInfo);
 		}
 
+
 		void Release(vk::Device device) {
 			device.destroyAccelerationStructureKHR(*accel);
 			buffer.Release(device);
+			*accel = VK_NULL_HANDLE;
 		}
 	};
 }

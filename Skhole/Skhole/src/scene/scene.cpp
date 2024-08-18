@@ -19,6 +19,11 @@ namespace Skhole {
 		geometry->m_indices = geom.m_indices;
 		geometry->m_materialIndices = geom.m_materialIndices;
 
+		ShrPtr<Geometry> geometry2 = MakeShr<Geometry>();
+		geometry2->m_vertices = geom.m_vertices;
+		geometry2->m_indices = geom.m_indices;
+		geometry2->m_materialIndices = geom.m_materialIndices;
+
 		ShrPtr<Instance> object = MakeShr<Instance>();
 		object->objectName = "Instance";
 		object->geometryIndex = 0;
@@ -33,6 +38,13 @@ namespace Skhole {
 		object2->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
 		object2->localScale = vec3(1.0f, 1.0f, 1.0f);
 
+		ShrPtr<Instance> object3 = MakeShr<Instance>();
+		object3->objectName = "Instance3";
+		object3->geometryIndex = 0;
+		object3->localPosition = vec3(0.0f, 0.0f, 10.0f);
+		object3->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
+		object3->localScale = vec3(1.0f, 1.0f, 1.0f);
+
 		ShrPtr<BasicMaterial> material = MakeShr<BasicMaterial>();
 		material->basecolor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 		material->metallic = 0.0f;
@@ -43,6 +55,7 @@ namespace Skhole {
 		m_geometies.push_back(geometry);
 		m_objects.push_back(object);
 		m_objects.push_back(object2);
+		m_objects.push_back(object3);
 
 		m_basicMaterials.push_back(material);
 	}
