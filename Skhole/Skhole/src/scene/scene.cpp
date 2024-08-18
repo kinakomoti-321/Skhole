@@ -40,7 +40,7 @@ namespace Skhole {
 
 		ShrPtr<Instance> object3 = MakeShr<Instance>();
 		object3->objectName = "Instance3";
-		object3->geometryIndex = 0;
+		object3->geometryIndex = 1;
 		object3->localPosition = vec3(0.0f, 0.0f, 10.0f);
 		object3->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
 		object3->localScale = vec3(1.0f, 1.0f, 1.0f);
@@ -53,6 +53,7 @@ namespace Skhole {
 		material->emissionIntensity = 0.0f;
 
 		m_geometies.push_back(geometry);
+		m_geometies.push_back(geometry2);
 		m_objects.push_back(object);
 		m_objects.push_back(object2);
 		m_objects.push_back(object3);
