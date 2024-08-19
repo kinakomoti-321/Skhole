@@ -142,7 +142,7 @@ namespace Skhole {
 		return rotation;
 	}
 
-	inline mat4 rotateMaterixFromAxis(float theta,const vec3& n) {
+	inline mat4 rotateMaterixFromAxis(float theta, const vec3& n) {
 		mat4 rotation(0);
 		float s = std::sin(theta);
 		float c = std::cos(theta);
@@ -160,7 +160,47 @@ namespace Skhole {
 		rotation[2][2] = c + (1 - c) * n.z * n.z;
 
 		rotation[3][3] = 1.0f;
-		
+
 		return rotation;
+	}
+
+	inline mat3 Inverse3x3(const mat3& m) {
+		float det =
+			m[0][0] * m[1][1] * m[2][2]
+			+ m[0][1] * m[1][2] * m[2][0]
+			+ m[0][2] * m[1][0] * m[2][1]
+			- m[0][2] * m[1][1] * m[2][0]
+			- m[0][1] * m[1][0] * m[2][2]
+			- m[0][0] * m[1][2] * m[2][1];
+
+		return mat3(
+			(m[1][1] * m[2][2] - m[1][2] * m[2][1]) / det,
+			(m[0][2] * m[2][1] - m[0][1] * m[2][2]) / det,
+			(m[0][1] * m[1][2] - m[0][2] * m[1][1]) / det,
+			(m[1][2] * m[2][0] - m[1][0] * m[2][2]) / det,
+			(m[0][0] * m[2][2] - m[0][2] * m[2][0]) / det,
+			(m[0][2] * m[1][0] - m[0][0] * m[1][2]) / det,
+			(m[1][0] * m[2][1] - m[1][1] * m[2][0]) / det,
+			(m[0][1] * m[2][0] - m[0][0] * m[2][1]) / det,
+			(m[0][0] * m[1][1] - m[0][1] * m[1][0]) / det
+		);
+	}
+
+	inline mat3 Transpose3x3(const mat3& m) {
+		return mat3(
+			m[0][0], m[1][0], m[2][0],
+			m[0][1], m[1][1], m[2][1],
+			m[0][2], m[1][2], m[2][2]
+		);
+	}
+
+
+	inline mat3 NormalTransformMatrix3x3(const mat4& m) {
+		mat3 m3x3(0);
+		m3x3[0] = m[0].xyz;	
+		m3x3[1] = m[1].xyz;	
+		m3x3[2] = m[2].xyz;	
+
+		return Transpose3x3(Inverse3x3(m3x3));
 	}
 }

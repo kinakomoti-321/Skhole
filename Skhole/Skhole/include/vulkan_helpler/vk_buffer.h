@@ -74,7 +74,58 @@ namespace Skhole {
 	struct DeviceBuffer {
 		Buffer hostBuffer;
 		Buffer deviceBuffer;
+		uint32_t bufferSize;
 
+		void Init(
+			vk::PhysicalDevice physicalDevice,
+			vk::Device device,
+			vk::DeviceSize size,
+			vk::BufferUsageFlags usage,
+			vk::MemoryPropertyFlags memoryProperty
+		) 
+		{
+			hostBuffer.init(physicalDevice, device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+			deviceBuffer.init(physicalDevice, device, size, usage | vk::BufferUsageFlagBits::eTransferDst, memoryProperty);
+			bufferSize = size;
+		}
+
+		void* Map(vk::Device device, uint32_t offset, uint32_t size) {
+			return hostBuffer.Map(device, offset, size);
+		}
+
+		void Unmap(vk::Device device) {
+			hostBuffer.Ummap(device);
+		}
+
+		void UploadToDevice(vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
+			vkutils::oneTimeSubmit(device, commandPool, queue, [&](vk::CommandBuffer commandBuffer) {
+				vk::BufferCopy copyRegion{};
+				copyRegion.setSize(bufferSize);
+				commandBuffer.copyBuffer(*hostBuffer.buffer, *deviceBuffer.buffer, copyRegion);
+			});
+		}
+
+		vk::Buffer GetDeviceBuffer() {
+			return *deviceBuffer.buffer;
+		}
+
+		vk::Buffer GetHostBuffer() {
+			return *hostBuffer.buffer;
+		}
+
+		uint32_t GetBufferSize() {
+			return bufferSize;
+		}
+
+		vk::DeviceAddress GetDeviceAddress() {
+			return deviceBuffer.address;
+		}
+
+		void Release(vk::Device device) {
+			hostBuffer.Release(device);
+			deviceBuffer.Release(device);
+			bufferSize = 0;
+		}
 	};
 
 	struct AccelStruct {

@@ -14,9 +14,37 @@ struct VertexData{
 	vec4 color;
 };
 
+struct GeometryData{
+	int vertexOffset;
+	int indexOffset;
+};
+
+struct InstanceData{
+	uint geometryIndex;
+	vec4 transform0;
+	vec4 transform1;
+	vec4 transform2;
+
+	vec4 normalTransform0;
+	vec4 normalTransform1;
+	vec4 normalTransform2;
+};
+
 layout(std430,binding = 3) buffer readonly vertexData{
 	VertexData vertex[];
-}vertex;
+};
+
+layout(binding=4) buffer readonly indexData{
+	uint index[];
+};
+
+layout(binding=5) buffer readonly geometryData{
+	GeometryData geometry[];
+};
+
+layout(binding=6) buffer readonly instanceData{
+	InstanceData instance[];
+};
 
 hitAttributeEXT vec3 attribs;
 

@@ -196,8 +196,8 @@ namespace Skhole {
 
 		m_sceneBufferManager.SetScene(m_scene);
 
-		m_sceneBufferManager.InitGeometryBuffer(m_context.physicalDevice, *m_context.device);
-		m_sceneBufferManager.InitInstanceBuffer(m_context.physicalDevice, *m_context.device);
+		m_sceneBufferManager.InitGeometryBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+		m_sceneBufferManager.InitInstanceBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
 
 
@@ -243,7 +243,7 @@ namespace Skhole {
 		CreatePipeline();
 		CreateShaderBindingTable();
 	}
-	
+
 	void SimpleRaytracer::CreateDescriptorPool()
 	{
 		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_context.device);
@@ -256,7 +256,9 @@ namespace Skhole {
 			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
 			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
 			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR}
+			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR}
 		};
 
 		m_bindingManager.SetLayout(*m_context.device);
@@ -278,7 +280,7 @@ namespace Skhole {
 
 		m_scene->SetTransformMatrix(frame);
 
-		m_sceneBufferManager.FrameUpdateInstance(*m_context.device, frame);
+		m_sceneBufferManager.FrameUpdateInstance(frame, *m_context.device, *m_commandPool, m_context.queue);
 		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
 
@@ -336,12 +338,12 @@ namespace Skhole {
 
 
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
-		std::vector<vk::WriteDescriptorSet> writes(2);
+		//std::vector<vk::WriteDescriptorSet> writes(2);
 
 		VkHelper::BindingManager::WritingInfo info;
 		info.numAS = 1;
 		info.numImage = 1;
-		info.numBuffer = 3;
+		info.numBuffer = 6;
 		m_bindingManager.StartWriting(info);
 
 		m_bindingManager.WriteAS(
@@ -358,14 +360,24 @@ namespace Skhole {
 			vk::DescriptorType::eUniformBuffer, 2, 1, *m_context.device
 		);
 
-		//m_bindingManager.WriteBuffer(
-		//	*m_sceneBufferManager.vertexBuffer.buffer, 0, , 
-		//	vk::DescriptorType::eStorageBuffer, 3, 1, *m_context.device
-		//);
+		m_bindingManager.WriteBuffer(
+			m_sceneBufferManager.vertexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.vertexBuffer.GetBufferSize(),
+			vk::DescriptorType::eStorageBuffer, 3, 1, *m_context.device
+		);
 
 		m_bindingManager.WriteBuffer(
-			*m_sceneBufferManager.vertexBuffer.buffer, 0,m_sceneBufferManager.vertexBufferSize, 
-			vk::DescriptorType::eStorageBuffer, 3, 1, *m_context.device
+			m_sceneBufferManager.indexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.indexBuffer.GetBufferSize(),
+			vk::DescriptorType::eStorageBuffer, 4, 1, *m_context.device
+		);
+
+		m_bindingManager.WriteBuffer(
+			m_sceneBufferManager.geometryBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.geometryBuffer.GetBufferSize(),
+			vk::DescriptorType::eStorageBuffer, 5, 1, *m_context.device
+		);
+
+		m_bindingManager.WriteBuffer(
+			m_sceneBufferManager.instanceBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.instanceBuffer.GetBufferSize(),
+			vk::DescriptorType::eStorageBuffer, 6, 1, *m_context.device
 		);
 
 		m_bindingManager.EndWriting(*m_context.device);

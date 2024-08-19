@@ -137,10 +137,10 @@ namespace Skhole
 			VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
 			VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
 			VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-		};
 
-		//AccelStruct m_bottomAccel;
-		//AccelStruct m_topAccel;
+			// For GLSL
+			VK_KHR_RELAXED_BLOCK_LAYOUT_EXTENSION_NAME,
+		};
 
 		std::vector<vk::UniqueShaderModule> shaderModules;
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;

@@ -10,6 +10,7 @@ namespace Skhole {
 		~SceneBufferaManager() {};
 
 		struct GeometryData {
+			uint32_t vertexOffset;
 			uint32_t indexOffset;
 		};
 
@@ -22,17 +23,16 @@ namespace Skhole {
 		};
 
 		struct InstanceData {
-			uint32_t geometryIndex;
-			//vec4 transform[3];
 			vk::TransformMatrixKHR transform;
-			vk::TransformMatrixKHR invTransform;
+			vk::TransformMatrixKHR normalTransform;
+			uint32_t geometryIndex;
 		};
 
 		void SetScene(ShrPtr<Scene> in_scene) {
 			scene = in_scene;
 		}
 
-		void InitGeometryBuffer(vk::PhysicalDevice physicalDevice, vk::Device device) {
+		void InitGeometryBuffer(vk::PhysicalDevice physicalDevice, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
 
 			auto geometries = scene->m_geometies;
 
@@ -57,13 +57,13 @@ namespace Skhole {
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 			};
 
-			vertexBuffer.init(
+			vertexBuffer.Init(
 				physicalDevice, device,
 				vertexCount * sizeof(VertexData),
 				bufferUsage, memoryProperty
 			);
 
-			indexBuffer.init(
+			indexBuffer.Init(
 				physicalDevice, device,
 				indexCount * sizeof(uint32_t),
 				bufferUsage, memoryProperty
@@ -85,10 +85,11 @@ namespace Skhole {
 				memcpy(vertexMap, vertices.data(), vertices.size() * sizeof(VertexData));
 				memcpy(indexMap, indices.data(), indices.size() * sizeof(uint32_t));
 
-				vertexBuffer.Ummap(device);
-				indexBuffer.Ummap(device);
+				vertexBuffer.Unmap(device);
+				indexBuffer.Unmap(device);
 
 				GeometryData geomData;
+				geomData.vertexOffset = vertexOffset;
 				geomData.indexOffset = indexOffset;
 				geometryData.push_back(geomData);
 
@@ -99,18 +100,40 @@ namespace Skhole {
 				geomOffset.numIndex = indices.size();
 				geometryOffset.push_back(geomOffset);
 
-				uint32_t test = sizeof(VertexData);
-
 				vertOffsetByte += vertices.size() * sizeof(VertexData);
 				indexOffsetByte += indices.size() * sizeof(uint32_t);
 
 				indexOffset += indices.size();
+				vertexOffset += vertices.size();
 			}
-			vertexBufferSize = vertOffsetByte;
-			indexBufferSize = indexOffsetByte;
+
+			vertexBuffer.UploadToDevice(device, commandPool, queue);
+			indexBuffer.UploadToDevice(device, commandPool, queue);
+
+			vk::BufferUsageFlags geometryBufferUsage{
+				vk::BufferUsageFlagBits::eStorageBuffer |
+				vk::BufferUsageFlagBits::eShaderDeviceAddress
+			};
+
+			vk::MemoryPropertyFlags geometryBufferProperty{
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+			};
+
+			uint32_t geometryBufferSize = geometryData.size() * sizeof(GeometryData);
+			geometryBuffer.Init(
+				physicalDevice, device,
+				geometryBufferSize,
+				geometryBufferUsage, geometryBufferProperty
+			);
+
+			void* geometryMap = geometryBuffer.Map(device, 0, geometryBufferSize);
+			memcpy(geometryMap, geometryData.data(), geometryBufferSize);
+			geometryBuffer.Unmap(device);
+
+			geometryBuffer.UploadToDevice(device, commandPool, queue);
 		}
 
-		void InitInstanceBuffer(vk::PhysicalDevice physicalDevice, vk::Device device) {
+		void InitInstanceBuffer(vk::PhysicalDevice physicalDevice, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
 			auto& objects = scene->m_objects;
 
 			for (auto& object : objects) {
@@ -126,7 +149,7 @@ namespace Skhole {
 						std::array{0.0f, 0.0f, 1.0f, 0.0f}
 					};
 
-					instData.invTransform = std::array{
+					instData.normalTransform = std::array{
 						std::array{1.0f, 0.0f, 0.0f, 0.0f},
 						std::array{0.0f, 1.0f, 0.0f, 0.0f},
 						std::array{0.0f, 0.0f, 1.0f, 0.0f}
@@ -145,18 +168,22 @@ namespace Skhole {
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 			};
 
-			instanceBuffer.init(
+			uint32_t instanceBufferSize = instanceData.size() * sizeof(InstanceData);
+
+			instanceBuffer.Init(
 				physicalDevice, device,
-				instanceData.size() * sizeof(InstanceData),
+				instanceBufferSize,
 				bufferUsage, memoryProperty
 			);
 
-			void* instanceMap = instanceBuffer.Map(device, 0, instanceData.size() * sizeof(InstanceData));
-			memcpy(instanceMap, instanceData.data(), instanceData.size() * sizeof(InstanceData));
-			instanceBuffer.Ummap(device);
+			void* instanceMap = instanceBuffer.Map(device, 0, instanceBufferSize);
+			memcpy(instanceMap, instanceData.data(), instanceBufferSize);
+			instanceBuffer.Unmap(device);
+
+			instanceBuffer.UploadToDevice(device, commandPool, queue);
 		}
 
-		void FrameUpdateInstance(vk::Device device, float frame) {
+		void FrameUpdateInstance(float frame, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
 			auto& objects = scene->m_objects;
 			uint32_t numInstance = instanceData.size();
 			instanceData.clear();
@@ -170,6 +197,7 @@ namespace Skhole {
 					instData.geometryIndex = instance->geometryIndex.value();
 
 					mat4 transform = instance->GetWorldTransformMatrix(frame);
+					mat3 normalTransform = NormalTransformMatrix3x3(transform);
 
 					instData.transform = std::array{
 						std::array{transform[0][0], transform[0][1], transform[0][2], transform[0][3]},
@@ -178,19 +206,21 @@ namespace Skhole {
 					};
 
 
-					instData.invTransform = std::array{
-						std::array{1.0f, 0.0f, 0.0f, 0.0f},
-						std::array{0.0f, 1.0f, 0.0f, 0.0f},
-						std::array{0.0f, 0.0f, 1.0f, 0.0f}
+					instData.normalTransform = std::array{
+						std::array{normalTransform[0][0], normalTransform[0][1], normalTransform[0][2], 0.0f},
+						std::array{normalTransform[1][0], normalTransform[1][1], normalTransform[1][2], 0.0f},
+						std::array{normalTransform[2][0], normalTransform[2][1], normalTransform[2][2], 0.0f}
 					};
 
 					instanceData.push_back(instData);
 				}
 			}
 
-			void* instanceMap = instanceBuffer.Map(device, 0, instanceData.size() * sizeof(InstanceData));
-			memcpy(instanceMap, instanceData.data(), instanceData.size() * sizeof(InstanceData));
-			instanceBuffer.Ummap(device);
+			void* instanceMap = instanceBuffer.Map(device, 0, instanceBuffer.GetBufferSize());
+			memcpy(instanceMap, instanceData.data(), instanceBuffer.GetBufferSize());
+			instanceBuffer.Unmap(device);
+
+			instanceBuffer.UploadToDevice(device, commandPool, queue);
 		}
 
 		void Release(vk::Device device) {
@@ -201,19 +231,22 @@ namespace Skhole {
 			instanceBuffer.Release(device);
 		}
 
-		Buffer vertexBuffer;
-		Buffer indexBuffer;
+		//Buffer vertexBuffer;
+		//Buffer indexBuffer;
 
-		uint32_t vertexBufferSize;
-		uint32_t indexBufferSize;
+		//uint32_t vertexBufferSize;
+		//uint32_t indexBufferSize;
+		
+		DeviceBuffer vertexBuffer;
+		DeviceBuffer indexBuffer;
 
 		std::vector<GeometryData> geometryData;
 		std::vector<GeometryBufferData> geometryOffset;
 
 		std::vector<InstanceData> instanceData;
 
-		Buffer geometryBuffer;
-		Buffer instanceBuffer;
+		DeviceBuffer geometryBuffer;
+		DeviceBuffer instanceBuffer;
 
 		ShrPtr<Scene> scene = nullptr;
 	};
@@ -228,15 +261,15 @@ namespace Skhole {
 			BLASes.clear();
 			BLASes.resize(geomOffset.size());
 
-			for (int i = 0; i < geomOffset.size(); i++){
+			for (int i = 0; i < geomOffset.size(); i++) {
 				auto& geom = geomOffset[i];
 				vk::AccelerationStructureGeometryTrianglesDataKHR triangles{};
 				triangles.setVertexFormat(vk::Format::eR32G32B32Sfloat);
-				triangles.setVertexData(bufferManager.vertexBuffer.address + geom.vertexOffsetByte);
+				triangles.setVertexData(bufferManager.vertexBuffer.GetDeviceAddress() + geom.vertexOffsetByte);
 				triangles.setVertexStride(sizeof(VertexData));
 				triangles.setMaxVertex(geom.numVert);
 				triangles.setIndexType(vk::IndexType::eUint32);
-				triangles.setIndexData(bufferManager.indexBuffer.address + geom.indexOffsetByte);
+				triangles.setIndexData(bufferManager.indexBuffer.GetDeviceAddress() + geom.indexOffsetByte);
 
 				vk::AccelerationStructureGeometryKHR geometry{};
 				geometry.setGeometryType(vk::GeometryTypeKHR::eTriangles);
