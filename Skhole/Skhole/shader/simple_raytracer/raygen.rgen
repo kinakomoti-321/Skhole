@@ -76,7 +76,7 @@ void main()
         0           // payloadLocation
     );
 
-    vec3 col = payload.basecolor * payload.normal;
+    vec3 col = payload.basecolor;
     if(payload.isMiss) col = vec3(0.0);
 
     imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(col,0.0));

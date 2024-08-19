@@ -23,9 +23,9 @@ namespace Skhole {
 		};
 
 		struct InstanceData {
+			uint32_t geometryIndex;
 			vk::TransformMatrixKHR transform;
 			vk::TransformMatrixKHR normalTransform;
-			uint32_t geometryIndex;
 		};
 
 		void SetScene(ShrPtr<Scene> in_scene) {

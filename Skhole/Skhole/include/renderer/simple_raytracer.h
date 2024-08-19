@@ -106,6 +106,21 @@ namespace Skhole
 			MakeShr<ParamFloat>("Roughness", 0.0f),
 			MakeShr<ParamFloat>("Metallic", 0.0f),
 		};
+		
+		struct Material {
+			vec4 baseColor;
+			uint32_t baseColorTexIndex = -1;
+
+			float roughness;
+			uint32_t roughnessTexIndex = -1;
+
+			float metallic;
+			uint32_t metallicTexIndex = -1;
+	
+			float emissionIntesity = 1.0;
+			vec4 emissionColor;
+			bool hasEmission = false;
+		};
 
 		const std::vector<ShrPtr<Parameter>> m_camExtensionParams = 
 		{
