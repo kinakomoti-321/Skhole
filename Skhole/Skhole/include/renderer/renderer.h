@@ -18,36 +18,21 @@ namespace Skhole
 		GLFWwindow* window;
 	};
 
-	struct RendererData 
-	{
-		std::string rendererName;
-		RendererDefinisionMaterial materials;
-	};
-	
 	struct UpdateCommand {
 
 	};
 
-	struct UpdateMaterialInfo {
-
-	};
-
-	struct UpdateCameraInfo {
-
-	};
-
-	struct UpdateGeometryInfo {
-
-	};
-
-	struct UpdateObjectInfo {
-
-	};
-
-	struct RenderInfo {
-		uint32_t frame;
+	struct RealTimeRenderingInfo {
 		uint32_t spp;
+		uint32_t frame;
 	};
+
+	struct OfflineRenderingInfo {
+		uint32_t spp;
+		uint32_t frame;
+	};	
+
+	// Renderer Data
 
 	class Renderer {
 	public:
@@ -64,15 +49,17 @@ namespace Skhole
 		virtual void DestroyScene() = 0;
 
 		// Renderer Data
-		virtual RendererData GetRendererData() = 0;
 		virtual ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) = 0;
 		virtual ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<BasicCamera>& basicCamera) = 0;
-
+		virtual ShrPtr<RendererParameter> GetRendererParameter() = 0;
 
 		virtual void InitFrameGUI() = 0;
-		// Update Structure
-		virtual void UpdateScene(const UpdateCommand& command) = 0;
 
-		virtual void Render(const RenderInfo& renderInfo) = 0;
+		// Update Structure(For Editor)
+		virtual void UpdateScene(const UpdateCommand& command) = 0;
+		
+		// Rendering
+		virtual void RealTimeRender(const RealTimeRenderingInfo& renderInfo) = 0;
+		virtual void OfflineRender(const OfflineRenderingInfo& renderInfo) = 0;
 	};
 }

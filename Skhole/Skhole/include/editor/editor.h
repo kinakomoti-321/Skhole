@@ -65,7 +65,7 @@ namespace Skhole {
 			vec3 cameraRight = camera->basicParameter.cameraRight;
 
 			mat3 rotY = rotateY(-angleT.x);
-			mat3 rotUp = rotateMaterixFromAxis(angleT.y * 2.0, cameraRight);
+			mat3 rotUp = rotateMaterixFromAxis(-angleT.y * 2.0, cameraRight);
 
 			cameraDir = rotUp * (rotY * cameraDir);
 			cameraRight = rotUp * (rotY * cameraRight);

@@ -148,6 +148,8 @@ namespace Skhole {
 		m_basicCamera = MakeShr<BasicCamera>();
 
 		m_camera = renderer->GetCamera(m_basicCamera);
+
+		m_rendererParameter = renderer->GetRendererParameter();
 	}
 
 

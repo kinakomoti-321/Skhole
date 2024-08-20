@@ -21,13 +21,17 @@ struct GeometryData{
 
 struct InstanceData{
 	uint geometryIndex;
-//	vec4 transform0;
-//	vec4 transform1;
-//	vec4 transform2;
-//
-//	vec4 normalTransform0;
-//	vec4 normalTransform1;
-//	vec4 normalTransform2;
+	uint padding1;
+	uint padding2;
+	uint padding3;
+
+	vec4 transform0;
+	vec4 transform1;
+	vec4 transform2;
+
+	vec4 normalTransform0;
+	vec4 normalTransform1;
+	vec4 normalTransform2;
 };
 
 layout(std430, binding = 3) buffer readonly vertexData{

@@ -24,8 +24,11 @@ namespace Skhole {
 
 		struct InstanceData {
 			uint32_t geometryIndex;
-			//vk::TransformMatrixKHR transform;
-			//vk::TransformMatrixKHR normalTransform;
+			uint32_t padding1;
+			uint32_t padding2;
+			uint32_t padding3;
+			vk::TransformMatrixKHR transform;
+			vk::TransformMatrixKHR normalTransform;
 		};
 
 		void SetScene(ShrPtr<Scene> in_scene) {
@@ -143,17 +146,17 @@ namespace Skhole {
 					InstanceData instData;
 					instData.geometryIndex = instance->geometryIndex.value();
 
-					//instData.transform = std::array{
-					//	std::array{1.0f, 0.0f, 0.0f, 0.0f},
-					//	std::array{0.0f, 1.0f, 0.0f, 0.0f},
-					//	std::array{0.0f, 0.0f, 1.0f, 0.0f}
-					//};
+					instData.transform = std::array{
+						std::array{1.0f, 0.0f, 0.0f, 0.0f},
+						std::array{0.0f, 1.0f, 0.0f, 0.0f},
+						std::array{0.0f, 0.0f, 1.0f, 0.0f}
+					};
 
-					//instData.normalTransform = std::array{
-					//	std::array{1.0f, 0.0f, 0.0f, 0.0f},
-					//	std::array{0.0f, 1.0f, 0.0f, 0.0f},
-					//	std::array{0.0f, 0.0f, 1.0f, 0.0f}
-					//};
+					instData.normalTransform = std::array{
+						std::array{1.0f, 0.0f, 0.0f, 0.0f},
+						std::array{0.0f, 1.0f, 0.0f, 0.0f},
+						std::array{0.0f, 0.0f, 1.0f, 0.0f}
+					};
 
 					instanceData.push_back(instData);
 				}
@@ -199,18 +202,18 @@ namespace Skhole {
 					mat4 transform = instance->GetWorldTransformMatrix(frame);
 					mat3 normalTransform = NormalTransformMatrix3x3(transform);
 
-					//instData.transform = std::array{
-					//	std::array{transform[0][0], transform[0][1], transform[0][2], transform[0][3]},
-					//	std::array{transform[1][0], transform[1][1], transform[1][2], transform[1][3]},
-					//	std::array{transform[2][0], transform[2][1], transform[2][2], transform[2][3]}
-					//};
+					instData.transform = std::array{
+						std::array{transform[0][0], transform[0][1], transform[0][2], transform[0][3]},
+						std::array{transform[1][0], transform[1][1], transform[1][2], transform[1][3]},
+						std::array{transform[2][0], transform[2][1], transform[2][2], transform[2][3]}
+					};
 
 
-					//instData.normalTransform = std::array{
-					//	std::array{normalTransform[0][0], normalTransform[0][1], normalTransform[0][2], 0.0f},
-					//	std::array{normalTransform[1][0], normalTransform[1][1], normalTransform[1][2], 0.0f},
-					//	std::array{normalTransform[2][0], normalTransform[2][1], normalTransform[2][2], 0.0f}
-					//};
+					instData.normalTransform = std::array{
+						std::array{normalTransform[0][0], normalTransform[0][1], normalTransform[0][2], 0.0f},
+						std::array{normalTransform[1][0], normalTransform[1][1], normalTransform[1][2], 0.0f},
+						std::array{normalTransform[2][0], normalTransform[2][1], normalTransform[2][2], 0.0f}
+					};
 
 					instanceData.push_back(instData);
 				}
@@ -231,12 +234,6 @@ namespace Skhole {
 			instanceBuffer.Release(device);
 		}
 
-		//Buffer vertexBuffer;
-		//Buffer indexBuffer;
-
-		//uint32_t vertexBufferSize;
-		//uint32_t indexBufferSize;
-		
 		DeviceBuffer vertexBuffer;
 		DeviceBuffer indexBuffer;
 
@@ -296,13 +293,13 @@ namespace Skhole {
 			for (int i = 0; i < bufferManager.instanceData.size(); i++) {
 				auto& inst = bufferManager.instanceData[i];
 				vk::AccelerationStructureInstanceKHR accel{};
-				vk::TransformMatrixKHR transform = std::array{
-					std::array{ 1.0f, 0.0f, 0.0f, 0.0f }, 
-					std::array{ 0.0f, 1.0f, 0.0f, 0.0f }, 
-					std::array{ 0.0f, 0.0f, 1.0f, 0.0f }, 
-				};
-				accel.setTransform(transform);
-				//accel.setTransform(inst.transform);
+				//vk::TransformMatrixKHR transform = std::array{
+				//	std::array{ 1.0f, 0.0f, 0.0f, 0.0f }, 
+				//	std::array{ 0.0f, 1.0f, 0.0f, 0.0f }, 
+				//	std::array{ 0.0f, 0.0f, 1.0f, 0.0f }, 
+				//};
+				//accel.setTransform(transform);
+				accel.setTransform(inst.transform);
 				accel.setInstanceCustomIndex(i);
 				accel.setMask(0xff);
 				accel.setInstanceShaderBindingTableRecordOffset(0);

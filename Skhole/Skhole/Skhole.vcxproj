@@ -170,6 +170,7 @@
     <ClInclude Include="include\common\math.h" />
     <ClInclude Include="include\common\util.h" />
     <ClInclude Include="include\renderer\buffer_manager.h" />
+    <ClInclude Include="include\renderer\update_command.h" />
     <ClInclude Include="include\scene\camera\camera.h" />
     <ClInclude Include="include\scene\object\sample_geometry.h" />
     <ClInclude Include="include\common\timer.h" />
@@ -186,6 +187,7 @@
     <ClInclude Include="include\scene\object\object.h" />
     <ClInclude Include="include\scene\object\volume.h" />
     <ClInclude Include="include\scene\parameter\parameter.h" />
+    <ClInclude Include="include\scene\parameter\renderer_parameter.h" />
     <ClInclude Include="include\scene\scene.h" />
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp" />
     <ClInclude Include="include\vulkan_helpler\vk_buffer.h" />

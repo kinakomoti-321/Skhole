@@ -32,15 +32,18 @@ namespace Skhole
 		void SetScene(ShrPtr<Scene> scene) override;
 		void DestroyScene() override;
 
-		RendererData GetRendererData() override;
+		//RendererData GetRendererData() override;
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
 		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<BasicCamera>& basicCamera) override;
+		ShrPtr<RendererParameter> GetRendererParameter() override;
+
 
 		void InitFrameGUI() override;
 
 		void UpdateScene(const UpdateCommand& command) override;
 
-		void Render(const RenderInfo& renderInfo) override;
+		void RealTimeRender(const RealTimeRenderingInfo& renderInfo) override;
+		void OfflineRender(const OfflineRenderingInfo& renderInfo) override;
 
 	private:
 		//--------------------------------------
@@ -76,15 +79,18 @@ namespace Skhole
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
 
 
-	private: 
+	private:
 		//--------------------------------------
 		// Renderer Structures
 		//--------------------------------------
 		struct UniformBufferObject {
 			uint32_t spp;
 			uint32_t frame;
+			uint32_t sample;
 			uint32_t width;
 			uint32_t height;
+
+			uint32_t padding[3];
 
 			vec3 cameraPos;
 			vec3 cameraDir;
@@ -92,6 +98,16 @@ namespace Skhole
 			vec3 cameraRight;
 			vec4 cameraParam;
 		};
+
+		struct SimpleRaytracerParameter {
+			uint32_t spp = 1;
+			uint32_t sample = 0;
+			uint32_t frame = 0;
+
+			uint32_t checkMode = 0;
+		};
+		
+		SimpleRaytracerParameter m_raytracerParameter;
 
 	private:
 		//--------------------------------------
@@ -101,12 +117,12 @@ namespace Skhole
 		RendererDesc m_desc;
 
 		const std::vector<ShrPtr<Parameter>> m_matParams =
-		{	
+		{
 			MakeShr<ParamCol>("BaseColor", vec4(0.8f)),
 			MakeShr<ParamFloat>("Roughness", 0.0f),
 			MakeShr<ParamFloat>("Metallic", 0.0f),
 		};
-		
+
 		struct Material {
 			vec4 baseColor;
 			uint32_t baseColorTexIndex = -1;
@@ -116,16 +132,22 @@ namespace Skhole
 
 			float metallic;
 			uint32_t metallicTexIndex = -1;
-	
+
 			float emissionIntesity = 1.0;
 			vec4 emissionColor;
 			bool hasEmission = false;
 		};
 
-		const std::vector<ShrPtr<Parameter>> m_camExtensionParams = 
+		const std::vector<ShrPtr<Parameter>> m_camExtensionParams =
 		{
 			MakeShr<ParamVec>("LookPoint",vec3(0.0f)),
 		};
+
+		const std::vector<ShrPtr<Parameter>> m_rendererExtensionParams =
+		{
+			MakeShr<ParamUint>("Ckeck Mode",0),
+		};
+
 
 		//--------------------------------------
 		// Vulkan
@@ -146,6 +168,7 @@ namespace Skhole
 		std::vector<const char* > m_extension = {
 			// For swapchain
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+
 			// For ray tracing
 			VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
 			VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,

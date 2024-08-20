@@ -4,7 +4,6 @@
 
 #include "./payload.glsl"
 
-//layout(location = 0) rayPayloadEXT vec3 payload;
 layout(location = 0) rayPayloadEXT PayLoadStruct payload;
 
 layout(binding = 0) uniform accelerationStructureEXT topLevelAS;
@@ -15,9 +14,12 @@ layout(binding = 1, rgba8) uniform image2D image;
 layout(binding = 2) uniform UBO {
     uint spp;
     uint frame;
+    uint numSample;
 
     uint width;
     uint height;
+
+    uint2 padding;
 
     vec3 cameraPos;
     vec3 cameraDir;
@@ -39,6 +41,7 @@ vec3 GetPinholeCameraDir(vec3 cameraDir,vec3 cameraUp,vec3 cameraRight,vec2 uv, 
 void main()
 {
     vec2 uv = (vec2(gl_LaunchIDEXT.xy) + vec2(0.5)) / vec2(gl_LaunchSizeEXT.xy);
+    uv.y = 1.0 - uv.y;
     float aspect = ubo.cameraParam.y;
     uv.x *= aspect;
 
@@ -58,7 +61,6 @@ void main()
         uv * 2.0 - 1.0,
         f
     );
-     
 
     payload.basecolor = vec3(0);
     payload.normal = vec3(0);

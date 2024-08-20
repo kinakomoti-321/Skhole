@@ -104,10 +104,10 @@ namespace Skhole
 			UpdateCommand command;
 			m_renderer->UpdateScene(command);
 
-			RenderInfo renderInfo;
+			RealTimeRenderingInfo renderInfo;
 			renderInfo.frame = 0;
 			renderInfo.spp = 100;
-			m_renderer->Render(renderInfo);
+			m_renderer->RealTimeRender(renderInfo);
 		}
 
 		m_renderer->Destroy();
@@ -126,10 +126,6 @@ namespace Skhole
 	}
 
 	void Editor::ShowRendererGUI() {
-		RendererData rendererData = m_renderer->GetRendererData();
-
-		//Renderer Imformation
-
 
 
 		ImGui::Begin("Rendering Infomation");
@@ -138,10 +134,43 @@ namespace Skhole
 		{
 			if (ImGui::BeginTabItem("Renderer"))
 			{
-				std::string rendererName = "Renderer Name:" + rendererData.rendererName;
-				ImGui::Text(rendererName.c_str());
+				ImGui::Text("Renderer Information");
 
-				ImGui::Text("Renderer");
+				auto& rendererData = m_scene->m_rendererParameter;
+
+				ImGui::Text("Renderer Name : %s", rendererData->rendererName.c_str());
+				ImGui::Text("Frame : %u", rendererData->frame);
+				ImGui::Text("SPP : %u", rendererData->spp);
+				ImGui::Text("sample : %u", rendererData->sample);
+
+				for (auto& rendererParam : rendererData->rendererParameters) {
+					ShrPtr<ParamFloat> floatParam;
+					ShrPtr<ParamVec> vec3Param;
+					ShrPtr<ParamUint> textureIDParam;
+
+					switch (rendererParam->getParamType())
+					{
+					case ParameterType::FLOAT:
+						floatParam = std::static_pointer_cast<ParamFloat>(rendererParam);
+						ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
+						break;
+
+					case ParameterType::VECTOR:
+						vec3Param = std::static_pointer_cast<ParamVec>(rendererParam);
+						ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
+						break;
+
+					case ParameterType::UINT:
+						textureIDParam = std::static_pointer_cast<ParamUint>(rendererParam);
+						ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
+						break;
+
+					default:
+						SKHOLE_UNIMPL();
+						break;
+					}
+				}
+
 				ImGui::EndTabItem();
 			}
 
@@ -191,10 +220,6 @@ namespace Skhole
 			}
 			ImGui::EndTabBar();
 		}
-
-
-
-
 
 		ImGui::End();
 	}

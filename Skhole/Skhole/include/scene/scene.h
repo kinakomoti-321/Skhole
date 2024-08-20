@@ -8,6 +8,7 @@
 #include <scene/object/geometry.h>
 #include <scene/object/instance.h>
 #include <scene/camera/camera.h>
+#include <scene/parameter/renderer_parameter.h>
 
 
 #include <renderer/renderer.h>
@@ -39,6 +40,8 @@ namespace Skhole {
 
 		ShrPtr<BasicCamera> m_basicCamera;
 		ShrPtr<RendererDefinisionCamera> m_camera;
+
+		ShrPtr<RendererParameter> m_rendererParameter;
 
 		std::string m_scenenName;
 	};

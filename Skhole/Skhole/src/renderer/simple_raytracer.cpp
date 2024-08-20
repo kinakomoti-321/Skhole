@@ -31,7 +31,6 @@ namespace Skhole {
 			2,
 			m_swapchainContext.swapchainImages.size()
 		);
-
 	}
 
 	void SimpleRaytracer::Init(RendererDesc& desc)
@@ -91,8 +90,8 @@ namespace Skhole {
 		//--------------------------------------
 		// Create Buffer
 		//--------------------------------------
-		uniformBufferObject.frame = 0;
-		uniformBufferObject.spp = 100;
+		uniformBufferObject.frame = m_raytracerParameter.frame;
+		uniformBufferObject.spp = m_raytracerParameter.spp;
 		uniformBufferObject.width = m_desc.Width;
 		uniformBufferObject.height = m_desc.Height;
 
@@ -110,7 +109,18 @@ namespace Skhole {
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
-	void SimpleRaytracer::DestroyScene() {
+	ShrPtr<RendererParameter> GetRendererParameter()
+	{
+		ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
+		rendererParameter->rendererName = "Simple Raytracer";
+		rendererParameter->frame = 0;
+		rendererParameter->spp = 100;
+		rendererParameter->sample = 1;
+		return nullptr;
+	}
+
+	void SimpleRaytracer::DestroyScene()
+	{
 
 	}
 
@@ -135,12 +145,11 @@ namespace Skhole {
 		SKHOLE_UNIMPL("Resize");
 	}
 
-	void SimpleRaytracer::Render(const RenderInfo& renderInfo)
+	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
 	{
+		m_raytracerParameter.spp++;
 
-		float frame = 0;
-
-		FrameStart(frame);
+		FrameStart(m_raytracerParameter.frame);
 
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
@@ -180,9 +189,13 @@ namespace Skhole {
 			std::abort();
 		}
 
-		frame++;
-
 		FrameEnd();
+
+	}
+
+	void SimpleRaytracer::OfflineRender(const OfflineRenderingInfo& renderInfo)
+	{
+		SKHOLE_UNIMPL("Offline Render");
 	}
 
 	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
@@ -230,6 +243,19 @@ namespace Skhole {
 		return cameraDef;
 	}
 
+	ShrPtr<RendererParameter> SimpleRaytracer::GetRendererParameter() {
+
+		ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
+		rendererParameter->rendererName = "Simple Raytracer";
+		rendererParameter->frame = 0;
+		rendererParameter->spp = 100;
+		rendererParameter->sample = 1;
+
+		rendererParameter->rendererParameters = m_rendererExtensionParams;
+		
+		return rendererParameter;
+	}
+
 	//--------------------------------------
 	// Internal Method
 	//--------------------------------------
@@ -266,7 +292,13 @@ namespace Skhole {
 
 	void SimpleRaytracer::FrameStart(float frame) {
 
+		auto& raytracerParam = m_scene->m_rendererParameter;
+
 		auto& camera = m_scene->m_camera;
+		uniformBufferObject.spp = m_raytracerParameter.spp;
+		uniformBufferObject.frame = m_raytracerParameter.frame;
+		uniformBufferObject.sample = m_raytracerParameter.sample;
+
 		uniformBufferObject.cameraPos = camera->basicParameter.position;
 		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
 		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
@@ -287,6 +319,13 @@ namespace Skhole {
 	void SimpleRaytracer::FrameEnd()
 	{
 		m_asManager.ReleaseTLAS(*m_context.device);
+
+
+		auto& raytracerParam = m_scene->m_rendererParameter;
+		raytracerParam->sample++;
+		if (raytracerParam->sample >= raytracerParam->spp) {
+			raytracerParam->sample = raytracerParam->spp;
+		}
 	}
 
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
@@ -381,15 +420,6 @@ namespace Skhole {
 		);
 
 		m_bindingManager.EndWriting(*m_context.device);
-	}
-
-	RendererData SimpleRaytracer::GetRendererData()
-	{
-		RendererData data;
-		data.rendererName = "Simple Raytracer";
-		data.materials.materialParameters = m_matParams;
-
-		return data;
 	}
 
 	void SimpleRaytracer::InitAccelerationStructures() {
