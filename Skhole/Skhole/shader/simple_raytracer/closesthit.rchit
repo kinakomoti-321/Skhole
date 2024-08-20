@@ -21,13 +21,13 @@ struct GeometryData{
 
 struct InstanceData{
 	uint geometryIndex;
-	vec4 transform0;
-	vec4 transform1;
-	vec4 transform2;
-
-	vec4 normalTransform0;
-	vec4 normalTransform1;
-	vec4 normalTransform2;
+//	vec4 transform0;
+//	vec4 transform1;
+//	vec4 transform2;
+//
+//	vec4 normalTransform0;
+//	vec4 normalTransform1;
+//	vec4 normalTransform2;
 };
 
 layout(std430, binding = 3) buffer readonly vertexData{
@@ -68,9 +68,9 @@ void main()
 	vec4 position = (1.0 - attribs.x - attribs.y) * v0.position + attribs.x * v1.position + attribs.y * v2.position;
 	vec4 normal = (1.0 - attribs.x - attribs.y) * v0.normal + attribs.x * v1.normal + attribs.y * v2.normal;
 
-//	payload.basecolor = (v0.normal.xyz + vec3(1.0)) * 0.5;
-	payload.basecolor = vec3(float(inst.geometryIndex) / 6.0); 
+	payload.basecolor = (v0.normal.xyz + vec3(1.0)) * 0.5;
+//	payload.basecolor = vec3(instance[gl_InstanceID].geometryIndex / 6.0); 
 //	payload.basecolor =vec3(instanceID / 6.0);
-	payload.normal = baryCoords;
+//	payload.normal = baryCoords
     payload.isMiss = false;
 }
