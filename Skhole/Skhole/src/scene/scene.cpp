@@ -99,25 +99,25 @@ namespace Skhole {
 		material->emissionIntensity = 0.0f;
 
 		ShrPtr<BasicMaterial> material2 = MakeShr<BasicMaterial>();
-		material->basecolor = vec4(0.2f, 1.0f, 0.2f, 1.0f);
-		material->metallic = 0.0f;
-		material->roughness = 0.5f;
-		material->emissionColor = vec3(0.0f, 0.0f, 0.0f);
-		material->emissionIntensity = 0.0f;
+		material2->basecolor = vec4(0.2f, 1.0f, 0.2f, 1.0f);
+		material2->metallic = 0.0f;
+		material2->roughness = 0.5f;
+		material2->emissionColor = vec3(0.0f, 0.0f, 0.0f);
+		material2->emissionIntensity = 0.0f;
 
 		ShrPtr<BasicMaterial> material3 = MakeShr<BasicMaterial>();
-		material->basecolor = vec4(1.0f);
-		material->metallic = 0.0f;
-		material->roughness = 0.5f;
-		material->emissionColor = vec3(0.0f, 0.0f, 0.0f);
-		material->emissionIntensity = 0.0f;
+		material3->basecolor = vec4(1.0f);
+		material3->metallic = 0.0f;
+		material3->roughness = 0.5f;
+		material3->emissionColor = vec3(0.0f, 0.0f, 0.0f);
+		material3->emissionIntensity = 0.0f;
 
 		ShrPtr<BasicMaterial> material4 = MakeShr<BasicMaterial>();
-		material->basecolor = vec4(1.0f);
-		material->metallic = 0.0f;
-		material->roughness = 0.5f;
-		material->emissionColor = vec3(1.0f);
-		material->emissionIntensity = 1.0f;
+		material4->basecolor = vec4(1.0f);
+		material4->metallic = 0.0f;
+		material4->roughness = 0.5f;
+		material4->emissionColor = vec3(1.0f);
+		material4->emissionIntensity = 1.0f;
 
 		m_geometies.push_back(geometry);
 		m_geometies.push_back(geometry2);

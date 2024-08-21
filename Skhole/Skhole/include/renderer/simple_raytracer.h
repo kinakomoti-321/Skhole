@@ -121,6 +121,14 @@ namespace Skhole
 			MakeShr<ParamCol>("BaseColor", vec4(0.8f)),
 			MakeShr<ParamFloat>("Roughness", 0.0f),
 			MakeShr<ParamFloat>("Metallic", 0.0f),
+
+			MakeShr<ParamUint>("BaseColorTexIndex", -1),
+			MakeShr<ParamUint>("RoughnessTexIndex", -1),
+			MakeShr<ParamUint>("MetallicTexIndex", -1),
+
+			MakeShr<ParamBool>("HasEmission", 0),
+			MakeShr<ParamFloat>("EmissionIntensity", 0.0f),
+			MakeShr<ParamCol>("Emission", vec4(0.0)),
 		};
 
 		struct Material {

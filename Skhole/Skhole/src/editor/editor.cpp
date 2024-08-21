@@ -285,7 +285,7 @@ namespace Skhole
 
 			case ParameterType::UINT:
 				textureIDParam = std::static_pointer_cast<ParamUint>(matParam);
-				ImGui::Text(textureIDParam->getParamName().c_str());
+				ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
 				break;
 
 			default:

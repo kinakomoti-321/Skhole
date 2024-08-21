@@ -14,12 +14,12 @@ namespace Skhole {
 		UINT,
 	};
 
-
 	class Parameter {
 	public:
 		virtual std::string getParamName() = 0;
 		virtual	ParameterType getParamType() = 0;
 		virtual void setParamValue(std::variant<float, vec3, vec4, bool, uint32_t> value) = 0;
+		virtual ShrPtr<Parameter> Copy() = 0; 
 	};
 
 	class ParameterBool : public Parameter {
@@ -39,6 +39,10 @@ namespace Skhole {
 				value = std::get<bool>(in_value);
 			else
 				SKHOLE_ERROR("Input Value is different from Material Parameter Type [Bool]");
+		}
+
+		ShrPtr<Parameter> Copy() override {
+			return std::make_shared<ParameterBool>(m_paramName, value);
 		}
 
 		bool value;
@@ -66,6 +70,10 @@ namespace Skhole {
 				SKHOLE_ERROR("Input Value is different from Material Parameter Type [Float]");
 		}
 
+		ShrPtr<Parameter> Copy() override {
+			return std::make_shared<ParameterFloat>(m_paramName, value);
+		}
+
 		float value;
 
 	private:
@@ -89,6 +97,10 @@ namespace Skhole {
 				value = std::get<vec3>(in_value);
 			else
 				SKHOLE_ERROR("Input Value is different from Material Parameter Type [VECTOR]");
+		}
+
+		ShrPtr<Parameter> Copy() override {
+			return std::make_shared<ParamterVector>(m_paramName, value);
 		}
 
 		vec3 value;
@@ -116,6 +128,10 @@ namespace Skhole {
 				SKHOLE_ERROR("Input Value is different from Material Parameter Type [COLOR]");
 		}
 
+		ShrPtr<Parameter> Copy() override {
+			return std::make_shared<ParameterColor>(m_paramName, value);
+		}
+
 		vec4 value;
 
 	private:
@@ -141,11 +157,16 @@ namespace Skhole {
 				SKHOLE_ERROR("Input Value is different from Material Parameter Type [uint32_t]");
 		}
 
+		ShrPtr<Parameter> Copy() override {
+			return std::make_shared<ParameterUint>(m_paramName, value);
+		}
+
 		uint32_t value;
 
 	private:
 		std::string m_paramName;
 	};
+
 
 	using ParamBool = ParameterBool;
 	using ParamFloat = ParameterFloat;

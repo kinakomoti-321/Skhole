@@ -219,11 +219,15 @@ namespace Skhole {
 		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
 		materialDef->materialName = material->materialName;
 
-		materialDef->materialParameters = m_matParams; // Copy
+		materialDef->materialParameters.resize(m_matParams.size());
+		for (int i = 0; i < m_matParams.size(); i++)
+		{
+			materialDef->materialParameters[i] = m_matParams[i]->Copy();
+		}
 
-		materialDef->materialParameters[0]->setParamValue(material->basecolor); // BaseColor
-		materialDef->materialParameters[1]->setParamValue(material->metallic); // Metallic
-		materialDef->materialParameters[2]->setParamValue(material->roughness); // Roughness
+		materialDef->materialParameters[0]->setParamValue(material->basecolor);
+		materialDef->materialParameters[1]->setParamValue(material->metallic);
+		materialDef->materialParameters[2]->setParamValue(material->roughness);
 
 		return materialDef;
 	}
@@ -319,7 +323,6 @@ namespace Skhole {
 	void SimpleRaytracer::FrameEnd()
 	{
 		m_asManager.ReleaseTLAS(*m_context.device);
-
 
 		auto& raytracerParam = m_scene->m_rendererParameter;
 		raytracerParam->sample++;
