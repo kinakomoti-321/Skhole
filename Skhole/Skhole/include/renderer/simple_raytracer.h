@@ -208,6 +208,10 @@ namespace Skhole
 		std::vector<Material> m_materials;
 		DeviceBuffer m_materaialBuffer;
 
+
+
+		Image accumImage;
+
 		//--------------------------------------
 		// Scene
 		//--------------------------------------

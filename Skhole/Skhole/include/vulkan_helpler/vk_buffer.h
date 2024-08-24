@@ -82,7 +82,7 @@ namespace Skhole {
 			vk::DeviceSize size,
 			vk::BufferUsageFlags usage,
 			vk::MemoryPropertyFlags memoryProperty
-		) 
+		)
 		{
 			hostBuffer.init(physicalDevice, device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 			deviceBuffer.init(physicalDevice, device, size, usage | vk::BufferUsageFlagBits::eTransferDst, memoryProperty);
@@ -102,7 +102,7 @@ namespace Skhole {
 				vk::BufferCopy copyRegion{};
 				copyRegion.setSize(bufferSize);
 				commandBuffer.copyBuffer(*hostBuffer.buffer, *deviceBuffer.buffer, copyRegion);
-			});
+				});
 		}
 
 		vk::Buffer GetDeviceBuffer() {
@@ -201,5 +201,74 @@ namespace Skhole {
 			buffer.Release(device);
 			*accel = VK_NULL_HANDLE;
 		}
+	};
+
+	class Image {
+
+	public:
+		Image(){}
+		~Image(){}
+
+		void Init(
+			vk::PhysicalDevice physicalDevice,
+			vk::Device device,
+			uint32_t width,
+			uint32_t height,
+			vk::Format format,
+			vk::ImageTiling tiling,
+			vk::ImageUsageFlags usage,
+			vk::MemoryPropertyFlags properties
+		) {
+			vk::ImageCreateInfo imageInfo{};
+			imageInfo.setImageType(vk::ImageType::e2D);
+			imageInfo.setExtent({ width, height, 1 });
+			imageInfo.setMipLevels(1);
+			imageInfo.setArrayLayers(1);
+			imageInfo.setFormat(format);
+			imageInfo.setTiling(tiling);
+			imageInfo.setInitialLayout(vk::ImageLayout::eUndefined);
+			imageInfo.setUsage(usage);
+			imageInfo.setSharingMode(vk::SharingMode::eExclusive);
+			imageInfo.setSamples(vk::SampleCountFlagBits::e1);
+			imageInfo.setFlags(vk::ImageCreateFlags());
+
+			m_image = device.createImage(imageInfo);
+
+			vk::MemoryRequirements memRequirements = device.getImageMemoryRequirements(m_image);
+
+			vk::MemoryAllocateInfo allocInfo{};
+			allocInfo.setAllocationSize(memRequirements.size);
+			allocInfo.setMemoryTypeIndex(vkutils::getMemoryType(physicalDevice, memRequirements, properties));
+
+			m_imageMemory = device.allocateMemory(allocInfo);
+			device.bindImageMemory(m_image, m_imageMemory, 0);
+		
+			vk::ImageViewCreateInfo viewInfo{};
+			viewInfo.setImage(m_image);
+			viewInfo.setViewType(vk::ImageViewType::e2D);
+			viewInfo.setFormat(format);
+			viewInfo.setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
+
+			m_imageView = device.createImageView(viewInfo,nullptr);
+		}
+
+		vk::Image GetImage() {
+			return m_image;	
+		}
+
+		vk::ImageView GetImageView() {
+			return m_imageView;
+		}
+
+		void Release(vk::Device device) {
+			device.destroyImageView(m_imageView);
+			device.destroyImage(m_image);
+			device.freeMemory(m_imageMemory);
+		}
+		
+	private:
+		vk::Image m_image;
+		vk::ImageView m_imageView;
+		vk::DeviceMemory m_imageMemory;
 	};
 }

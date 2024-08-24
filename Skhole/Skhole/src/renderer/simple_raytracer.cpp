@@ -106,6 +106,22 @@ namespace Skhole {
 			&uniformBufferObject
 		);
 
+		accumImage.Init(
+			m_context.physicalDevice, *m_context.device,
+			m_desc.Width, m_desc.Height,
+			vk::Format::eR32G32B32A32Sfloat,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
+		vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
+			[&](vk::CommandBuffer commandBuffer) {
+				vkutils::setImageLayout(commandBuffer, accumImage.GetImage(),
+				vk::ImageLayout::eUndefined,
+				vk::ImageLayout::eGeneral);
+			});
+
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
@@ -135,7 +151,7 @@ namespace Skhole {
 	void SimpleRaytracer::Destroy()
 	{
 		m_context.device->waitIdle();
-
+		accumImage.Release(*m_context.device);
 		m_bindingManager.Release(*m_context.device);
 		m_imGuiManager.Destroy(*m_context.device);
 	}
@@ -332,6 +348,7 @@ namespace Skhole {
 			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
 			{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
 			{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{9, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
 		};
 
 		m_bindingManager.SetLayout(*m_context.device);
@@ -342,9 +359,9 @@ namespace Skhole {
 		auto& raytracerParam = m_scene->m_rendererParameter;
 
 		auto& camera = m_scene->m_camera;
-		uniformBufferObject.spp = m_raytracerParameter.spp;
-		uniformBufferObject.frame = m_raytracerParameter.frame;
-		uniformBufferObject.sample = m_raytracerParameter.sample;
+		uniformBufferObject.spp = raytracerParam->spp;
+		uniformBufferObject.frame = raytracerParam->frame;
+		uniformBufferObject.sample = raytracerParam->sample;
 
 		uniformBufferObject.cameraPos = camera->basicParameter.position;
 		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
@@ -427,7 +444,7 @@ namespace Skhole {
 
 		VkHelper::BindingManager::WritingInfo info;
 		info.numAS = 1;
-		info.numImage = 1;
+		info.numImage = 2;
 		info.numBuffer = 8;
 		m_bindingManager.StartWriting(info);
 
@@ -473,6 +490,11 @@ namespace Skhole {
 		m_bindingManager.WriteBuffer(
 			m_sceneBufferManager.matIndexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.matIndexBuffer.GetBufferSize(),
 			vk::DescriptorType::eStorageBuffer, 8, 1, *m_context.device
+		);
+
+		m_bindingManager.WriteImage(
+			accumImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+			vk::DescriptorType::eStorageImage, 9, 1, *m_context.device
 		);
 
 		m_bindingManager.EndWriting(*m_context.device);
