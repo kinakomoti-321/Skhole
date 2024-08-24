@@ -87,6 +87,7 @@ namespace Skhole
 			uint32_t spp;
 			uint32_t frame;
 			uint32_t sample;
+
 			uint32_t width;
 			uint32_t height;
 
@@ -122,28 +123,19 @@ namespace Skhole
 			MakeShr<ParamFloat>("Roughness", 0.0f),
 			MakeShr<ParamFloat>("Metallic", 0.0f),
 
-			MakeShr<ParamUint>("BaseColorTexIndex", -1),
-			MakeShr<ParamUint>("RoughnessTexIndex", -1),
-			MakeShr<ParamUint>("MetallicTexIndex", -1),
-
-			MakeShr<ParamBool>("HasEmission", 0),
 			MakeShr<ParamFloat>("EmissionIntensity", 0.0f),
 			MakeShr<ParamCol>("Emission", vec4(0.0)),
 		};
 
 		struct Material {
 			vec4 baseColor;
-			uint32_t baseColorTexIndex = -1;
-
 			float roughness;
-			uint32_t roughnessTexIndex = -1;
-
 			float metallic;
-			uint32_t metallicTexIndex = -1;
 
 			float emissionIntesity = 1.0;
+			float padding = 0.0;
+
 			vec4 emissionColor;
-			bool hasEmission = false;
 		};
 
 		const std::vector<ShrPtr<Parameter>> m_camExtensionParams =
@@ -186,6 +178,7 @@ namespace Skhole
 
 			// For GLSL
 			VK_KHR_RELAXED_BLOCK_LAYOUT_EXTENSION_NAME,
+			VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME,
 		};
 
 		std::vector<vk::UniqueShaderModule> shaderModules;
@@ -211,6 +204,9 @@ namespace Skhole
 		//--------------------------------------	
 		SceneBufferaManager m_sceneBufferManager;
 		ASManager m_asManager;
+
+		std::vector<Material> m_materials;
+		DeviceBuffer m_materaialBuffer;
 
 		//--------------------------------------
 		// Scene

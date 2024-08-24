@@ -202,6 +202,45 @@ namespace Skhole {
 		m_scene = scene;
 		InitBufferManager();
 		InitAccelerationStructures();
+
+		// Set Material
+		{
+			auto& materials = m_scene->m_materials;
+			for (auto& materialDef : materials)
+			{
+				Material material;
+
+				auto p1 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[0]);
+				material.baseColor = p1->value;
+
+				auto p2 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[1]);
+				material.metallic = p2->value;
+
+				auto p3 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[2]);
+				material.roughness = p3->value;
+
+				auto p4 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[3]);
+				material.emissionIntesity = p4->value;
+
+				auto p5 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[4]);
+				material.emissionColor = p5->value;
+
+				m_materials.push_back(material);
+			}
+		}
+
+		m_materaialBuffer.Init(
+			m_context.physicalDevice, *m_context.device,
+			m_materials.size() * sizeof(Material),
+			vk::BufferUsageFlagBits::eStorageBuffer,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
+		void* map = m_materaialBuffer.Map(*m_context.device, 0, m_materials.size() * sizeof(Material));
+		memcpy(map, m_materials.data(), m_materials.size() * sizeof(Material));
+		m_materaialBuffer.Unmap(*m_context.device);
+
+		m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue);
 	}
 
 	void SimpleRaytracer::InitBufferManager() {
@@ -256,7 +295,7 @@ namespace Skhole {
 		rendererParameter->sample = 1;
 
 		rendererParameter->rendererParameters = m_rendererExtensionParams;
-		
+
 		return rendererParameter;
 	}
 
@@ -288,7 +327,9 @@ namespace Skhole {
 			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
 			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
 			{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR}
+			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
 		};
 
 		m_bindingManager.SetLayout(*m_context.device);
@@ -385,7 +426,7 @@ namespace Skhole {
 		VkHelper::BindingManager::WritingInfo info;
 		info.numAS = 1;
 		info.numImage = 1;
-		info.numBuffer = 6;
+		info.numBuffer = 8;
 		m_bindingManager.StartWriting(info);
 
 		m_bindingManager.WriteAS(
@@ -420,6 +461,16 @@ namespace Skhole {
 		m_bindingManager.WriteBuffer(
 			m_sceneBufferManager.instanceBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.instanceBuffer.GetBufferSize(),
 			vk::DescriptorType::eStorageBuffer, 6, 1, *m_context.device
+		);
+
+		m_bindingManager.WriteBuffer(
+			m_materaialBuffer.GetDeviceBuffer(), 0, m_materaialBuffer.GetBufferSize(),
+			vk::DescriptorType::eStorageBuffer, 7, 1, *m_context.device
+		);
+
+		m_bindingManager.WriteBuffer(
+			m_sceneBufferManager.matIndexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.matIndexBuffer.GetBufferSize(),
+			vk::DescriptorType::eStorageBuffer, 8, 1, *m_context.device
 		);
 
 		m_bindingManager.EndWriting(*m_context.device);

@@ -34,6 +34,17 @@ struct InstanceData{
 	vec4 normalTransform2;
 };
 
+struct Material{
+	vec4 baseColor;
+
+	float roughness;
+	float metallic;
+	float emissionPower;
+
+	float padding;
+	vec4 emissionColor;
+};
+
 layout(std430, binding = 3) buffer readonly vertexData{
 	VertexData vertex[];
 };
@@ -48,6 +59,14 @@ layout(std430, binding=5) buffer readonly geometryData{
 
 layout(std430, binding=6) buffer readonly instanceData{
 	InstanceData instance[];
+};
+
+layout(std430,binding=7) buffer readonly materialData{
+	Material materials[];
+};
+
+layout(std430, binding=8) buffer readonly matIndexData{
+	uint matIndex[];
 };
 
 hitAttributeEXT vec3 attribs;
@@ -71,10 +90,13 @@ void main()
 
 	vec4 position = (1.0 - attribs.x - attribs.y) * v0.position + attribs.x * v1.position + attribs.y * v2.position;
 	vec4 normal = (1.0 - attribs.x - attribs.y) * v0.normal + attribs.x * v1.normal + attribs.y * v2.normal;
+	
+	uint primIdOffset = geom.indexOffset / 3;
+	uint materialIndex = matIndex[primIdOffset + primID];
+	Material mat = materials[materialIndex];
 
-	payload.basecolor = (v0.normal.xyz + vec3(1.0)) * 0.5;
-//	payload.basecolor = vec3(instance[gl_InstanceID].geometryIndex / 6.0); 
-//	payload.basecolor =vec3(instanceID / 6.0);
-//	payload.normal = baryCoords
+	payload.basecolor = mat.baseColor.xyz;
+//	payload.basecolor = (v0.normal.xyz + vec3(1.0)) * 0.5;
+	payload.normal = normal.xyz;
     payload.isMiss = false;
 }

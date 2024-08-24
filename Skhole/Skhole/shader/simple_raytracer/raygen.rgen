@@ -19,7 +19,8 @@ layout(binding = 2) uniform UBO {
     uint width;
     uint height;
 
-    uint2 padding;
+    uint padding1;
+    uint padding2;
 
     vec3 cameraPos;
     vec3 cameraDir;

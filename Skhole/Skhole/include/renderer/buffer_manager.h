@@ -41,13 +41,16 @@ namespace Skhole {
 
 			uint32_t vertexCount = 0;
 			uint32_t indexCount = 0;
+			uint32_t matIndexCount = 0;
 
 			for (auto& geometry : geometries) {
 				auto& vertices = geometry->m_vertices;
 				auto& indices = geometry->m_indices;
+				auto& matIndices = geometry->m_materialIndices;
 
 				vertexCount += vertices.size();
 				indexCount += indices.size();
+				matIndexCount += matIndices.size();
 			}
 
 			vk::BufferUsageFlags bufferUsage{
@@ -72,8 +75,15 @@ namespace Skhole {
 				bufferUsage, memoryProperty
 			);
 
+			matIndexBuffer.Init(
+				physicalDevice, device,
+				matIndexCount * sizeof(uint32_t),
+				bufferUsage, memoryProperty
+			);
+
 			uint32_t vertOffsetByte = 0;
 			uint32_t indexOffsetByte = 0;
+			uint32_t matIndexOffsetByte = 0;
 
 			uint32_t indexOffset = 0;
 			uint32_t vertexOffset = 0;
@@ -81,15 +91,19 @@ namespace Skhole {
 			for (auto& geometry : geometries) {
 				auto& vertices = geometry->m_vertices;
 				auto& indices = geometry->m_indices;
+				auto& matIndices = geometry->m_materialIndices;
 
 				void* vertexMap = vertexBuffer.Map(device, vertOffsetByte, vertices.size() * sizeof(VertexData));
 				void* indexMap = indexBuffer.Map(device, indexOffsetByte, indices.size() * sizeof(uint32_t));
+				void* matIndexMap = matIndexBuffer.Map(device, matIndexOffsetByte, geometry->m_materialIndices.size() * sizeof(uint32_t));
 
 				memcpy(vertexMap, vertices.data(), vertices.size() * sizeof(VertexData));
 				memcpy(indexMap, indices.data(), indices.size() * sizeof(uint32_t));
+				memcpy(matIndexMap, matIndices.data(), matIndices.size() * sizeof(uint32_t));
 
 				vertexBuffer.Unmap(device);
 				indexBuffer.Unmap(device);
+				matIndexBuffer.Unmap(device);
 
 				GeometryData geomData;
 				geomData.vertexOffset = vertexOffset;
@@ -105,6 +119,7 @@ namespace Skhole {
 
 				vertOffsetByte += vertices.size() * sizeof(VertexData);
 				indexOffsetByte += indices.size() * sizeof(uint32_t);
+				matIndexOffsetByte += matIndices.size() * sizeof(uint32_t);
 
 				indexOffset += indices.size();
 				vertexOffset += vertices.size();
@@ -112,6 +127,7 @@ namespace Skhole {
 
 			vertexBuffer.UploadToDevice(device, commandPool, queue);
 			indexBuffer.UploadToDevice(device, commandPool, queue);
+			matIndexBuffer.UploadToDevice(device, commandPool, queue);
 
 			vk::BufferUsageFlags geometryBufferUsage{
 				vk::BufferUsageFlagBits::eStorageBuffer |
@@ -236,6 +252,7 @@ namespace Skhole {
 
 		DeviceBuffer vertexBuffer;
 		DeviceBuffer indexBuffer;
+		DeviceBuffer matIndexBuffer;
 
 		std::vector<GeometryData> geometryData;
 		std::vector<GeometryBufferData> geometryOffset;
