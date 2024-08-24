@@ -30,7 +30,7 @@ namespace Skhole {
 		Texture NormalMap;
 		Texture HeightMap;
 
-		vec3 emissionColor;
+		vec4 emissionColor;
 		float emissionIntensity;
 		Texture EmissiveMap;
 

@@ -267,6 +267,8 @@ namespace Skhole {
 		materialDef->materialParameters[0]->setParamValue(material->basecolor);
 		materialDef->materialParameters[1]->setParamValue(material->metallic);
 		materialDef->materialParameters[2]->setParamValue(material->roughness);
+		materialDef->materialParameters[3]->setParamValue(material->emissionIntensity);
+		materialDef->materialParameters[4]->setParamValue(material->emissionColor);
 
 		return materialDef;
 	}

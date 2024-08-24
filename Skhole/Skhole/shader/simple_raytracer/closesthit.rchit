@@ -96,7 +96,9 @@ void main()
 	Material mat = materials[materialIndex];
 
 	payload.basecolor = mat.baseColor.xyz;
-//	payload.basecolor = (v0.normal.xyz + vec3(1.0)) * 0.5;
 	payload.normal = normal.xyz;
     payload.isMiss = false;
+	
+	payload.isLight = mat.emissionPower > 0.0;
+	payload.emission = mat.emissionColor.xyz * mat.emissionPower;
 }

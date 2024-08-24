@@ -4,6 +4,25 @@
 
 #include "./payload.glsl"
 
+uint seed;
+
+uint PCGHash()
+{
+    seed = seed * 747796405u + 2891336453u;
+    uint state = seed;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+float rnd1()
+{
+    return PCGHash() / float(0xFFFFFFFFU);    
+}
+
+vec2 rnd2(){
+    return vec2(rnd1(),rnd1());
+}
+
 layout(location = 0) rayPayloadEXT PayLoadStruct payload;
 
 layout(binding = 0) uniform accelerationStructureEXT topLevelAS;
@@ -15,12 +34,12 @@ layout(binding = 2) uniform UBO {
     uint spp;
     uint frame;
     uint numSample;
+    uint mode;
 
     uint width;
     uint height;
 
     uint padding1;
-    uint padding2;
 
     vec3 cameraPos;
     vec3 cameraDir;
@@ -41,7 +60,8 @@ vec3 GetPinholeCameraDir(vec3 cameraDir,vec3 cameraUp,vec3 cameraRight,vec2 uv, 
 
 void main()
 {
-    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + vec2(0.5)) / vec2(gl_LaunchSizeEXT.xy);
+    seed = (gl_LaunchIDEXT.x + gl_LaunchIDEXT.y * ubo.width) ;
+    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + rnd2()) / vec2(gl_LaunchSizeEXT.xy);
     uv.y = 1.0 - uv.y;
     float aspect = ubo.cameraParam.y;
     uv.x *= aspect;
@@ -66,6 +86,8 @@ void main()
     payload.basecolor = vec3(0);
     payload.normal = vec3(0);
     payload.isMiss = false;
+    payload.isLight = false;
+    payload.emission = vec3(0);
 
     traceRayEXT(
         topLevelAS,
@@ -79,8 +101,9 @@ void main()
         0           // payloadLocation
     );
 
-    vec3 col = payload.basecolor;
-    if(payload.isMiss) col = vec3(0.0);
+    vec3 col = payload.basecolor * dot(ray.direction,payload.normal);
+    if(payload.isMiss) col = vec3(rnd1(),rnd1(),rnd1());
+    if(payload.isLight) col = payload.emission;
 
     imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(col,0.0));
 }
