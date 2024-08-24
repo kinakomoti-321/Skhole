@@ -4,6 +4,7 @@
 namespace Skhole
 {
 	EditorInputManager Editor::m_inputManager;
+	Editor::ResizeInfo Editor::m_resizeInfo;
 
 	Editor::Editor() {
 
@@ -22,7 +23,7 @@ namespace Skhole
 
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		glfwWindowHint(GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
 		m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, m_applicationName.c_str(), nullptr, nullptr);
@@ -35,6 +36,8 @@ namespace Skhole
 
 		glfwSetMouseButtonCallback(m_window, MouseButtonCallback);
 		glfwSetCursorPosCallback(m_window, MouseCallback);
+
+		glfwSetFramebufferSizeCallback(m_window, MouseResizeCallback);
 
 		// ImGui Initialization
 
@@ -103,12 +106,17 @@ namespace Skhole
 
 		while (!glfwWindowShouldClose(m_window)) {
 			glfwPollEvents();
+		
+			if (m_resizeInfo.resizeFrag) {
+				m_renderer->Resize(m_resizeInfo.width, m_resizeInfo.height);
+				m_resizeInfo.resizeFrag = false;
+			}
 
 			m_updateInfo.ResetCommands();
 
 			m_renderer->InitFrameGUI();
 
-			if (!useGUI) 
+			if (!useGUI)
 			{
 				ControlCamera();
 			}
@@ -123,6 +131,8 @@ namespace Skhole
 			renderInfo.frame = 0;
 			renderInfo.spp = 100;
 			m_renderer->RealTimeRender(renderInfo);
+
+
 		}
 
 		m_renderer->Destroy();
@@ -344,5 +354,12 @@ namespace Skhole
 	void Editor::MouseCallback(GLFWwindow* window, double xpos, double ypos) {
 		m_inputManager.preMousePosition = m_inputManager.mousePosition;
 		m_inputManager.mousePosition = vec2(xpos, ypos);
+	}
+
+	void Editor::MouseResizeCallback(GLFWwindow* window, int width, int height)
+	{
+		m_resizeInfo.resizeFrag = true;
+		m_resizeInfo.width = width;
+		m_resizeInfo.height = height;
 	}
 }

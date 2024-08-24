@@ -190,6 +190,14 @@ namespace Skhole {
 		static EditorInputManager m_inputManager;
 		vec2 angle;
 
+		static void MouseResizeCallback(GLFWwindow* window, int width, int height);
+		struct ResizeInfo {
+			bool resizeFrag = false;
+			uint32_t width;
+			uint32_t height;
+		};
+		static ResizeInfo m_resizeInfo;
+		
 		CamereController m_cameraController;
 		UpdataInfo m_updateInfo;
 		bool useGUI = false;

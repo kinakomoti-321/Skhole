@@ -175,7 +175,48 @@ namespace Skhole {
 
 	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
 	{
-		SKHOLE_UNIMPL("Resize");
+
+		m_desc.Width = width;
+		m_desc.Height = height;
+
+		m_swapchainContext.Release(*m_context.device);
+
+		VkHelper::SwapChainInfo swapchainInfo{};
+		swapchainInfo.physicalDevice = m_context.physicalDevice;
+		swapchainInfo.device = *m_context.device;
+		swapchainInfo.surface = *m_context.surface;
+		swapchainInfo.queueIndex = m_context.queueIndex;
+		swapchainInfo.queue = m_context.queue;
+		swapchainInfo.commandPool = *m_commandPool;
+		swapchainInfo.renderPass = m_imGuiRenderPass.get();
+
+		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment;
+
+		swapchainInfo.width = m_desc.Width;
+		swapchainInfo.height = m_desc.Height;
+
+		m_swapchainContext.Init(swapchainInfo);
+
+		accumImage.Release(*m_context.device);
+
+		accumImage.Init(
+			m_context.physicalDevice, *m_context.device,
+			m_desc.Width, m_desc.Height,
+			vk::Format::eR32G32B32A32Sfloat,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
+		vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
+			[&](vk::CommandBuffer commandBuffer) {
+				vkutils::setImageLayout(commandBuffer, accumImage.GetImage(),
+				vk::ImageLayout::eUndefined,
+				vk::ImageLayout::eGeneral);
+			});
+
+
+		//SKHOLE_UNIMPL("Resize");
 	}
 
 	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
