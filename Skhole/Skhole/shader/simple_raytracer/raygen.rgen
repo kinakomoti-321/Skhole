@@ -41,7 +41,6 @@ layout(binding = 2) uniform UBO {
     uint width;
     uint height;
 
-
     vec3 cameraPos;
     vec3 cameraDir;
     vec3 cameraUp;
@@ -59,6 +58,41 @@ vec3 GetPinholeCameraDir(vec3 cameraDir,vec3 cameraUp,vec3 cameraRight,vec2 uv, 
     return normalize(uv.y * cameraUp + uv.x * cameraRight + f * cameraDir);
 }
 
+vec3 worldtoLoacal(vec3 v,vec3 lx, vec3 ly,vec3 lz){
+    return vec3(v.x * lx.x + v.y* lx.y + v.z * lx.z,
+                 v.x * ly.x + v.y * ly.y + v.z * ly.z,
+                 v.x * lz.x + v.y * lz.y + v.z * lz.z);
+}
+
+vec3 localToWorld(const vec3 v, const vec3 lx, const vec3 ly,
+                   const vec3 lz)
+{
+    return vec3(v.x * lx.x + v.y * ly.x + v.z * lz.x,
+                 v.x * lx.y + v.y * ly.y + v.z * lz.y,
+                 v.x * lx.z + v.y * ly.z + v.z * lz.z);
+}
+
+vec3 cosineSampling(vec2 uv,inout float pdf){
+    float theta = acos(1.0 - 2.0f * uv.x) * 0.5;
+    float phi = 2.0 * PI * uv.y;
+    pdf = cos(theta) / PI;
+    return vec3(sin(theta) * cos(phi),cos(theta),sin(theta) * sin(phi));
+}
+
+void tangentSpaceBasis(vec3 normal,inout vec3 t,inout vec3 b){
+    if (abs(normal.y) < 0.9)
+    {
+        t = cross(normal, vec3(0, 1, 0));
+    }
+    else
+    {
+        t = cross(normal, vec3(0, 0, -1));
+    }
+    t = normalize(t);
+    b = cross(t, normal);
+    b = normalize(b);
+}
+
 void main()
 {
     seed = ((gl_LaunchIDEXT.x + gl_LaunchIDEXT.y * ubo.width) + 1) * ubo.numSample;
@@ -70,6 +104,7 @@ void main()
     vec3 origin = ubo.cameraPos;
     vec3 target = vec3(uv * 2.0 - 1.0, 2);
     vec3 direction = normalize(target - origin);
+
     Ray ray;
     ray.origin = ubo.cameraPos;
         
@@ -90,24 +125,76 @@ void main()
     payload.isLight = false;
     payload.emission = vec3(0);
 
-    traceRayEXT(
-        topLevelAS,
-        gl_RayFlagsOpaqueEXT,
-        0xff,       // cullMask
-        0, 0, 0,    // sbtRecordOffset, sbtRecordStride, missIndex
-        ray.origin,
-        0.001,      // tMin
-        ray.direction,
-        10000.0,    // tMax
-        0           // payloadLocation
-    );
+    vec3 fBaseColor = vec3(0);
+    vec3 fNormal = vec3(0);
 
-    
-    vec3 col = payload.basecolor * dot(ray.direction,payload.normal);
-    if(payload.isMiss) col = vec3(rnd1(),rnd1(),rnd1());
-    if(payload.isLight) col = payload.emission;
+    vec3 LTE = vec3(0.0);
+    vec3 throughput = vec3(1.0);
 
-    if(ubo.numSample != 0){
+    for(int depth = 0; depth < 5; depth++){
+        
+		traceRayEXT(
+			topLevelAS,
+			gl_RayFlagsOpaqueEXT,
+			0xff,       
+			0, 0, 0,  
+			ray.origin,
+			0.001,     
+			ray.direction,
+			10000.0,   
+			0       
+		);
+        
+
+        if(payload.isMiss)
+        {
+//            LTE += throughput * vec3(1.0);
+            break;
+        }
+
+        if(depth == 0){
+            fBaseColor = payload.basecolor;
+            fNormal = payload.normal;
+        }
+
+        if(payload.isLight){
+            LTE += throughput * payload.emission; 
+            break;
+        }
+        
+        vec3 position = payload.position;
+        vec3 normal = payload.normal;
+        
+        vec3 wo = -ray.direction; 
+        
+        vec3 t,b;
+        tangentSpaceBasis(normal,t,b);
+        
+        float pdf;
+
+        vec3 localwo = worldtoLoacal(wo,t,normal,b);
+        vec3 localwi = cosineSampling(rnd2(),pdf);
+        vec3 bsdf = payload.basecolor / PI;
+
+        vec3 wi = localToWorld(localwi,t,normal,b);
+
+        float cosine = dot(wi, normal);
+        throughput *= payload.basecolor;
+
+        ray.origin = position;
+        ray.direction = wi;
+
+    }
+
+    vec3 col = LTE;
+    if(ubo.mode == 1){
+		col = fBaseColor;
+    }
+    else if(ubo.mode == 2){
+        col = (fNormal + 1.0) * 0.5;
+	}
+
+    if(ubo.numSample != 1){
         vec3 accumCol = imageLoad(accumImage, ivec2(gl_LaunchIDEXT.xy)).xyz; 
         if(ubo.numSample != ubo.spp){
             col += accumCol;
@@ -118,5 +205,5 @@ void main()
     }
     
     imageStore(accumImage,ivec2(gl_LaunchIDEXT.xy), vec4(col,0.0));
-    imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(col,0.0) / (ubo.numSample + 1));
+    imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(col,0.0) / (ubo.numSample));
 }

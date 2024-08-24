@@ -140,8 +140,25 @@ namespace Skhole {
 
 	}
 
-	void SimpleRaytracer::UpdateScene(const UpdateCommand& command) {
+	void SimpleRaytracer::UpdateScene(const UpdataInfo& updateInfo) {
+		if (updateInfo.commands.size() == 0) return;
 
+		m_scene->m_rendererParameter->sample = 1;
+		for (auto& command : updateInfo.commands) {
+			ShrPtr<UpdateMaterialCommand> matCommand;
+
+			switch (command->GetCommandType()) {
+			case UpdateCommandType::CAMERA:
+				break;
+			case UpdateCommandType::MATERIAL:
+				matCommand = std::static_pointer_cast<UpdateMaterialCommand>(command);
+				UpdateMaterialBuffer(matCommand->materialIndex);
+				break;
+			default:
+				SKHOLE_UNIMPL("Command");
+				break;
+			}
+		}
 	}
 
 	void SimpleRaytracer::InitFrameGUI() {
@@ -221,27 +238,11 @@ namespace Skhole {
 
 		// Set Material
 		{
+			m_materials.reserve(m_scene->m_materials.size());
 			auto& materials = m_scene->m_materials;
 			for (auto& materialDef : materials)
 			{
-				Material material;
-
-				auto p1 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[0]);
-				material.baseColor = p1->value;
-
-				auto p2 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[1]);
-				material.metallic = p2->value;
-
-				auto p3 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[2]);
-				material.roughness = p3->value;
-
-				auto p4 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[3]);
-				material.emissionIntesity = p4->value;
-
-				auto p5 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[4]);
-				material.emissionColor = p5->value;
-
-				m_materials.push_back(material);
+				m_materials.push_back(ConvertMaterial(materialDef));
 			}
 		}
 
@@ -362,6 +363,8 @@ namespace Skhole {
 		uniformBufferObject.spp = raytracerParam->spp;
 		uniformBufferObject.frame = raytracerParam->frame;
 		uniformBufferObject.sample = raytracerParam->sample;
+		auto param = std::dynamic_pointer_cast<ParamUint>(raytracerParam->rendererParameters[0]);
+		uniformBufferObject.mode = param->value;
 
 		uniformBufferObject.cameraPos = camera->basicParameter.position;
 		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
@@ -676,4 +679,36 @@ namespace Skhole {
 			missRegion.size);
 	}
 
+	void SimpleRaytracer::UpdateMaterialBuffer(uint32_t matId) {
+		m_materials[matId] = ConvertMaterial(m_scene->m_materials[matId]);
+
+		uint32_t byteOffset = matId * sizeof(Material);
+
+		void* map = m_materaialBuffer.Map(*m_context.device, byteOffset, sizeof(Material));
+		memcpy(map, m_materials.data() + matId, sizeof(Material));
+		m_materaialBuffer.Unmap(*m_context.device);
+
+		m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue, byteOffset, sizeof(Material));
+	}
+
+	SimpleRaytracer::Material SimpleRaytracer::ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
+		Material material;
+
+		auto p1 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[0]);
+		material.baseColor = p1->value;
+
+		auto p2 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[1]);
+		material.metallic = p2->value;
+
+		auto p3 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[2]);
+		material.roughness = p3->value;
+
+		auto p4 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[3]);
+		material.emissionIntesity = p4->value;
+
+		auto p5 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[4]);
+		material.emissionColor = p5->value;
+
+		return material;
+	}
 }

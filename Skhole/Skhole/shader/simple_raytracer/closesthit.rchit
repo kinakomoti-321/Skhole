@@ -88,7 +88,6 @@ void main()
 		
 	vec3 baryCoords = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 
-	vec4 position = (1.0 - attribs.x - attribs.y) * v0.position + attribs.x * v1.position + attribs.y * v2.position;
 	vec4 normal = (1.0 - attribs.x - attribs.y) * v0.normal + attribs.x * v1.normal + attribs.y * v2.normal;
 	
 	uint primIdOffset = geom.indexOffset / 3;
@@ -96,8 +95,11 @@ void main()
 	Material mat = materials[materialIndex];
 
 	payload.basecolor = mat.baseColor.xyz;
+	payload.t = gl_HitTEXT;
+	payload.position = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
 	payload.normal = normal.xyz;
     payload.isMiss = false;
+
 	
 	payload.isLight = mat.emissionPower > 0.0;
 	payload.emission = mat.emissionColor.xyz * mat.emissionPower;

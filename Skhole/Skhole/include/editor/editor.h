@@ -50,6 +50,33 @@ namespace Skhole {
 		}
 	};
 
+	//class ImGuiHelper {
+	//public:
+	//	void StartGUI() {
+	//		m_useGUI = false;
+	//		m_tempolaryFrag = false;
+	//	}
+
+	//	void ResetTempolaryFrag() {
+	//		m_tempolaryFrag = false;
+	//	}
+
+	//	void EndGUI() {
+	//	}
+
+	//	bool GetUseGUIFrag() {
+	//		return m_useGUI;
+	//	}
+
+	//	bool GetTempolaryFrag() {
+	//		return m_tempolaryFrag;
+	//	}
+
+	//private:
+	//	bool m_useGUI = false;
+	//	bool m_tempolaryFrag = false;
+	//};
+
 	struct CamereController {
 		CamereController() {}
 
@@ -60,8 +87,8 @@ namespace Skhole {
 		void Rotate(vec2 offset) {
 			vec2 angleT = offset * sensitivity;
 
-			vec3 cameraDir =camera->basicParameter.cameraDir;
-			vec3 cameraUp =camera->basicParameter.cameraUp;
+			vec3 cameraDir = camera->basicParameter.cameraDir;
+			vec3 cameraUp = camera->basicParameter.cameraUp;
 			vec3 cameraRight = camera->basicParameter.cameraRight;
 
 			mat3 rotY = rotateY(-angleT.x);
@@ -139,6 +166,9 @@ namespace Skhole {
 		vec2 angle;
 
 		CamereController m_cameraController;
+		UpdataInfo m_updateInfo;
+		bool useGUI = false;
+
 	};
 }
 

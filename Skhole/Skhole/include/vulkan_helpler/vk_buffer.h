@@ -105,6 +105,26 @@ namespace Skhole {
 				});
 		}
 
+		void UploadToDevice(vk::Device device, vk::CommandPool commandPool, vk::Queue queue, uint32_t offset, uint32_t size) {
+			vkutils::oneTimeSubmit(device, commandPool, queue, [&](vk::CommandBuffer commandBuffer) {
+				vk::BufferCopy copyRegion{};
+				copyRegion.setSize(size);
+				copyRegion.setSrcOffset(offset);
+				copyRegion.setDstOffset(offset);
+				commandBuffer.copyBuffer(*hostBuffer.buffer, *deviceBuffer.buffer, copyRegion);
+			});
+		}
+
+		void UploadToDevice(vk::Device device, vk::CommandPool commandPool, vk::Queue queue,uint32_t srcOffset, uint32_t dstOffset, uint32_t size) {
+			vkutils::oneTimeSubmit(device, commandPool, queue, [&](vk::CommandBuffer commandBuffer) {
+				vk::BufferCopy copyRegion{};
+				copyRegion.setSize(size);
+				copyRegion.setSrcOffset(srcOffset);
+				copyRegion.setDstOffset(dstOffset);
+				commandBuffer.copyBuffer(*hostBuffer.buffer, *deviceBuffer.buffer, copyRegion);
+			});
+		}
+
 		vk::Buffer GetDeviceBuffer() {
 			return *deviceBuffer.buffer;
 		}

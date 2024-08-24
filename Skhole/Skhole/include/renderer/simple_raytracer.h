@@ -40,10 +40,51 @@ namespace Skhole
 
 		void InitFrameGUI() override;
 
-		void UpdateScene(const UpdateCommand& command) override;
+		void UpdateScene(const UpdataInfo& command) override;
 
 		void RealTimeRender(const RealTimeRenderingInfo& renderInfo) override;
 		void OfflineRender(const OfflineRenderingInfo& renderInfo) override;
+
+	private:
+		//--------------------------------------
+		// Renderer Structures
+		//--------------------------------------
+		struct UniformBufferObject {
+			uint32_t spp;
+			uint32_t frame;
+			uint32_t sample;
+			uint32_t mode;
+
+			uint32_t width;
+			uint32_t height;
+
+			uint32_t padding[2];
+
+			vec3 cameraPos;
+			vec3 cameraDir;
+			vec3 cameraUp;
+			vec3 cameraRight;
+			vec4 cameraParam;
+		};
+
+		struct SimpleRaytracerParameter {
+			uint32_t spp = 1;
+			uint32_t sample = 0;
+			uint32_t frame = 0;
+
+			uint32_t checkMode = 0;
+		};
+
+		struct Material {
+			vec4 baseColor;
+			float roughness;
+			float metallic;
+
+			float emissionIntesity = 1.0;
+			float padding = 0.0;
+
+			vec4 emissionColor;
+		};
 
 	private:
 		//--------------------------------------
@@ -78,37 +119,9 @@ namespace Skhole
 
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
 
-
-	private:
-		//--------------------------------------
-		// Renderer Structures
-		//--------------------------------------
-		struct UniformBufferObject {
-			uint32_t spp;
-			uint32_t frame;
-			uint32_t sample;
-
-			uint32_t width;
-			uint32_t height;
-
-			uint32_t padding[3];
-
-			vec3 cameraPos;
-			vec3 cameraDir;
-			vec3 cameraUp;
-			vec3 cameraRight;
-			vec4 cameraParam;
-		};
-
-		struct SimpleRaytracerParameter {
-			uint32_t spp = 1;
-			uint32_t sample = 0;
-			uint32_t frame = 0;
-
-			uint32_t checkMode = 0;
-		};
-		
-		SimpleRaytracerParameter m_raytracerParameter;
+		// Scene Update;
+		void UpdateMaterialBuffer(uint32_t matId);
+		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& material);
 
 	private:
 		//--------------------------------------
@@ -116,6 +129,8 @@ namespace Skhole
 		//--------------------------------------
 		std::string rendererName = "Simple RayTracer";
 		RendererDesc m_desc;
+
+		SimpleRaytracerParameter m_raytracerParameter;
 
 		const std::vector<ShrPtr<Parameter>> m_matParams =
 		{
@@ -125,17 +140,6 @@ namespace Skhole
 
 			MakeShr<ParamFloat>("EmissionIntensity", 0.0f),
 			MakeShr<ParamCol>("Emission", vec4(0.0)),
-		};
-
-		struct Material {
-			vec4 baseColor;
-			float roughness;
-			float metallic;
-
-			float emissionIntesity = 1.0;
-			float padding = 0.0;
-
-			vec4 emissionColor;
 		};
 
 		const std::vector<ShrPtr<Parameter>> m_camExtensionParams =
@@ -181,6 +185,7 @@ namespace Skhole
 			VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME,
 		};
 
+
 		std::vector<vk::UniqueShaderModule> shaderModules;
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
 		std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
@@ -208,9 +213,8 @@ namespace Skhole
 		std::vector<Material> m_materials;
 		DeviceBuffer m_materaialBuffer;
 
-
-
 		Image accumImage;
+
 
 		//--------------------------------------
 		// Scene

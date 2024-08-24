@@ -1,5 +1,6 @@
 
 struct PayLoadStruct{
+    vec3 position;
     vec3 basecolor;
     vec3 normal;
 
@@ -7,4 +8,6 @@ struct PayLoadStruct{
 
     bool isLight;
     vec3 emission;
+
+    float t;
 };

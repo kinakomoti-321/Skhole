@@ -14,37 +14,37 @@ namespace Skhole {
 
 	void Scene::Initialize() {
 		ShrPtr<Geometry> geometry = MakeShr<Geometry>();
-		Geometry geom = PlaneGeometry(vec3(0.0, 4.0, 0.0), vec3(0.0, 0.0, -4.0), vec3(-2.0, 0.0, 0.0), 0); // Left
+		Geometry geom = PlaneGeometry(vec3(0.0, 0.0, -4.0), vec3(0.0, 4.0, 0.0), vec3(-2.0, 0.0, 0.0), 0); // Left
 		geometry->m_vertices = geom.m_vertices;
 		geometry->m_indices = geom.m_indices;
 		geometry->m_materialIndices = geom.m_materialIndices;
 
 		ShrPtr<Geometry> geometry2 = MakeShr<Geometry>();
-		geom = PlaneGeometry(vec3(0.0, 0.0, -4.0), vec3(0.0, 4.0, 0.0), vec3(2.0, 0.0, 0.0), 1); // Right
+		geom = PlaneGeometry(vec3(0.0, 4.0, 0.0), vec3(0.0, 0.0, -4.0), vec3(2.0, 0.0, 0.0), 1); // Right
 		geometry2->m_vertices = geom.m_vertices;
 		geometry2->m_indices = geom.m_indices;
 		geometry2->m_materialIndices = geom.m_materialIndices;
 
 		ShrPtr<Geometry> geometry3 = MakeShr<Geometry>();
-		geom = PlaneGeometry(vec3(0.0, 0.0, -4.0), vec3(4.0, 0.0, 0.0), vec3(-2.0, 0.0, 0.0), 2); // Bottom
+		geom = PlaneGeometry(vec3(4.0, 0.0, 0.0), vec3(0.0, 0.0, -4.0), vec3(-2.0, 0.0, 0.0), 2); // Bottom
 		geometry3->m_vertices = geom.m_vertices;
 		geometry3->m_indices = geom.m_indices;
 		geometry3->m_materialIndices = geom.m_materialIndices;
 
 		ShrPtr<Geometry> geometry4 = MakeShr<Geometry>();
-		geom = PlaneGeometry(vec3(4.0, 0.0, 0.0), vec3(0.0, 0.0, -4.0), vec3(-2.0, 4.0, 0.0), 2); // Top
+		geom = PlaneGeometry(vec3(0.0, 0.0, -4.0), vec3(4.0, 0.0, 0.0), vec3(-2.0, 4.0, 0.0), 2); // Top
 		geometry4->m_vertices = geom.m_vertices;
 		geometry4->m_indices = geom.m_indices;
 		geometry4->m_materialIndices = geom.m_materialIndices;
 
 		ShrPtr<Geometry> geometry5 = MakeShr<Geometry>();
-		geom = PlaneGeometry(vec3(0.0, 4.0, 0.0), vec3(4.0, 0.0, 0.0), vec3(-2.0, 0.0, -4.0), 2); // Back
+		geom = PlaneGeometry(vec3(4.0, 0.0, 0.0), vec3(0.0, 4.0, 0.0), vec3(-2.0, 0.0, -4.0), 2); // Back
 		geometry5->m_vertices = geom.m_vertices;
 		geometry5->m_indices = geom.m_indices;
 		geometry5->m_materialIndices = geom.m_materialIndices;
 
 		ShrPtr<Geometry> geometry6 = MakeShr<Geometry>();
-		geom = PlaneGeometry(vec3(2.0, 0.0, 0.0), vec3(0.0, 0.0, 2.0), vec3(-1.0, 3.9, -3.0), 3); // Light
+		geom = PlaneGeometry(vec3(0.0, 0.0, 2.0), vec3(2.0, 0.0, 0.0), vec3(-1.0, 3.9, -3.0), 3); // Light
 		geometry6->m_vertices = geom.m_vertices;
 		geometry6->m_indices = geom.m_indices;
 		geometry6->m_materialIndices = geom.m_materialIndices;
@@ -117,7 +117,7 @@ namespace Skhole {
 		material4->metallic = 0.0f;
 		material4->roughness = 0.5f;
 		material4->emissionColor = vec4(1.0f);
-		material4->emissionIntensity = 1.0f;
+		material4->emissionIntensity = 4.0f;
 
 		m_geometies.push_back(geometry);
 		m_geometies.push_back(geometry2);

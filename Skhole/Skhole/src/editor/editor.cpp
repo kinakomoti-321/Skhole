@@ -60,6 +60,7 @@ namespace Skhole
 		m_cameraController.SetCamera(m_scene->m_camera);
 		// Input 
 		{
+			bool moveFrag = false;
 			m_inputManager.CheckKeyInput(m_window);
 
 			if (m_inputManager.leftMouseButtonPressed) {
@@ -67,6 +68,7 @@ namespace Skhole
 				if (std::abs(offset.x) < 1.5) offset.x = 0;
 				if (std::abs(offset.y) < 1.5) offset.y = 0;
 				m_cameraController.Rotate(offset);
+				moveFrag = true;
 			}
 
 			float magnitude = 1.0;
@@ -74,20 +76,27 @@ namespace Skhole
 
 			if (m_inputManager.wPressed) {
 				m_cameraController.UpPosition(magnitude);
+				moveFrag = true;
 			}
 
 			if (m_inputManager.sPressed) {
 				m_cameraController.DownPosition(magnitude);
+				moveFrag = true;
 			}
 
 			if (m_inputManager.aPressed) {
 				m_cameraController.LeftPosition(magnitude);
+				moveFrag = true;
 			}
 
 			if (m_inputManager.dPressed) {
 				m_cameraController.RightPosition(magnitude);
+				moveFrag = true;
 			}
 
+			if (moveFrag) {
+				m_updateInfo.commands.push_back(std::make_shared<UpdateCameraCommand>(true));
+			}
 		}
 	}
 	void Editor::Run() {
@@ -95,14 +104,15 @@ namespace Skhole
 		while (!glfwWindowShouldClose(m_window)) {
 			glfwPollEvents();
 
-			ControlCamera();
+			m_updateInfo.ResetCommands();
 
 			m_renderer->InitFrameGUI();
 
+			if (m_updateInfo.commands.size() == 0) ControlCamera();
+
 			ShowGUI();
 
-			UpdateCommand command;
-			m_renderer->UpdateScene(command);
+			m_renderer->UpdateScene(m_updateInfo);
 
 			RealTimeRenderingInfo renderInfo;
 			renderInfo.frame = 0;
@@ -140,9 +150,10 @@ namespace Skhole
 
 				ImGui::Text("Renderer Name : %s", rendererData->rendererName.c_str());
 				ImGui::Text("Frame : %u", rendererData->frame);
-				ImGui::Text("SPP : %u", rendererData->spp);
 				ImGui::Text("sample : %u", rendererData->sample);
+				ImGui::InputScalar("SPP", ImGuiDataType_U32, &rendererData->spp);
 
+				bool updateRenderer = false;
 				for (auto& rendererParam : rendererData->rendererParameters) {
 					ShrPtr<ParamFloat> floatParam;
 					ShrPtr<ParamVec> vec3Param;
@@ -152,17 +163,17 @@ namespace Skhole
 					{
 					case ParameterType::FLOAT:
 						floatParam = std::static_pointer_cast<ParamFloat>(rendererParam);
-						ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
+						updateRenderer |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
 						break;
 
 					case ParameterType::VECTOR:
 						vec3Param = std::static_pointer_cast<ParamVec>(rendererParam);
-						ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
+						updateRenderer |= ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
 						break;
 
 					case ParameterType::UINT:
 						textureIDParam = std::static_pointer_cast<ParamUint>(rendererParam);
-						ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
+						updateRenderer |= ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
 						break;
 
 					default:
@@ -171,18 +182,24 @@ namespace Skhole
 					}
 				}
 
+				if (updateRenderer)
+				{
+					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
+				}
+
 				ImGui::EndTabItem();
 			}
 
 			if (ImGui::BeginTabItem("Camera"))
 			{
+				bool updateCamera = false;
 				ImGui::Text("Renderer Camera");
 				auto& camera = m_scene->m_camera;
 
-				ImGui::InputFloat3("Position", camera->basicParameter.position.v);
-				ImGui::InputFloat3("Direction Vector", camera->basicParameter.cameraDir.v);
-				ImGui::InputFloat3("Up Vector", camera->basicParameter.cameraUp.v);
-				ImGui::InputFloat("FOV", &camera->basicParameter.fov);
+				updateCamera |= ImGui::InputFloat3("Position", camera->basicParameter.position.v);
+				updateCamera |= ImGui::InputFloat3("Direction Vector", camera->basicParameter.cameraDir.v);
+				updateCamera |= ImGui::InputFloat3("Up Vector", camera->basicParameter.cameraUp.v);
+				updateCamera |= ImGui::InputFloat("FOV", &camera->basicParameter.fov);
 
 
 				for (auto& camParam : camera->extensionParameters) {
@@ -194,12 +211,12 @@ namespace Skhole
 					{
 					case ParameterType::FLOAT:
 						floatParam = std::static_pointer_cast<ParamFloat>(camParam);
-						ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
+						updateCamera |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
 						break;
 
 					case ParameterType::VECTOR:
 						vec3Param = std::static_pointer_cast<ParamVec>(camParam);
-						ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
+						updateCamera |= ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
 						break;
 
 					case ParameterType::UINT:
@@ -213,9 +230,13 @@ namespace Skhole
 					}
 				}
 
-				ImGui::InputFloat("Speed", &m_cameraController.cameraSpeed);
-				ImGui::InputFloat("Sensitivity", &m_cameraController.sensitivity);
 
+				updateCamera |= ImGui::InputFloat("Speed", &m_cameraController.cameraSpeed);
+				updateCamera |= ImGui::InputFloat("Sensitivity", &m_cameraController.sensitivity);
+
+				if (updateCamera) {
+					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
+				}
 				ImGui::EndTabItem();
 			}
 			ImGui::EndTabBar();
@@ -251,10 +272,9 @@ namespace Skhole
 		static int selectedIndex = 0;
 		ImGui::ListBox("List", &selectedIndex, materialNames.data(), materialNames.size());
 
-		bool materialUpdate = false;
 		auto& mat = m_scene->m_materials[selectedIndex];
+		bool materialUpdate = false;
 		for (auto& matParam : mat->materialParameters) {
-
 			ShrPtr<ParamBool> boolParam;
 			ShrPtr<ParamFloat> floatParam;
 			ShrPtr<ParamVec> vec3Param;
@@ -265,27 +285,27 @@ namespace Skhole
 			{
 			case ParameterType::BOOL:
 				boolParam = std::static_pointer_cast<ParamBool>(matParam);
-				ImGui::Checkbox(boolParam->getParamName().c_str(), &boolParam->value);
+				materialUpdate |= ImGui::Checkbox(boolParam->getParamName().c_str(), &boolParam->value);
 				break;
 
 			case ParameterType::FLOAT:
 				floatParam = std::static_pointer_cast<ParamFloat>(matParam);
-				ImGui::SliderFloat(floatParam->getParamName().c_str(), &floatParam->value, 0.0f, 1.0f);
+				materialUpdate |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
 				break;
 
 			case ParameterType::VECTOR:
 				vec3Param = std::static_pointer_cast<ParamVec>(matParam);
-				ImGui::SliderFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v, 0.0f, 1.0f);
+				materialUpdate |= ImGui::SliderFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v, 0.0f, 1.0f);
 				break;
 
 			case ParameterType::COLOR:
 				vec4Param = std::static_pointer_cast<ParamCol>(matParam);
-				ImGui::ColorEdit4(vec4Param->getParamName().c_str(), vec4Param->value.v);
+				materialUpdate |= ImGui::ColorEdit4(vec4Param->getParamName().c_str(), vec4Param->value.v);
 				break;
 
 			case ParameterType::UINT:
 				textureIDParam = std::static_pointer_cast<ParamUint>(matParam);
-				ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
+				materialUpdate |= ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
 				break;
 
 			default:
@@ -295,6 +315,10 @@ namespace Skhole
 		}
 
 		ImGui::End();
+
+		if (materialUpdate) {
+			m_updateInfo.commands.push_back(std::make_shared<UpdateMaterialCommand>(selectedIndex));
+		}
 	}
 
 	void Editor::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
