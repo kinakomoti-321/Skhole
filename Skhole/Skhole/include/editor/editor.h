@@ -50,58 +50,6 @@ namespace Skhole {
 		}
 	};
 
-	//class ImGuiHelper {
-	//public:
-	//	void StartGUI() {
-	//		m_useGUI = false;
-	//		m_tempolaryFrag = false;
-	//	}
-
-	//	void ResetTempolaryFrag() {
-	//		m_tempolaryFrag = false;
-	//	}
-
-	//	bool GetUseGUIFrag() {
-	//		return m_useGUI;
-	//	}
-
-	//	bool GetTempolaryFrag() {
-	//		return m_tempolaryFrag;
-	//	}
-
-	//	void EndGUI() {
-	//	}
-
-	//	void ImputFloat(const std::string& name, float* value) {
-	//		m_useGUI = true;
-	//		m_tempolaryFrag = true;
-	//		ImGui::InputFloat(name.c_str(), value);
-	//	}
-
-	//	void InputVec2(const std::string& name, float* value) {
-	//		m_useGUI = true;
-	//		m_tempolaryFrag = true;
-	//		ImGui::InputFloat2(name.c_str(), value);
-	//	}
-
-	//	void InputVec3(const std::string& name, float* value) {
-	//		m_useGUI = true;
-	//		m_tempolaryFrag = true;
-	//		ImGui::InputFloat3(name.c_str(), value);
-	//	}
-
-	//	void InputVec4(const std::string& name, float* value) {
-	//		m_useGUI = true;
-	//		m_tempolaryFrag = true;
-	//		ImGui::InputFloat4(name.c_str(), value);
-	//	}
-	//	
-
-	//private:
-	//	bool m_useGUI = false;
-	//	bool m_tempolaryFrag = false;
-	//};
-
 	struct CamereController {
 		CamereController() {}
 
@@ -166,6 +114,7 @@ namespace Skhole {
 	private:
 		void ShowGUI();
 
+		void ShowSceneGUI();
 		void ShowRendererGUI();
 		void ShowObjectGUI();
 		void ShowMateralGUI();
