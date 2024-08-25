@@ -4,3 +4,6 @@
 [submodule "Skhole/Skhole/extern/imgui"]
 	path = Skhole/Skhole/extern/imgui
 	url = git@github.com:ocornut/imgui.git
+[submodule "Skhole/Skhole/extern/tinyobjloader"]
+	path = Skhole/Skhole/extern/tinyobjloader
+	url = git@github.com:tinyobjloader/tinyobjloader.git
