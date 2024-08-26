@@ -152,6 +152,7 @@ namespace Skhole {
 
 		m_scene->m_rendererParameter->sample = 1;
 		for (auto& command : updateInfo.commands) {
+			ShrPtr<UpdateObjectCommand> objCommand;
 			ShrPtr<UpdateMaterialCommand> matCommand;
 
 			switch (command->GetCommandType()) {
@@ -161,11 +162,16 @@ namespace Skhole {
 				matCommand = std::static_pointer_cast<UpdateMaterialCommand>(command);
 				UpdateMaterialBuffer(matCommand->materialIndex);
 				break;
+			case UpdateCommandType::OBJECT:
+				objCommand = std::static_pointer_cast<UpdateObjectCommand>(command);
+				m_scene->m_objects[objCommand->objectIndex]->ResetWorldTransformMatrix();	
+				break;
 			default:
 				SKHOLE_UNIMPL("Command");
 				break;
 			}
 		}
+
 	}
 
 	void SimpleRaytracer::InitFrameGUI() {

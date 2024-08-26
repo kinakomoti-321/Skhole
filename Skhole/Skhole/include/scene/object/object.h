@@ -34,8 +34,8 @@ namespace Skhole {
 		bool IsRoot();
 		bool IsLear();
 		
-		//std::string GetObjectName(){return objectName;}
 		const char* GetObjectName() { return objectName.c_str(); }
+
 
 	public:
 		std::string objectName;

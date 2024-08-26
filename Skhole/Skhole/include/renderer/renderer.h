@@ -22,6 +22,7 @@ namespace Skhole
 		CAMERA,
 		MATERIAL,
 		TEXTURE,
+		OBJECT,
 	};
 
 	class UpdateCommand {
@@ -44,11 +45,11 @@ namespace Skhole
 
 	class UpdateObjectCommand : public UpdateCommand {
 	public:
-		UpdateObjectCommand() {}
+		UpdateObjectCommand(uint32_t objectId, ObjectType objectType) :objectIndex(objectId), objectType(objectType) {}
 		~UpdateObjectCommand() {};
 
 		UpdateCommandType GetCommandType() override {
-			return UpdateCommandType::CAMERA;
+			return UpdateCommandType::OBJECT;
 		}
 
 		uint32_t objectIndex;

@@ -296,7 +296,21 @@ namespace Skhole
 
 		static int selectedIndex = 0;
 		ImGui::ListBox("List", &selectedIndex, objectNames.data(), objectNames.size());
+		auto& object = m_scene->m_objects[selectedIndex];
 
+		ImGui::Text("Object Information");
+		ImGui::Separator();
+		ImGui::Text("Object Name : %s", object->GetObjectName());
+
+		bool objectUpdate = false;
+		objectUpdate |= ImGui::InputFloat3("Position", object->localPosition.v);
+		objectUpdate |= ImGui::InputFloat3("Rotation", object->localRotationEular.v);
+		objectUpdate |= ImGui::InputFloat3("Scale", object->localScale.v);
+
+		if (objectUpdate) {
+			m_updateInfo.commands.push_back(std::make_shared<UpdateObjectCommand>(selectedIndex,object->GetObjectType()));
+		}
+		
 		ImGui::End();
 	}
 

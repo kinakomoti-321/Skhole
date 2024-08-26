@@ -41,6 +41,7 @@ namespace Skhole {
 
 	void Object::ResetWorldTransformMatrix() {
 		worldTransformMatrix.reset();
+		if (!IsLear()) childObject->ResetWorldTransformMatrix();
 	}
 
 	vec3 Object::GetLocalPosition(float frame) {
@@ -80,4 +81,5 @@ namespace Skhole {
 	bool Object::IsLear() {
 		return childObject == nullptr;
 	}
+
 }
