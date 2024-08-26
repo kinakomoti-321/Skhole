@@ -119,7 +119,9 @@ namespace Skhole {
 		void ShowSceneGUI();
 		void ShowRendererGUI();
 		void ShowObjectGUI();
-		void ShowMateralGUI();
+		void ShowMaterialGUI();
+		void ShowGeometryGUI();
+
 
 		void ControlCamera();
 

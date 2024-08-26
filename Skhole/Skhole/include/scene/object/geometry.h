@@ -23,6 +23,8 @@ namespace Skhole {
 
 		std::vector<uint32_t> m_indices;
 		std::vector<uint32_t> m_materialIndices;
+
+		bool useAnimation = false;
 	};
 
 }

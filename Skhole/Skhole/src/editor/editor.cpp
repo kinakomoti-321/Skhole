@@ -147,8 +147,8 @@ namespace Skhole
 	void Editor::ShowGUI() {
 		ShowSceneGUI();
 		ShowRendererGUI();
-		ShowObjectGUI();
-		ShowMateralGUI();
+		//ShowObjectGUI();
+		//ShowMateralGUI();
 
 		useGUI = ImGui::IsAnyItemActive();
 	}
@@ -156,27 +156,78 @@ namespace Skhole
 	void Editor::ShowSceneGUI() {
 		ImGui::Begin("Scene Information");
 
-		if (ImGui::Button("Load Scene")) {
-			std::string path;
-			if (File::CallFileDialog(path)) {
-				std::cout << path << std::endl;
-				m_renderer->DestroyScene();
-				auto newScene = Loader::LoadFile(path);
+		if (ImGui::BeginTabBar("MyTab"))
+		{
+			if (ImGui::BeginTabItem("Scene"))
+			{
+				ImGui::Text("Scene Information");
+				ImGui::Separator();
 
-				m_scene = newScene;
-				m_scene->RendererSet(m_renderer);
+				if (ImGui::TreeNode("Load Scene")) {
+					if (ImGui::Button("Load Scene")) {
+						std::string path;
+						if (File::CallFileDialog(path)) {
+							std::cout << path << std::endl;
+							m_renderer->DestroyScene();
+							auto newScene = Loader::LoadFile(path);
 
-				m_renderer->SetScene(m_scene);
+							m_scene = newScene;
+							m_scene->RendererSet(m_renderer);
+
+							m_renderer->SetScene(m_scene);
+						}
+					}
+					ImGui::TreePop();
+				}
+
+				if (ImGui::TreeNode("Save Scene")) {
+
+					ImGui::Text("Save Scene");
+
+					if (ImGui::Button("Save Scene")) {
+
+					}
+					ImGui::TreePop();
+				}
+
+				ImGui::EndTabItem();
 			}
+
+			if (ImGui::BeginTabItem("Object"))
+			{
+				ImGui::Text("Object Information");
+				ShowObjectGUI();
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Material")) {
+				ImGui::Text("Material Information");
+				ShowMaterialGUI();
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Texture"))
+			{
+				ImGui::Text("Texture Information");
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Geometry"))
+			{
+				ImGui::Text("Geometry Information");
+				ShowGeometryGUI();
+				ImGui::EndTabItem();
+			}
+
+			ImGui::EndTabBar();
 		}
-		ImGui::Text("Scene Information");
 
 		ImGui::End();
 
 	}
 
 	void Editor::ShowRendererGUI() {
-
 
 		ImGui::Begin("Rendering Infomation");
 
@@ -185,6 +236,7 @@ namespace Skhole
 			if (ImGui::BeginTabItem("Renderer"))
 			{
 				ImGui::Text("Renderer Information");
+				ImGui::Separator();
 
 				auto& rendererData = m_scene->m_rendererParameter;
 
@@ -193,38 +245,43 @@ namespace Skhole
 				ImGui::Text("sample : %u", rendererData->sample);
 				ImGui::InputScalar("SPP", ImGuiDataType_U32, &rendererData->spp);
 
-				bool updateRenderer = false;
-				for (auto& rendererParam : rendererData->rendererParameters) {
-					ShrPtr<ParamFloat> floatParam;
-					ShrPtr<ParamVec> vec3Param;
-					ShrPtr<ParamUint> textureIDParam;
+				if (ImGui::TreeNode("Renderer Parameter")) {
 
-					switch (rendererParam->getParamType())
-					{
-					case ParameterType::FLOAT:
-						floatParam = std::static_pointer_cast<ParamFloat>(rendererParam);
-						updateRenderer |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
-						break;
+					bool updateRenderer = false;
+					for (auto& rendererParam : rendererData->rendererParameters) {
+						ShrPtr<ParamFloat> floatParam;
+						ShrPtr<ParamVec> vec3Param;
+						ShrPtr<ParamUint> textureIDParam;
 
-					case ParameterType::VECTOR:
-						vec3Param = std::static_pointer_cast<ParamVec>(rendererParam);
-						updateRenderer |= ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
-						break;
+						switch (rendererParam->getParamType())
+						{
+						case ParameterType::FLOAT:
+							floatParam = std::static_pointer_cast<ParamFloat>(rendererParam);
+							updateRenderer |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
+							break;
 
-					case ParameterType::UINT:
-						textureIDParam = std::static_pointer_cast<ParamUint>(rendererParam);
-						updateRenderer |= ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
-						break;
+						case ParameterType::VECTOR:
+							vec3Param = std::static_pointer_cast<ParamVec>(rendererParam);
+							updateRenderer |= ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
+							break;
 
-					default:
-						SKHOLE_UNIMPL();
-						break;
+						case ParameterType::UINT:
+							textureIDParam = std::static_pointer_cast<ParamUint>(rendererParam);
+							updateRenderer |= ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
+							break;
+
+						default:
+							SKHOLE_UNIMPL();
+							break;
+						}
 					}
-				}
 
-				if (updateRenderer)
-				{
-					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
+					if (updateRenderer)
+					{
+						m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
+					}
+
+					ImGui::TreePop();
 				}
 
 				ImGui::EndTabItem();
@@ -286,7 +343,10 @@ namespace Skhole
 	}
 
 	void Editor::ShowObjectGUI() {
-		ImGui::Begin("Object Information");
+
+		ImGui::Text("Objects");
+		ImGui::Separator();
+		ImGui::Spacing();
 
 		std::vector<const char*> objectNames;
 		objectNames.reserve(m_scene->m_objects.size());
@@ -295,28 +355,82 @@ namespace Skhole
 		}
 
 		static int selectedIndex = 0;
-		ImGui::ListBox("List", &selectedIndex, objectNames.data(), objectNames.size());
+		ImGui::ListBox("Ojbect List", &selectedIndex, objectNames.data(), objectNames.size());
 		auto& object = m_scene->m_objects[selectedIndex];
+
+		ImGui::Spacing();
 
 		ImGui::Text("Object Information");
 		ImGui::Separator();
-		ImGui::Text("Object Name : %s", object->GetObjectName());
+
+		if (ImGui::CollapsingHeader("Object Infomation")) {
+			ImGui::Indent(20.0f);
+			ImGui::Text("Object Name : %s", object->GetObjectName());
+			ImGui::Text("Object Type : %d", object->GetObjectType());
+			ImGui::Text("Object Index : %d", selectedIndex);
+			ImGui::Unindent(20.0f);
+		}
 
 		bool objectUpdate = false;
-		objectUpdate |= ImGui::InputFloat3("Position", object->localPosition.v);
-		objectUpdate |= ImGui::InputFloat3("Rotation", object->localRotationEular.v);
-		objectUpdate |= ImGui::InputFloat3("Scale", object->localScale.v);
+
+		if (ImGui::CollapsingHeader("Object Type")) {
+			ImGui::Indent(20.0f);
+			ShrPtr<Instance> instance;
+			switch (object->GetObjectType())
+			{
+			case ObjectType::INSTANCE:
+				instance = std::static_pointer_cast<Instance>(object);
+				ImGui::Text("Object Type : INSTANCE");
+				ImGui::Text("Geometry Index : %d", instance->geometryIndex);
+				break;
+			case ObjectType::LIGHT:
+				SKHOLE_UNIMPL();
+				break;
+
+			case ObjectType::VOLUME:
+				SKHOLE_UNIMPL();
+				break;
+
+			default:
+				SKHOLE_UNIMPL();
+				break;
+			}
+			ImGui::Unindent(20.0f);
+		}
+
+
+		if (ImGui::CollapsingHeader("Parent-Child Relationship")) {
+			ImGui::Indent(20.0f);
+			ImGui::Text("Parent Object : %s", object->haveParent() ? object->parentObject->GetObjectName() : "None");
+			ImGui::Text("Child Object : %s", object->haveChild() ? object->childObject->GetObjectName() : "None");
+			ImGui::Unindent(20.0f);
+		}
+
+
+		if (ImGui::CollapsingHeader("Translation")) {
+			ImGui::Indent(20.0f);
+			ImGui::Text("Local Translation");
+			objectUpdate |= ImGui::InputFloat3("Position", object->localPosition.v);
+			objectUpdate |= ImGui::InputFloat3("Rotation", object->localRotationEular.v);
+			objectUpdate |= ImGui::InputFloat3("Scale", object->localScale.v);
+			ImGui::Unindent(20.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Object Parameters")) {
+			ImGui::Indent(20.0f);
+			ImGui::Text("Use Animation : %s", object->useAnimation ? "True" : "False");
+			ImGui::Unindent(20.0f);
+		}
 
 		if (objectUpdate) {
-			m_updateInfo.commands.push_back(std::make_shared<UpdateObjectCommand>(selectedIndex,object->GetObjectType()));
+			ImGui::Indent(20.0f);
+			m_updateInfo.commands.push_back(std::make_shared<UpdateObjectCommand>(selectedIndex, object->GetObjectType()));
+			ImGui::Unindent(20.0f);
 		}
-		
-		ImGui::End();
+
 	}
 
-	void Editor::ShowMateralGUI() {
-		ImGui::Begin("Material Information");
-
+	void Editor::ShowMaterialGUI() {
 		std::vector<const char*> materialNames;
 		materialNames.reserve(m_scene->m_basicMaterials.size());
 		for (auto& material : m_scene->m_materials) {
@@ -324,7 +438,7 @@ namespace Skhole
 		}
 
 		static int selectedIndex = 0;
-		ImGui::ListBox("List", &selectedIndex, materialNames.data(), materialNames.size());
+		ImGui::ListBox("Material List", &selectedIndex, materialNames.data(), materialNames.size());
 
 		auto& mat = m_scene->m_materials[selectedIndex];
 		bool materialUpdate = false;
@@ -367,11 +481,42 @@ namespace Skhole
 				break;
 			}
 		}
-
-		ImGui::End();
-
 		if (materialUpdate) {
 			m_updateInfo.commands.push_back(std::make_shared<UpdateMaterialCommand>(selectedIndex));
+		}
+	}
+
+	void Editor::ShowGeometryGUI() {
+		ImGui::Text("Geometry");
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		std::vector<const char*> geometryNames;
+		geometryNames.reserve(m_scene->m_geometies.size());
+		for (int i = 0; i < m_scene->m_geometies.size(); i++) {
+			geometryNames.push_back("Geometry");
+		}
+
+		static int selectedIndex = 0;
+		ImGui::ListBox("Geometry List", &selectedIndex, geometryNames.data(), geometryNames.size());
+		auto& geometry = m_scene->m_geometies[selectedIndex];
+
+		ImGui::Spacing();
+		ImGui::Text("Geometry Information");
+		ImGui::Separator();
+
+		if (ImGui::CollapsingHeader("Geometry Infomation")) {
+			ImGui::Indent(20.0f);
+			ImGui::Text("Geometry ID : %d", selectedIndex);
+			ImGui::Text("num of Vertices : %d", geometry->m_vertices.size());
+			ImGui::Text("num of Indices : %d", geometry->m_indices.size());
+			ImGui::Unindent(20.0f);
+		}
+
+		if (ImGui::CollapsingHeader("Animation")) {
+			ImGui::Indent(20.0f);
+			ImGui::Text("Use Animation : %s", geometry->useAnimation ? "True" : "False");
+			ImGui::Unindent(20.0f);
 		}
 	}
 

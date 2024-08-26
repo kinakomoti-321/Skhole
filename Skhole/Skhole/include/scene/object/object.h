@@ -36,6 +36,9 @@ namespace Skhole {
 		
 		const char* GetObjectName() { return objectName.c_str(); }
 
+		bool haveParent() { return parentObject != nullptr; }
+		bool haveChild() { return childObject != nullptr; }
+
 
 	public:
 		std::string objectName;
