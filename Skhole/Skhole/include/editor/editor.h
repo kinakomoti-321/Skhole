@@ -3,6 +3,8 @@
 #include <include.h>
 #include <renderer/renderer.h>
 #include <renderer/simple_raytracer.h>
+#include <editor/file.h>
+#include <loader/loader.h>
 #include <common/math.h>
 
 namespace Skhole {

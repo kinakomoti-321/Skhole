@@ -248,6 +248,10 @@ namespace Skhole {
 
 			geometryBuffer.Release(device);
 			instanceBuffer.Release(device);
+
+			geometryOffset.clear();
+			geometryData.clear();
+			instanceData.clear();
 		}
 
 		DeviceBuffer vertexBuffer;

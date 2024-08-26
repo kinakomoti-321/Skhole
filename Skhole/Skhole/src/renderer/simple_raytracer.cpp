@@ -137,7 +137,14 @@ namespace Skhole {
 
 	void SimpleRaytracer::DestroyScene()
 	{
+		m_sceneBufferManager.Release(*m_context.device);
+		m_asManager.ReleaseTLAS(*m_context.device);
+		m_asManager.ReleaseBLAS(*m_context.device);
 
+		m_materials.clear();
+		m_materaialBuffer.Release(*m_context.device);
+
+		m_scene = nullptr;
 	}
 
 	void SimpleRaytracer::UpdateScene(const UpdataInfo& updateInfo) {

@@ -148,7 +148,7 @@ void main()
 
         if(payload.isMiss)
         {
-//            LTE += throughput * vec3(1.0);
+            LTE += throughput * vec3(1.0);
             break;
         }
 

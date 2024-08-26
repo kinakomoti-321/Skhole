@@ -106,7 +106,7 @@ namespace Skhole
 
 		while (!glfwWindowShouldClose(m_window)) {
 			glfwPollEvents();
-		
+
 			if (m_resizeInfo.resizeFrag) {
 				m_renderer->Resize(m_resizeInfo.width, m_resizeInfo.height);
 				m_resizeInfo.resizeFrag = false;
@@ -156,6 +156,19 @@ namespace Skhole
 	void Editor::ShowSceneGUI() {
 		ImGui::Begin("Scene Information");
 
+		if (ImGui::Button("Load Scene")) {
+			std::string path;
+			if (File::CallFileDialog(path)) {
+				std::cout << path << std::endl;
+				m_renderer->DestroyScene();
+				auto newScene = Loader::LoadFile(path);
+
+				m_scene = newScene;
+				m_scene->RendererSet(m_renderer);
+
+				m_renderer->SetScene(m_scene);
+			}
+		}
 		ImGui::Text("Scene Information");
 
 		ImGui::End();
