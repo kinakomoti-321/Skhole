@@ -7,3 +7,6 @@
 [submodule "Skhole/Skhole/extern/tinyobjloader"]
 	path = Skhole/Skhole/extern/tinyobjloader
 	url = git@github.com:tinyobjloader/tinyobjloader.git
+[submodule "Skhole/Skhole/extern/tinygltf"]
+	path = Skhole/Skhole/extern/tinygltf
+	url = git@github.com:syoyo/tinygltf.git
