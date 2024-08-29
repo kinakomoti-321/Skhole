@@ -172,7 +172,7 @@ namespace Skhole {
 
 		bool ret;
 		if (ext == "glb") {
-			ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename);	
+			ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
 		}
 		else {
 			ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
@@ -212,6 +212,8 @@ namespace Skhole {
 			std::vector<vec2> texcoord1;
 			std::vector<vec4> color;
 
+			uint32_t indexOffset = 0;
+
 			for (const auto& prim : mesh.primitives)
 			{
 				const auto& idxAccessor = model.accessors[prim.indices];
@@ -227,9 +229,11 @@ namespace Skhole {
 				for (size_t i = 0; i < count; i++)
 				{
 					auto idx = indexArray[i];
-					geometry->m_indices.push_back(idx);
+					geometry->m_indices.push_back(idx + indexOffset);
 				}
 
+
+				uint32_t vertexCount = 0;
 
 				for (const auto& attribute : prim.attributes)
 				{
@@ -248,6 +252,8 @@ namespace Skhole {
 							auto pos = positionArray[i];
 							position.push_back({ pos.x, pos.y, pos.z });
 						}
+
+						vertexCount = count;
 					}
 
 					if (attribute.first == "NORMAL") {
@@ -286,12 +292,16 @@ namespace Skhole {
 						}
 					}
 				} // end of attribute loop
+				
+				indexOffset += vertexCount;
 
 				//Material Index
-				if (haveMaterial)
-					geometry->m_materialIndices.push_back(prim.material);
-				else
-					geometry->m_materialIndices.push_back(0);
+				for (int i = 0; i < count / 3; i++) {
+					if (haveMaterial)
+						geometry->m_materialIndices.push_back(prim.material);
+					else
+						geometry->m_materialIndices.push_back(0);
+				}
 
 			}// end of primitive loop
 
@@ -301,9 +311,9 @@ namespace Skhole {
 			{
 				VertexData vertex;
 				vertex.position = vec4(position[i], 1.0);
-				if (normal.size() >= i) vertex.normal = vec4(normal[i], 0.0);
+				if (normal.size() >= i + 1) vertex.normal = vec4(normal[i], 0.0);
 				else vertex.normal = vec4(0, 1, 0, 0);
-				if (texcoord0.size() >= i) {
+				if (texcoord0.size() >= i + 1) {
 					vertex.texcoord0[0] = texcoord0[i].x;
 					vertex.texcoord0[1] = texcoord0[i].y;
 				}
@@ -311,7 +321,7 @@ namespace Skhole {
 					vertex.texcoord0[0] = 1.0f;
 					vertex.texcoord0[1] = 1.0f;
 				}
-				if (texcoord1.size() >= i) {
+				if (texcoord1.size() >= i + 1) {
 					vertex.texcoord1[0] = texcoord1[i].x;
 					vertex.texcoord1[1] = texcoord1[i].y;
 				}
@@ -319,11 +329,13 @@ namespace Skhole {
 					vertex.texcoord1[0] = 1.0f;
 					vertex.texcoord1[1] = 1.0f;
 				}
-				if (color.size() >= i) vertex.color = color[i];
+				if (color.size() >= i + 1) vertex.color = color[i];
 				else vertex.color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 				geometryVertex.push_back(vertex);
 			}
+
+			inGeometies.push_back(geometry);
 
 		}// end of mesh loop
 
@@ -362,9 +374,26 @@ namespace Skhole {
 			}
 
 			object->objectName = node.name;
-			object->localPosition = vec3(node.translation[0], node.translation[1], node.translation[2]);
-			object->localRotationEular = vec3(node.rotation[0], node.rotation[1], node.rotation[2]); // TODO Quaternion
-			object->localScale = vec3(node.scale[0], node.scale[1], node.scale[2]);
+			if (node.translation.size() > 0) {
+				object->localPosition = vec3(node.translation[0], node.translation[1], node.translation[2]);
+			}
+			else {
+				object->localPosition = vec3(0.0f);
+			}
+
+			if (node.rotation.size() > 0) {
+				object->localRotationEular = vec3(node.rotation[0], node.rotation[1], node.rotation[2]); // TODO Quaternion
+			}
+			else {
+				object->localRotationEular = vec3(0.0f);
+			}
+
+			if (node.scale.size() > 0) {
+				object->localScale = vec3(node.scale[0], node.scale[1], node.scale[2]);
+			}
+			else {
+				object->localScale = vec3(1.0f);
+			}
 
 			inObjects.push_back(object);
 		}

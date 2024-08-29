@@ -140,7 +140,7 @@ namespace Skhole {
 		}
 	};
 
-	static bool LoadGLTFFile(
+	bool LoadGLTFFile(
 		const std::string& filename,
 		std::vector<ShrPtr<Object>>& inObjects,
 		std::vector<ShrPtr<Geometry>>& inGeometies,
