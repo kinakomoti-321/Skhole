@@ -35,6 +35,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 
-
 #define ShrPtr std::shared_ptr
+#define UnqPtr std::unique_ptr
 #define MakeShr std::make_shared
+#define MakeUnq std::make_unique
+

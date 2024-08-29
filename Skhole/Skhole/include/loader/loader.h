@@ -4,9 +4,9 @@
 #include <common/filepath.h>
 #include <scene/scene.h>
 #include <loader/obj_loader.h>
+#include <loader/gltf_loader.h>
 
 namespace Skhole {
-
 
 	class Loader {
 	public:
@@ -19,9 +19,21 @@ namespace Skhole {
 				SKHOLE_ERROR("Invalid File Path");
 			}
 
-			ShrPtr<Scene> loadScene = MakeShr<Scene>();			
+			ShrPtr<Scene> loadScene = MakeShr<Scene>();
+
 			if (extension == "obj") {
 				LoadObjFile(
+					path,
+					loadScene->m_objects,
+					loadScene->m_geometies,
+					loadScene->m_basicMaterials,
+					loadScene->m_textures
+				);
+
+				return loadScene;
+			}
+			else if (extension == "glb" || extension == "gltf") {
+				LoadGLTFFile(
 					path,
 					loadScene->m_objects,
 					loadScene->m_geometies,
@@ -35,5 +47,6 @@ namespace Skhole {
 				SKHOLE_UNIMPL();
 			}
 		}
+
 	};
 }

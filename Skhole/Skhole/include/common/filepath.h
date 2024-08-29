@@ -11,7 +11,6 @@ namespace Skhole {
 		extension = filepath.substr(dotIndex + 1);
 		return true;
 	}
-	
 
 	inline bool GetFileName(const std::string& filepath, std::string& filename) {
 		size_t dotIndex = filepath.find_last_of("/");
