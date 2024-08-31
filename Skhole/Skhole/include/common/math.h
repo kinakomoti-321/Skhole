@@ -39,7 +39,7 @@ namespace Skhole {
 	}
 
 
-	inline mat4 translateMaterix(const vec3& t) {
+	inline mat4 TranslateAffine(const vec3& t) {
 		mat4 materix(0);
 		materix[0][0] = 1.0f;
 		materix[1][1] = 1.0f;
@@ -51,22 +51,22 @@ namespace Skhole {
 		return materix;
 	}
 
-	inline mat4 rotateMatrix(const vec3& r) {
-		mat3 x = rotateX(r.x);
-		mat3 y = rotateY(r.y);
-		mat3 z = rotateZ(r.z);
-		mat3 rot = x * y * z;
-		mat4 rotation(0);
-		rotation[0] = vec4(rot[0], 0.0f);
-		rotation[1] = vec4(rot[1], 0.0f);
-		rotation[2] = vec4(rot[2], 0.0f);
-		rotation[3] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	//inline mat4 RotateAffine(const vec3& r) {
+	//	mat3 x = rotateX(r.x);
+	//	mat3 y = rotateY(r.y);
+	//	mat3 z = rotateZ(r.z);
+	//	mat3 rot = x * y * z;
+	//	mat4 rotation(0);
+	//	rotation[0] = vec4(rot[0], 0.0f);
+	//	rotation[1] = vec4(rot[1], 0.0f);
+	//	rotation[2] = vec4(rot[2], 0.0f);
+	//	rotation[3] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-		return rotation;
-	}
+	//	return rotation;
+	//}
 
 
-	inline mat4 scaleMatrix(const vec3& s) {
+	inline mat4 ScaleAffine(const vec3& s) {
 		mat4 materix(0);
 		materix[0][0] = s.x;
 		materix[1][1] = s.y;
@@ -80,6 +80,7 @@ namespace Skhole {
 		float x, y, z, w;
 
 		Quaternion() : x(0), y(0), z(0), w(1) {}
+		Quaternion(float s) : x(s), y(s), z(s), w(s) {}
 		Quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 		Quaternion(vec3 v, float w) : x(v.x), y(v.y), z(v.z), w(w) {}
 	};
@@ -158,13 +159,13 @@ namespace Skhole {
 		);
 	}
 
-	inline mat4 RotationAffine(const Quaternion& q)
+	inline mat4 RotateAffine(const Quaternion& q)
 	{
 		return mat4
 		(
-			2 * q.w * q.w + 2 * q.x * q.x - 1, 2 * q.x * q.y - 2 * q.z * q.w, 2 * q.x * q.z + 2 * q.y * q.w, 0,
-			2 * q.x * q.y + 2 * q.z * q.w, 2 * q.w * q.w + 2 * q.y * q.y - 1, 2 * q.y * q.z - 2 * q.x * q.w, 0,
-			2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 2 * q.w * q.w + 2 * q.z * q.z - 1, 0,
+			2 * q.w * q.w + 2 * q.x * q.x - 1, 2 * q.x * q.y - 2 * q.z * q.w,     2 * q.x * q.z + 2 * q.y * q.w,     0,
+			2 * q.x * q.y + 2 * q.z * q.w,	   2 * q.w * q.w + 2 * q.y * q.y - 1, 2 * q.y * q.z - 2 * q.x * q.w,     0,
+			2 * q.x * q.z - 2 * q.y * q.w,     2 * q.y * q.z + 2 * q.x * q.w,     2 * q.w * q.w + 2 * q.z * q.z - 1, 0,
 			0, 0, 0, 1
 		);
 	}

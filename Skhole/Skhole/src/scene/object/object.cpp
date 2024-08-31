@@ -3,18 +3,19 @@
 using namespace VectorLikeGLSL;
 namespace Skhole {
 	mat4 Object::SetWorldTransformMatrix(float frame) {
-		
+		localQuaternion = Normalize(localQuaternion);
+
 		if (worldTransformMatrix.has_value()) {
 			return worldTransformMatrix.value();
 		}
-		
+
 		if (IsRoot()) {
 			worldTransformMatrix = GetLocalTransformMatrix(frame);
 		}
 		else {
 			worldTransformMatrix = parentObject->SetWorldTransformMatrix(frame) * GetLocalTransformMatrix(frame);
 		}
-		
+
 		return worldTransformMatrix.value();
 	}
 
@@ -29,14 +30,14 @@ namespace Skhole {
 
 	mat4 Object::GetLocalTransformMatrix(float frame) {
 		vec3 lp = GetLocalPosition(frame);
-		vec3 lr = GetLocalRotationEular(frame);
+		Quaternion lr = GetLocalRotation(frame);
 		vec3 ls = GetLocalScale(frame);
 
-		mat4 translate = translateMaterix(localPosition);
-		mat4 rotate = rotateMatrix(localRotationEular);
-		mat4 scale = scaleMatrix(localScale);
+		mat4 translate = TranslateAffine(lp);
+		mat4 rotate = RotateAffine(lr);
+		mat4 scale = ScaleAffine(ls);
 
-		return translate * rotate * scale;
+		return scale * rotate *  translate;
 	}
 
 	void Object::ResetWorldTransformMatrix() {
@@ -55,14 +56,15 @@ namespace Skhole {
 
 	}
 
-	vec3 Object::GetLocalRotationEular(float frame) {
+	Quaternion Object::GetLocalRotation(float frame) {
 		if (useAnimation) {
 			SKHOLE_UNIMPL();
-			return vec3(0);
+			return Quaternion();
 		}
 		else {
-			return localRotationEular;
-		}	
+			return localQuaternion;
+		}
+
 	}
 
 	vec3 Object::GetLocalScale(float frame) {

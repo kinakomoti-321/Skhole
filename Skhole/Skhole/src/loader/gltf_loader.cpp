@@ -292,7 +292,7 @@ namespace Skhole {
 						}
 					}
 				} // end of attribute loop
-				
+
 				indexOffset += vertexCount;
 
 				//Material Index
@@ -382,10 +382,10 @@ namespace Skhole {
 			}
 
 			if (node.rotation.size() > 0) {
-				object->localRotationEular = vec3(node.rotation[0], node.rotation[1], node.rotation[2]); // TODO Quaternion
+				object->localQuaternion = Quaternion(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]); // TODO Quaternion
 			}
 			else {
-				object->localRotationEular = vec3(0.0f);
+				object->localQuaternion = Quaternion(0.0,0.0,0.0,1.0f);
 			}
 
 			if (node.scale.size() > 0) {
@@ -426,13 +426,66 @@ namespace Skhole {
 				basicMaterial->metallic = pbrParam.metallicFactor;
 
 				vec3 emissive = vec3(mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2]);
-				float emissiveIntensity = length(emissive);
-				basicMaterial->emissionIntensity = emissiveIntensity;
-				basicMaterial->emissionColor = vec4(emissive / emissiveIntensity, 1.0);
+				basicMaterial->emissionColor = vec4(emissive, 1.0);
 
 				//TODO Transmission
 				basicMaterial->transmission = 0.0f;
 				basicMaterial->ior = 1.0f;
+
+				for (auto& matExtension : mat.extensions) {
+					if (matExtension.first == "KHR_materials_clearcoat") {
+						const tinygltf::Value::Object& o = matExtension.second.Get<tinygltf::Value::Object>();
+						tinygltf::Value::Object::const_iterator it(o.begin());
+						tinygltf::Value::Object::const_iterator itEnd(o.end());
+						for (; it != itEnd; it++) {
+							if (it->first == "clearcoatFactor") {
+								basicMaterial->clearcoat = it->second.Get<double>();
+							}
+						}
+					}
+					else if (matExtension.first == "KHR_materials_sheen") {
+						const tinygltf::Value::Object& o = matExtension.second.Get<tinygltf::Value::Object>();
+						tinygltf::Value::Object::const_iterator it(o.begin());
+						tinygltf::Value::Object::const_iterator itEnd(o.end());
+						for (; it != itEnd; it++) {
+							if (it->first == "sheenRoughnessFactor") {
+								basicMaterial->sheen = it->second.Get<double>();
+							}
+						}
+					}
+					else if (matExtension.first == "KHR_materials_transmission") {
+						const tinygltf::Value::Object& o = matExtension.second.Get<tinygltf::Value::Object>();
+						tinygltf::Value::Object::const_iterator it(o.begin());
+						tinygltf::Value::Object::const_iterator itEnd(o.end());
+						for (; it != itEnd; it++) {
+							if (it->first == "transmissionFactor") {
+								basicMaterial->transmission = it->second.Get<double>();
+							}
+						}
+					}
+					else if (matExtension.first == "KHR_materials_ior") {
+						const tinygltf::Value::Object& o = matExtension.second.Get<tinygltf::Value::Object>();
+						tinygltf::Value::Object::const_iterator it(o.begin());
+						tinygltf::Value::Object::const_iterator itEnd(o.end());
+						for (; it != itEnd; it++) {
+							if (it->first == "ior") {
+								basicMaterial->ior = it->second.Get<double>();
+							}
+						}
+					}
+
+					else if (matExtension.first == "KHR_materials_emissive_strength") {
+						const tinygltf::Value::Object& o = matExtension.second.Get<tinygltf::Value::Object>();
+						tinygltf::Value::Object::const_iterator it(o.begin());
+						tinygltf::Value::Object::const_iterator itEnd(o.end());
+						for (; it != itEnd; it++) {
+							if (it->first == "emissiveStrength") {
+								basicMaterial->emissionIntensity = it->second.Get<double>();
+							}
+						}
+					}
+				}
+
 
 				//TODO Texture
 

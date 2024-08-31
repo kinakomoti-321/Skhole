@@ -89,6 +89,16 @@ void main()
 	vec3 baryCoords = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 
 	vec4 normal = (1.0 - attribs.x - attribs.y) * v0.normal + attribs.x * v1.normal + attribs.y * v2.normal;
+	normal.w = 0.0;
+
+	mat4 normalTransform = mat4(
+	inst.normalTransform0.x, inst.normalTransform1.x, inst.normalTransform2.x, 0.0,
+	inst.normalTransform0.y, inst.normalTransform1.y, inst.normalTransform2.y, 0.0,
+	inst.normalTransform0.z, inst.normalTransform1.z, inst.normalTransform2.z, 0.0,
+	inst.normalTransform0.w, inst.normalTransform1.w, inst.normalTransform2.w, 1.0
+	);
+
+	normal = normalTransform * normal;
 	
 	uint primIdOffset = geom.indexOffset / 3;
 	uint materialIndex = matIndex[primIdOffset + primID];
@@ -97,7 +107,7 @@ void main()
 	payload.basecolor = mat.baseColor.xyz;
 	payload.t = gl_HitTEXT;
 	payload.position = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-	payload.normal = normal.xyz;
+	payload.normal = normalize(normal.xyz);
     payload.isMiss = false;
 
 	

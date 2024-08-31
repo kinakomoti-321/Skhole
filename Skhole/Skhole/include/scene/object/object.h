@@ -26,7 +26,7 @@ namespace Skhole {
 		mat4 GetLocalTransformMatrix(float frame);
 
 		vec3 GetLocalPosition(float frame);
-		vec3 GetLocalRotationEular(float frame);	
+		Quaternion GetLocalRotation(float frame);
 		vec3 GetLocalScale(float frame);
 
 		void ResetWorldTransformMatrix();
@@ -49,9 +49,9 @@ namespace Skhole {
 
 		bool useAnimation = false;
 
-		vec3 localPosition;
-		vec3 localRotationEular;
-		vec3 localScale;
+		vec3 localPosition = vec3(0.0);
+		Quaternion localQuaternion = Quaternion(0.0,0.0,0.0,1.0);
+		vec3 localScale = vec3(1.0);
 
 	};
 };

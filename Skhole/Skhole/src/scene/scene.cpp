@@ -52,44 +52,26 @@ namespace Skhole {
 		ShrPtr<Instance> object = MakeShr<Instance>();
 		object->objectName = "Instance";
 		object->geometryIndex = 0;
-		object->localPosition = vec3(0.0f, 0.0f, 0.0f);
-		object->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
-		object->localScale = vec3(1.0f, 1.0f, 1.0f);
 
 		ShrPtr<Instance> object2 = MakeShr<Instance>();
 		object2->objectName = "Instance2";
 		object2->geometryIndex = 1;
-		object2->localPosition = vec3(0.0f, 0.0f, 0.0f);
-		object2->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
-		object2->localScale = vec3(1.0f, 1.0f, 1.0f);
 
 		ShrPtr<Instance> object3 = MakeShr<Instance>();
 		object3->objectName = "Instance3";
 		object3->geometryIndex = 2;
-		object3->localPosition = vec3(0.0f, 0.0f, 0.0f);
-		object3->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
-		object3->localScale = vec3(1.0f, 1.0f, 1.0f);
 
 		ShrPtr<Instance> object4 = MakeShr<Instance>();
 		object4->objectName = "Instance4";
 		object4->geometryIndex = 3;
-		object4->localPosition = vec3(0.0f, 0.0f, 0.0f);
-		object4->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
-		object4->localScale = vec3(1.0f, 1.0f, 1.0f);
 
 		ShrPtr<Instance> object5 = MakeShr<Instance>();
 		object5->objectName = "Instance4";
 		object5->geometryIndex = 4;
-		object5->localPosition = vec3(0.0f, 0.0f, 0.0f);
-		object5->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
-		object5->localScale = vec3(1.0f, 1.0f, 1.0f);
 
 		ShrPtr<Instance> object6 = MakeShr<Instance>();
 		object6->objectName = "Instance4";
 		object6->geometryIndex = 5;
-		object6->localPosition = vec3(0.0f, 0.0f, 0.0f);
-		object6->localRotationEular = vec3(0.0f, 0.0f, 0.0f);
-		object6->localScale = vec3(1.0f, 1.0f, 1.0f);
 
 		ShrPtr<BasicMaterial> material = MakeShr<BasicMaterial>();
 		material->basecolor = vec4(1.0f, 0.2f, 0.2f, 1.0f);

@@ -67,7 +67,8 @@ namespace Skhole {
 			vec3 cameraRight = camera->basicParameter.cameraRight;
 
 			mat3 rotY = rotateY(-angleT.x);
-			mat3 rotUp = rotateMaterixFromAxis(-angleT.y * 2.0, cameraRight);
+			Quaternion cameraQuternion = QuatanionFromAxis(-angleT.y * 2.0, cameraRight);
+			mat3 rotUp = RotationMatrix(cameraQuternion);
 
 			cameraDir = rotUp * (rotY * cameraDir);
 			cameraRight = rotUp * (rotY * cameraRight);
@@ -150,7 +151,7 @@ namespace Skhole {
 			uint32_t height;
 		};
 		static ResizeInfo m_resizeInfo;
-		
+
 		CamereController m_cameraController;
 		UpdataInfo m_updateInfo;
 		bool useGUI = false;

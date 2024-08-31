@@ -27,6 +27,9 @@ namespace Skhole {
 		float roughness;
 		Texture RoughnessMap;
 
+		float sheen;
+		float clearcoat;
+
 		Texture NormalMap;
 		Texture HeightMap;
 

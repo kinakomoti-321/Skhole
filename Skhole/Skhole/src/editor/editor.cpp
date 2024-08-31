@@ -411,8 +411,35 @@ namespace Skhole
 			ImGui::Indent(20.0f);
 			ImGui::Text("Local Translation");
 			objectUpdate |= ImGui::InputFloat3("Position", object->localPosition.v);
-			objectUpdate |= ImGui::InputFloat3("Rotation", object->localRotationEular.v);
+
+			Quaternion lq = object->localQuaternion;
+			vec4 lr = vec4(lq.x, lq.y, lq.z, lq.w);
+
+			objectUpdate |= ImGui::InputFloat4("Rotation", lr.v);
 			objectUpdate |= ImGui::InputFloat3("Scale", object->localScale.v);
+
+			object->localQuaternion = Quaternion(lr.x, lr.y, lr.z, lr.w);
+
+			ImGui::Separator();
+
+			mat4 matrix = object->GetLocalTransformMatrix(0);
+			ImGui::Text("Transform Matrix");
+			ImGui::Text("(%f, %f, %f, %f)", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
+			ImGui::Text("(%f, %f, %f, %f)", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);
+			ImGui::Text("(%f, %f, %f, %f)", matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]);
+			ImGui::Text("(%f, %f, %f, %f)", matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]);
+
+			mat3 normalWorld = NormalTransformMatrix3x3(matrix);
+			ImGui::Text("Normal Transform Matrix");
+			ImGui::Text("(%f, %f, %f)", normalWorld[0][0], normalWorld[0][1], normalWorld[0][2]);
+			ImGui::Text("(%f, %f, %f)", normalWorld[1][0], normalWorld[1][1], normalWorld[1][2]);
+			ImGui::Text("(%f, %f, %f)", normalWorld[2][0], normalWorld[2][1], normalWorld[2][2]);
+
+			mat3 InvNormal = Inverse3x3(normalWorld);
+			mat3 test = InvNormal * normalWorld;
+			mat3 test2 = Transpose3x3(InvNormal);
+
+
 			ImGui::Unindent(20.0f);
 		}
 
