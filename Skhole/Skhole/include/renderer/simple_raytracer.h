@@ -114,7 +114,7 @@ namespace Skhole
 		// Render
 		void UpdateDescriptorSet(vk::ImageView imageView);
 
-		void FrameStart(float frame);
+		void FrameStart(float time);
 		void FrameEnd();
 
 		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);

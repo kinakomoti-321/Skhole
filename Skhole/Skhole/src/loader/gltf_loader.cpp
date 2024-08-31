@@ -532,7 +532,7 @@ namespace Skhole {
 					auto keyByteStride = animKeyAccessor.ByteStride(animKeyBufferView);
 					auto keyCount = animKeyAccessor.count;
 
-					FloatArray keyArray(keyPtr, keyByteStride, keyCount);
+					FloatArray keyArray(keyPtr, keyCount, keyByteStride);
 
 					auto& animDataBufferView = model.bufferViews[animDataAccessor.bufferView];
 					auto& dataBuffer = model.buffers[animDataBufferView.buffer];
@@ -577,8 +577,8 @@ namespace Skhole {
 						}
 					}
 				}
-				
 
+				object->SetAnimationKey();
 			}
 		}
 

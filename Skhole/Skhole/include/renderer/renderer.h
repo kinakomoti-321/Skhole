@@ -104,6 +104,7 @@ namespace Skhole
 	struct RealTimeRenderingInfo {
 		uint32_t spp;
 		uint32_t frame;
+		float time;
 	};
 
 	struct OfflineRenderingInfo {

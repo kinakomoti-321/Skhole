@@ -22,7 +22,7 @@ namespace Skhole {
 		~KeyFrame() {};
 
 		T value;
-		int frame;
+		float frame;
 	};
 
 	template <typename T>
@@ -39,12 +39,12 @@ namespace Skhole {
 			return keyFrames.size() > 0;
 		}
 
-		T GetValue(int frame)
+		T GetValue(float time)
 		{
 			if (keyFrames.size() == 0) return T();
 			if (keyFrames.size() == 1) return keyFrames[0].value;
-			if (frame < keyFrames[0].frame) return keyFrames[0].value;
-			if (frame > keyFrames[keyFrames.size() - 1].frame) return keyFrames[keyFrames.size() - 1].value;
+			if (time < keyFrames[0].frame) return keyFrames[0].value;
+			if (time > keyFrames[keyFrames.size() - 1].frame) return keyFrames[keyFrames.size() - 1].value;
 
 			// Binary Search
 			int start = 0;
@@ -56,25 +56,25 @@ namespace Skhole {
 			int nextIndex = 0;
 
 			while (true) {
-				if (keyFrames[mid].frame = frame) {
+				if (keyFrames[mid].frame = time) {
 					preIndex = mid;
 					nextIndex = mid;
 					break;
 				}
-				else if (keyFrames[mid].frame < frame || frame < keyFrames[mid + 1].frame) {
+				else if (keyFrames[mid].frame < time || time < keyFrames[mid + 1].frame) {
 					preIndex = mid;
 					nextIndex = mid + 1;
 					break;
 				}
-				else if (keyFrames[mid].frame > frame || frame > keyFrames[mid - 1].frame) {
+				else if (keyFrames[mid].frame > time || time > keyFrames[mid - 1].frame) {
 					preIndex = mid - 1;
 					nextIndex = mid;
 					break;
 				}
-				else if (keyFrames[mid].frame > frame) {
+				else if (keyFrames[mid].frame > time) {
 					end = mid;
 				}
-				else if (keyFrames[mid].frame < frame) {
+				else if (keyFrames[mid].frame < time) {
 					start = mid;
 				}
 
@@ -85,7 +85,7 @@ namespace Skhole {
 			T& preValue = keyFrames[preIndex].value;
 			T& nextValue = keyFrames[nextIndex].value;
 
-			float f = (float)(frame - preIndex) / (float)(nextIndex - preIndex);
+			float f = (float)(time - preIndex) / (float)(nextIndex - preIndex);
 
 			T value = LerpFrame(preValue, nextValue, f);
 			return value;

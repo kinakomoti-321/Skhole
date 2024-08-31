@@ -23,14 +23,14 @@ namespace Skhole {
 
 		void SetAnimationKey();
 
-		mat4 SetWorldTransformMatrix(int frame);
-		mat4 GetWorldTransformMatrix(int frame);
+		mat4 SetWorldTransformMatrix(float time);
+		mat4 GetWorldTransformMatrix(float time);
 
-		mat4 GetTransformMatrix(int frame);
+		mat4 GetTransformMatrix(float time);
 
-		vec3 GetTranslation(int frame);
-		Quaternion GetRotation(int frame);
-		vec3 GetScale(int frame);
+		vec3 GetTranslation(float time);
+		Quaternion GetRotation(float time);
+		vec3 GetScale(float time);
 
 		void ResetWorldTransformMatrix();
 

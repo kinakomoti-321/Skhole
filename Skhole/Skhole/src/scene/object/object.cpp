@@ -2,7 +2,7 @@
 
 using namespace VectorLikeGLSL;
 namespace Skhole {
-	mat4 Object::SetWorldTransformMatrix(int frame) {
+	mat4 Object::SetWorldTransformMatrix(float time) {
 		localQuaternion = Normalize(localQuaternion);
 
 		if (worldTransformMatrix.has_value()) {
@@ -10,30 +10,30 @@ namespace Skhole {
 		}
 
 		if (IsRoot()) {
-			worldTransformMatrix = GetTransformMatrix(frame);
+			worldTransformMatrix = GetTransformMatrix(time);
 		}
 		else {
-			worldTransformMatrix = parentObject->SetWorldTransformMatrix(frame) * GetTransformMatrix(frame);
+			worldTransformMatrix = parentObject->SetWorldTransformMatrix(time) * GetTransformMatrix(time);
 		}
 
 		return worldTransformMatrix.value();
 	}
 
-	mat4 Object::GetWorldTransformMatrix(int frame) {
+	mat4 Object::GetWorldTransformMatrix(float time) {
 		if (worldTransformMatrix.has_value())
 		{
 			return worldTransformMatrix.value();
 		}
 		else
 		{
-			return SetWorldTransformMatrix(frame);
+			return SetWorldTransformMatrix(time);
 		}
 	}
 
-	mat4 Object::GetTransformMatrix(int frame) {
-		vec3 lp = GetTranslation(frame);
-		Quaternion lr = GetRotation(frame);
-		vec3 ls = GetScale(frame);
+	mat4 Object::GetTransformMatrix(float time) {
+		vec3 lp = GetTranslation(time);
+		Quaternion lr = GetRotation(time);
+		vec3 ls = GetScale(time);
 
 		mat4 translate = TranslateAffine(lp);
 		mat4 rotate = RotateAffine(lr);
@@ -47,10 +47,10 @@ namespace Skhole {
 		if (!IsLear()) childObject->ResetWorldTransformMatrix();
 	}
 
-	vec3 Object::GetTranslation(int frame) {
+	vec3 Object::GetTranslation(float time) {
 		if (useAnimation)
 		{
-			return translationAnimation.GetValue(frame);
+			return translationAnimation.GetValue(time);
 		}
 		else {
 			return localTranslation;
@@ -58,10 +58,10 @@ namespace Skhole {
 
 	}
 
-	Quaternion Object::GetRotation(int frame) {
+	Quaternion Object::GetRotation(float time) {
 		if (useAnimation)
 		{
-			return rotationAnimation.GetValue(frame);
+			return rotationAnimation.GetValue(time);
 		}
 		else
 		{
@@ -70,10 +70,10 @@ namespace Skhole {
 
 	}
 
-	vec3 Object::GetScale(int frame) {
+	vec3 Object::GetScale(float time) {
 		if (useAnimation)
 		{
-			return scaleAnimation.GetValue(frame);
+			return scaleAnimation.GetValue(time);
 		}
 		else
 		{

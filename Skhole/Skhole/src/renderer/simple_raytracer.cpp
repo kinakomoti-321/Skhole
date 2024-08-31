@@ -233,7 +233,7 @@ namespace Skhole {
 	{
 		m_raytracerParameter.spp++;
 
-		FrameStart(m_raytracerParameter.frame);
+		FrameStart(renderInfo.time);
 
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
@@ -405,7 +405,7 @@ namespace Skhole {
 		m_bindingManager.SetLayout(*m_context.device);
 	}
 
-	void SimpleRaytracer::FrameStart(float frame) {
+	void SimpleRaytracer::FrameStart(float time) {
 
 		auto& raytracerParam = m_scene->m_rendererParameter;
 
@@ -427,9 +427,9 @@ namespace Skhole {
 		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
 		m_uniformBuffer.Ummap(*m_context.device);
 
-		m_scene->SetTransformMatrix(frame);
+		m_scene->SetTransformMatrix(time);
 
-		m_sceneBufferManager.FrameUpdateInstance(frame, *m_context.device, *m_commandPool, m_context.queue);
+		m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
 		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
 
