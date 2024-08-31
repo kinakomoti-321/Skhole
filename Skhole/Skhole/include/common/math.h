@@ -75,93 +75,148 @@ namespace Skhole {
 		return materix;
 	}
 
-	struct Quatanion {
-		Quatanion() {
-			q = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		}
+	// Quaternion (vector, scalar)
+	struct Quaternion {
+		float x, y, z, w;
 
-		Quatanion(float x, float y, float z, float w) {
-			q = vec4(x, y, z, w);
-		}
-
-		Quatanion(const vec4 q) {
-			this->q = q;
-		}
-
-		Quatanion invert() {
-			return Quatanion(-q.x, -q.y, -q.z, q.w);
-		}
-
-		vec4 q;
+		Quaternion() : x(0), y(0), z(0), w(1) {}
+		Quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+		Quaternion(vec3 v, float w) : x(v.x), y(v.y), z(v.z), w(w) {}
 	};
 
-	inline Quatanion operator+(const Quatanion& a, const Quatanion& b) {
-		return Quatanion(a.q + b.q);
+	inline Quaternion operator+(const Quaternion& a, const Quaternion& b) {
+		Quaternion q;
+		q.x = a.x + b.x;
+		q.y = a.y + b.y;
+		q.z = a.z + b.z;
+		q.w = a.w + b.w;
+		return q;
 	}
 
-	inline Quatanion operator-(const Quatanion& a, const Quatanion& b) {
-		return Quatanion(a.q - b.q);
+	inline Quaternion operator-(const Quaternion& a, const Quaternion& b) {
+		Quaternion q;
+		q.x = a.x - b.x;
+		q.y = a.y - b.y;
+		q.z = a.z - b.z;
+		q.w = a.w - b.w;
+		return q;
 	}
 
-	inline Quatanion operator*(const Quatanion& a, const Quatanion& b) {
-		return Quatanion(
-			a.q.w * b.q.x + a.q.x * b.q.w + a.q.y * b.q.z - a.q.z * b.q.y,
-			a.q.w * b.q.y + a.q.y * b.q.w + a.q.z * b.q.x - a.q.x * b.q.z,
-			a.q.w * b.q.z + a.q.z * b.q.w + a.q.x * b.q.y - a.q.y * b.q.x,
-			a.q.w * b.q.w - a.q.x * b.q.x - a.q.y * b.q.y - a.q.z * b.q.z
+	inline Quaternion operator*(const Quaternion& a, const Quaternion& b) {
+		return Quaternion(
+			a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+			a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z,
+			a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x,
+			a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
 		);
 	}
 
-	inline Quatanion QuatanionFromAxis(float theta, vec3 axis) {
+	inline Quaternion operator*(const Quaternion& q, float s) {
+		return Quaternion(q.x * s, q.y * s, q.z * s, q.w * s);
+	}
+
+	inline Quaternion operator*(float s, const Quaternion& q) {
+		return Quaternion(q.x * s, q.y * s, q.z * s, q.w * s);
+	}
+
+	inline Quaternion operator/(const Quaternion& q, float s) {
+		return Quaternion(q.x / s, q.y / s, q.z / s, q.w / s);
+	}
+
+	inline Quaternion operator/(float s, const Quaternion& q) {
+		return Quaternion(s / q.x, s / q.y, s / q.z, s / q.w);
+	}
+
+	inline float Length(const Quaternion& q) {
+		return std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+	}
+
+	inline Quaternion Conjugate(const Quaternion& q) {
+		return Quaternion(-q.x, -q.y, -q.z, q.w);
+	}
+
+	inline Quaternion Inverse(const Quaternion& q) {
+		return Quaternion(-q.x, -q.y, -q.z, q.w) / (q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+	}
+
+	inline Quaternion Normalize(const Quaternion& q) {
+		return q / Length(q);
+	}
+
+	inline Quaternion QuatanionFromAxis(float theta, vec3 axis) {
 		float s = std::sin(theta / 2.0f);
 		float c = std::cos(theta / 2.0f);
-		return Quatanion(axis.x * s, axis.y * s, axis.z * s, c);
+		return Quaternion(axis.x * s, axis.y * s, axis.z * s, c);
 	}
 
-	inline mat4 rotateMatrixFromQuatanion(const Quatanion& q) {
-		float x = q.q.x;
-		float y = q.q.y;
-		float z = q.q.z;
-		float w = q.q.w;
-
-		mat4 rotation(0);
-		rotation[0][0] = 1.0f - 2.0f * y * y - 2.0f * z * z;
-		rotation[0][1] = 2.0f * x * y - 2.0f * z * w;
-		rotation[0][2] = 2.0f * x * z + 2.0f * y * w;
-
-		rotation[1][0] = 2.0f * x * y + 2.0f * z * w;
-		rotation[1][1] = 1.0f - 2.0f * x * x - 2.0f * z * z;
-		rotation[1][2] = 2.0f * y * z - 2.0f * x * w;
-
-		rotation[2][0] = 2.0f * x * z - 2.0f * y * w;
-		rotation[2][1] = 2.0f * y * z + 2.0f * x * w;
-		rotation[2][2] = 1.0f - 2.0f * x * x - 2.0f * y * y;
-
-		rotation[3][3] = 1.0f;
-
-		return rotation;
+	inline mat3 RotationMatrix(const Quaternion& q)
+	{
+		return mat3(
+			2 * q.w * q.w + 2 * q.x * q.x - 1, 2 * q.x * q.y - 2 * q.z * q.w, 2 * q.x * q.z + 2 * q.y * q.w,
+			2 * q.x * q.y + 2 * q.z * q.w, 2 * q.w * q.w + 2 * q.y * q.y - 1, 2 * q.y * q.z - 2 * q.x * q.w,
+			2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 2 * q.w * q.w + 2 * q.z * q.z - 1
+		);
 	}
 
-	inline mat4 rotateMaterixFromAxis(float theta, const vec3& n) {
-		mat4 rotation(0);
-		float s = std::sin(theta);
-		float c = std::cos(theta);
+	inline mat4 RotationAffine(const Quaternion& q)
+	{
+		return mat4
+		(
+			2 * q.w * q.w + 2 * q.x * q.x - 1, 2 * q.x * q.y - 2 * q.z * q.w, 2 * q.x * q.z + 2 * q.y * q.w, 0,
+			2 * q.x * q.y + 2 * q.z * q.w, 2 * q.w * q.w + 2 * q.y * q.y - 1, 2 * q.y * q.z - 2 * q.x * q.w, 0,
+			2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 2 * q.w * q.w + 2 * q.z * q.z - 1, 0,
+			0, 0, 0, 1
+		);
+	}
 
-		rotation[0][0] = c + (1 - c) * n.x * n.x;
-		rotation[0][1] = n.x * n.y * (1 - c) - n.z * s;
-		rotation[0][2] = n.z * n.x * (1 - c) + n.y * s;
+	enum RotationOrder {
+		XYZ,
+		XZY,
+		YXZ,
+		YZX,
+		ZXY,
+		ZYX
+	};
 
-		rotation[1][0] = n.x * n.y * (1 - c) + n.z * s;
-		rotation[1][1] = c + (1 - c) * n.y * n.y;
-		rotation[1][2] = n.y * n.z * (1 - c) - n.x * s;
+	inline Quaternion EularToQuaternion(const vec3& eular, RotationOrder order) {
+		Quaternion qx = QuatanionFromAxis(eular.x, vec3(1, 0, 0));
+		Quaternion qy = QuatanionFromAxis(eular.y, vec3(0, 1, 0));
+		Quaternion qz = QuatanionFromAxis(eular.z, vec3(0, 0, 1));
 
-		rotation[2][0] = n.z * n.x * (1 - c) - n.y * s;
-		rotation[2][1] = n.y * n.z * (1 - c) + n.x * s;
-		rotation[2][2] = c + (1 - c) * n.z * n.z;
+		switch (order) {
+		case RotationOrder::XYZ:
+			return qx * qy * qz;
+			break;
+		default:
+			SKHOLE_UNIMPL();
+			break;
+		}
+	}
 
-		rotation[3][3] = 1.0f;
+	inline vec3 QuaternionToEular(const Quaternion& q, RotationOrder order) {
+		mat3 m = RotationMatrix(q);
+		vec3 eular(0);
+		switch (order)
+		{
+		case RotationOrder::XYZ:
+			eular.y = std::asin(-m[0][2]);
+			if (abs(std::cos(eular.y)) < 0.0001f)
+			{
+				eular.x = std::atan(-m[1][2] / m[2][2]);
+				eular.z = std::atan(-m[0][1] / m[0][0]);
+			}
+			else
+			{
+				eular.x = std::atan(m[2][1] / m[2][2]);
+				eular.z = 0.0f;
+			}
+			break;
+		default:
+			SKHOLE_UNIMPL(); 
+			break;
+		}
 
-		return rotation;
+		return eular;
 	}
 
 	inline mat3 Inverse3x3(const mat3& m) {
@@ -197,9 +252,9 @@ namespace Skhole {
 
 	inline mat3 NormalTransformMatrix3x3(const mat4& m) {
 		mat3 m3x3(0);
-		m3x3[0] = m[0].xyz;	
-		m3x3[1] = m[1].xyz;	
-		m3x3[2] = m[2].xyz;	
+		m3x3[0] = m[0].xyz;
+		m3x3[1] = m[1].xyz;
+		m3x3[2] = m[2].xyz;
 
 		return Transpose3x3(Inverse3x3(m3x3));
 	}
