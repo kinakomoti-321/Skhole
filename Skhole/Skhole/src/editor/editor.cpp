@@ -410,7 +410,7 @@ namespace Skhole
 		if (ImGui::CollapsingHeader("Translation")) {
 			ImGui::Indent(20.0f);
 			ImGui::Text("Local Translation");
-			objectUpdate |= ImGui::InputFloat3("Position", object->localPosition.v);
+			objectUpdate |= ImGui::InputFloat3("Position", object->localTranslation.v);
 
 			Quaternion lq = object->localQuaternion;
 			vec4 lr = vec4(lq.x, lq.y, lq.z, lq.w);
@@ -422,7 +422,7 @@ namespace Skhole
 
 			ImGui::Separator();
 
-			mat4 matrix = object->GetLocalTransformMatrix(0);
+			mat4 matrix = object->GetTransformMatrix(0);
 			ImGui::Text("Transform Matrix");
 			ImGui::Text("(%f, %f, %f, %f)", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
 			ImGui::Text("(%f, %f, %f, %f)", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);

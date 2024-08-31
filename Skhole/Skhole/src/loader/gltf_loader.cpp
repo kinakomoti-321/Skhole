@@ -375,10 +375,10 @@ namespace Skhole {
 
 			object->objectName = node.name;
 			if (node.translation.size() > 0) {
-				object->localPosition = vec3(node.translation[0], node.translation[1], node.translation[2]);
+				object->localTranslation = vec3(node.translation[0], node.translation[1], node.translation[2]);
 			}
 			else {
-				object->localPosition = vec3(0.0f);
+				object->localTranslation = vec3(0.0f);
 			}
 
 			if (node.rotation.size() > 0) {

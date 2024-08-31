@@ -4,12 +4,12 @@
 
 namespace Skhole {
 
-	vec3 LerpFrame(const vec3& v1, const vec3& v2, float f) {
+	inline vec3 LerpFrame(const vec3& v1, const vec3& v2, float f) {
 		f = std::clamp(f, 0.0f, 1.0f);
 		return v1 * (1.0f - f) + v2 * f;
 	}
 
-	Quaternion LerpFrame(const Quaternion& q1, const Quaternion& q2, float f) {
+	inline Quaternion LerpFrame(const Quaternion& q1, const Quaternion& q2, float f) {
 		f = std::clamp(f, 0.0f, 1.0f);
 		return Slerp(q1, q2, f);
 	}
@@ -78,7 +78,7 @@ namespace Skhole {
 
 			float f = (float)(frame - preIndex) / (float)(nextIndex - preIndex);
 
-			T value = FrameLerp(preValue, nextValue, f);
+			T value = LerpFrame(preValue, nextValue, f);
 			return value;
 		}
 

@@ -128,7 +128,7 @@ namespace Skhole {
 			ShrPtr<Instance> instance = std::make_shared<Instance>();
 			instance->objectName = shape.name;
 			instance->geometryIndex = s;
-			instance->localPosition = vec3(0.0f);
+			instance->localTranslation = vec3(0.0f);
 			instance->localQuaternion = Quaternion();
 			instance->localScale = vec3(1.0f);
 
