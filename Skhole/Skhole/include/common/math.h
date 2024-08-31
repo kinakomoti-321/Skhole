@@ -132,6 +132,10 @@ namespace Skhole {
 		return std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 	}
 
+	inline float Length2(const Quaternion& q) {
+		return q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+	}
+
 	inline Quaternion Conjugate(const Quaternion& q) {
 		return Quaternion(-q.x, -q.y, -q.z, q.w);
 	}
@@ -258,5 +262,15 @@ namespace Skhole {
 		m3x3[2] = m[2].xyz;
 
 		return Transpose3x3(Inverse3x3(m3x3));
+	}
+
+	inline Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, const float f) {
+		float dotq = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+		float sinPhi = std::sqrt(1 - dotq * dotq);
+
+		float phi = std::asin(sinPhi);
+
+		return (q1 * std::sin((1 - f) * phi) + q2 * std::sin(f * phi)) / sinPhi;
+
 	}
 }

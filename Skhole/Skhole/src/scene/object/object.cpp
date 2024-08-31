@@ -2,7 +2,7 @@
 
 using namespace VectorLikeGLSL;
 namespace Skhole {
-	mat4 Object::SetWorldTransformMatrix(float frame) {
+	mat4 Object::SetWorldTransformMatrix(int frame) {
 		localQuaternion = Normalize(localQuaternion);
 
 		if (worldTransformMatrix.has_value()) {
@@ -10,34 +10,36 @@ namespace Skhole {
 		}
 
 		if (IsRoot()) {
-			worldTransformMatrix = GetLocalTransformMatrix(frame);
+			worldTransformMatrix = GetTransformMatrix(frame);
 		}
 		else {
-			worldTransformMatrix = parentObject->SetWorldTransformMatrix(frame) * GetLocalTransformMatrix(frame);
+			worldTransformMatrix = parentObject->SetWorldTransformMatrix(frame) * GetTransformMatrix(frame);
 		}
 
 		return worldTransformMatrix.value();
 	}
 
-	mat4 Object::GetWorldTransformMatrix(float frame) {
-		if (worldTransformMatrix.has_value()) {
+	mat4 Object::GetWorldTransformMatrix(int frame) {
+		if (worldTransformMatrix.has_value())
+		{
 			return worldTransformMatrix.value();
 		}
-		else {
+		else
+		{
 			return SetWorldTransformMatrix(frame);
 		}
 	}
 
-	mat4 Object::GetLocalTransformMatrix(float frame) {
-		vec3 lp = GetLocalPosition(frame);
-		Quaternion lr = GetLocalRotation(frame);
-		vec3 ls = GetLocalScale(frame);
+	mat4 Object::GetTransformMatrix(int frame) {
+		vec3 lp = GetTranslation(frame);
+		Quaternion lr = GetRotation(frame);
+		vec3 ls = GetScale(frame);
 
 		mat4 translate = TranslateAffine(lp);
 		mat4 rotate = RotateAffine(lr);
 		mat4 scale = ScaleAffine(ls);
 
-		return scale * rotate *  translate;
+		return scale * rotate * translate;
 	}
 
 	void Object::ResetWorldTransformMatrix() {
@@ -45,34 +47,36 @@ namespace Skhole {
 		if (!IsLear()) childObject->ResetWorldTransformMatrix();
 	}
 
-	vec3 Object::GetLocalPosition(float frame) {
-		if (useAnimation) {
-			SKHOLE_UNIMPL();
-			return vec3(0);
+	vec3 Object::GetTranslation(int frame) {
+		if (useAnimation)
+		{
+			return translationAnimation.GetValue(frame);
 		}
 		else {
-			return localPosition;
+			return localTranslation;
 		}
 
 	}
 
-	Quaternion Object::GetLocalRotation(float frame) {
-		if (useAnimation) {
-			SKHOLE_UNIMPL();
-			return Quaternion();
+	Quaternion Object::GetRotation(int frame) {
+		if (useAnimation)
+		{
+			return rotationAnimation.GetValue(frame);
 		}
-		else {
+		else
+		{
 			return localQuaternion;
 		}
 
 	}
 
-	vec3 Object::GetLocalScale(float frame) {
-		if (useAnimation) {
-			SKHOLE_UNIMPL();
-			return vec3(1);
+	vec3 Object::GetScale(int frame) {
+		if (useAnimation)
+		{
+			return scaleAnimation.GetValue(frame);
 		}
-		else {
+		else
+		{
 			return localScale;
 		}
 	}
