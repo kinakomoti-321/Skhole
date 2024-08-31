@@ -156,6 +156,14 @@ namespace Skhole {
 		UpdataInfo m_updateInfo;
 		bool useGUI = false;
 
+		// Animation
+		int nowFrame = 0;
+		int minFrame = 0;
+		int maxFrame = 100;	
+
+		float fps = 0;
+		bool useLoopMode = false;
+
 	};
 }
 

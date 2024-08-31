@@ -227,9 +227,6 @@ namespace Skhole {
 				vk::ImageLayout::eUndefined,
 				vk::ImageLayout::eGeneral);
 			});
-
-
-		//SKHOLE_UNIMPL("Resize");
 	}
 
 	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
@@ -277,7 +274,6 @@ namespace Skhole {
 		}
 
 		FrameEnd();
-
 	}
 
 	void SimpleRaytracer::OfflineRender(const OfflineRenderingInfo& renderInfo)

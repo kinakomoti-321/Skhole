@@ -137,6 +137,11 @@ namespace Skhole {
 
 	void Scene::SetTransformMatrix(float frame) {
 		for (auto& object : m_objects) {
+			if (object->useAnimation) {
+				object->ResetWorldTransformMatrix();
+			}
+		}
+		for (auto& object : m_objects) {
 			object->SetWorldTransformMatrix(frame);
 		}
 	}

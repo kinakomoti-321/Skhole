@@ -21,6 +21,8 @@ namespace Skhole {
 
 		virtual ObjectType GetObjectType() = 0;
 
+		void SetAnimationKey();
+
 		mat4 SetWorldTransformMatrix(int frame);
 		mat4 GetWorldTransformMatrix(int frame);
 

@@ -18,6 +18,7 @@ namespace Skhole {
 	class KeyFrame {
 	public:
 		KeyFrame() {};
+		KeyFrame(T value, int frame) :value(value), frame(frame) {};
 		~KeyFrame() {};
 
 		T value;
@@ -29,6 +30,14 @@ namespace Skhole {
 	public:
 		Animation() {};
 		~Animation() {};
+
+		void AppendKey(KeyFrame<T> key) {
+			keyFrames.push_back(key);
+		}
+
+		bool HaveKey() {
+			return keyFrames.size() > 0;
+		}
 
 		T GetValue(int frame)
 		{

@@ -212,10 +212,6 @@ namespace Skhole {
 				if (ObjectType::INSTANCE == object->GetObjectType()) {
 					auto instance = std::static_pointer_cast<Instance>(object);
 
-					if (instance->geometryIndex.has_value()) {
-						instance->ResetWorldTransformMatrix();
-					}
-
 					InstanceData instData;
 					instData.geometryIndex = instance->geometryIndex.value();
 

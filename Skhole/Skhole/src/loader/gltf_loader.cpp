@@ -385,7 +385,7 @@ namespace Skhole {
 				object->localQuaternion = Quaternion(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]); // TODO Quaternion
 			}
 			else {
-				object->localQuaternion = Quaternion(0.0,0.0,0.0,1.0f);
+				object->localQuaternion = Quaternion(0.0, 0.0, 0.0, 1.0f);
 			}
 
 			if (node.scale.size() > 0) {
@@ -511,7 +511,76 @@ namespace Skhole {
 		auto& modelAnim = model.animations;
 		auto& modelMaterial = model.materials;
 
-		//TODO Animation
+		//-----------------------------------------------------
+		// Animation
+		//-----------------------------------------------------
+		{
+			for (int i = 0; i < modelAnim.size(); i++)
+			{
+				auto& anim = modelAnim[i];
+				auto& object = inObjects[i];
+
+				for (int i = 0; i < anim.channels.size(); i++) {
+					auto& sampler = anim.samplers[i];
+					auto& channel = anim.channels[i];
+					auto& animKeyAccessor = model.accessors[sampler.input];
+					auto& animDataAccessor = model.accessors[sampler.output];
+
+					auto& animKeyBufferView = model.bufferViews[animKeyAccessor.bufferView];
+					auto& keyBuffer = model.buffers[animKeyBufferView.buffer];
+					auto keyPtr = keyBuffer.data.data() + animKeyBufferView.byteOffset + animKeyAccessor.byteOffset;
+					auto keyByteStride = animKeyAccessor.ByteStride(animKeyBufferView);
+					auto keyCount = animKeyAccessor.count;
+
+					FloatArray keyArray(keyPtr, keyByteStride, keyCount);
+
+					auto& animDataBufferView = model.bufferViews[animDataAccessor.bufferView];
+					auto& dataBuffer = model.buffers[animDataBufferView.buffer];
+					auto dataPtr = dataBuffer.data.data() + animDataBufferView.byteOffset + animDataAccessor.byteOffset;
+					auto dataByteStride = animDataAccessor.ByteStride(animDataBufferView);
+					auto dataCount = animDataAccessor.count;
+
+					if (channel.target_path == "translation") {
+						v3fArray data(dataPtr, dataCount, dataByteStride);
+						for (size_t i = 0; i < dataCount; i++)
+						{
+							v3f translation = data[i];
+							float key = keyArray[i];
+							KeyFrame<vec3> keyFrame;
+							keyFrame.value = vec3(translation.x, translation.y, translation.z);
+							keyFrame.frame = key;
+							object->translationAnimation.AppendKey(keyFrame);
+						}
+					}
+					else if (channel.target_path == "rotation") {
+						v4fArray data(dataPtr, dataCount, dataByteStride);
+						for (size_t i = 0; i < dataCount; i++)
+						{
+							v4f rotation = data[i];
+							float key = keyArray[i];
+							KeyFrame<Quaternion> keyFrame;
+							keyFrame.value = Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+							keyFrame.frame = key;
+							object->rotationAnimation.AppendKey(keyFrame);
+						}
+					}
+					else if (channel.target_path == "scale") {
+						v3fArray data(dataPtr, dataCount, dataByteStride);
+						for (size_t i = 0; i < dataCount; i++)
+						{
+							v3f scale = data[i];
+							float key = keyArray[i];
+							KeyFrame<vec3> keyFrame;
+							keyFrame.value = vec3(scale.x, scale.y, scale.z);
+							keyFrame.frame = key;
+							object->scaleAnimation.AppendKey(keyFrame);
+						}
+					}
+				}
+				
+
+			}
+		}
 
 
 		SKHOLE_LOG("Loaded GLTF file");

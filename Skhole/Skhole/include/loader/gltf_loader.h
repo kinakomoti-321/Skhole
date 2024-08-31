@@ -79,6 +79,16 @@ namespace Skhole {
 	using v2d = v2<double>;
 	using v3d = v3<double>;
 	using v4d = v4<double>;
+	
+	struct FloatArray {
+		UnqPtr<ArrayAdapter<float>> adapter;
+		FloatArray(const unsigned char* dataPtr, const size_t count, const size_t byteStride) {
+			adapter = MakeUnq<ArrayAdapter<float>>(dataPtr, count, byteStride);
+		}
+		float operator[](size_t index) const {
+			return (*adapter)[index];
+		}
+	};
 
 	struct v2fArray {
 		UnqPtr<ArrayAdapter<v2f>> adapter;

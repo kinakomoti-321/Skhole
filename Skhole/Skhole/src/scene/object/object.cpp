@@ -88,4 +88,17 @@ namespace Skhole {
 		return childObject == nullptr;
 	}
 
+	void Object::SetAnimationKey() {
+		useAnimation = translationAnimation.HaveKey() || rotationAnimation.HaveKey() || scaleAnimation.HaveKey();
+
+		if (!translationAnimation.HaveKey()) {
+			translationAnimation.AppendKey(KeyFrame<vec3>(vec3(0, 0, 0), 0));
+		}
+		if (!rotationAnimation.HaveKey()) {
+			rotationAnimation.AppendKey(KeyFrame<Quaternion>(Quaternion(0, 0, 0, 1), 0));
+		}
+		if (!scaleAnimation.HaveKey()) {
+			scaleAnimation.AppendKey(KeyFrame<vec3>(vec3(1, 1, 1), 0));
+		}
+	}
 }
