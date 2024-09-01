@@ -51,9 +51,6 @@ namespace Skhole {
 			int end = keyFrames.size() - 1;
 			int mid = (start + end) / 2;
 
-			int preIndex = 0;
-			int nextIndex = 0;
-
 			while (end - start > 1) {
 				if (keyFrames[mid].frame < time) {
 					start = mid;
@@ -62,16 +59,15 @@ namespace Skhole {
 					end = mid;
 				}
 				else {
-					preIndex = mid;
-					nextIndex = mid;
-					break;
+					start = mid;
+					end = mid;	
 				}
 
 				mid = (start + end) / 2;
 			}
 
-			preIndex = start;
-			nextIndex = start + 1;
+			int preIndex = start;
+			int nextIndex = start + 1;
 
 			T& preValue = keyFrames[preIndex].value;
 			T& nextValue = keyFrames[nextIndex].value;
