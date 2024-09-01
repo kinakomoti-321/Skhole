@@ -128,8 +128,10 @@ namespace Skhole
 			m_renderer->UpdateScene(m_updateInfo);
 
 			RealTimeRenderingInfo renderInfo;
-			renderInfo.frame = 0;
+			renderInfo.frame = nowFrame;
+			renderInfo.time = float(nowFrame) / float(fps);
 			renderInfo.spp = 100;
+
 			m_renderer->RealTimeRender(renderInfo);
 
 
@@ -336,6 +338,39 @@ namespace Skhole
 				}
 				ImGui::EndTabItem();
 			}
+
+			if (ImGui::BeginTabItem("Animation"))
+			{
+				ImGui::Text("Animation Information");
+
+				ImGui::InputInt("Start Frame", &startFrame);
+				ImGui::InputInt("End Frame", &endFrame);
+
+				ImGui::InputInt("FPS", &fps);
+				ImGui::InputInt("Current Frame", &nowFrame);
+
+				ImGui::Checkbox("Loop Mode", &useLoopMode);
+				ImGui::Checkbox("Runtime", &Runtime);
+
+				if (Runtime) {
+					nowFrame++;
+					if (nowFrame > endFrame) {
+						if (useLoopMode) {
+							nowFrame = startFrame;
+						}
+						else {
+							nowFrame = endFrame;
+							Runtime = false;
+						}
+					}
+				}
+				if (Runtime) {
+					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
+				}
+
+				ImGui::EndTabItem();
+			}
+
 			ImGui::EndTabBar();
 		}
 
@@ -422,7 +457,7 @@ namespace Skhole
 
 			ImGui::Separator();
 
-			mat4 matrix = object->GetTransformMatrix(0);
+			mat4 matrix = object->GetTransformMatrix(float(nowFrame) / fps);
 			ImGui::Text("Transform Matrix");
 			ImGui::Text("(%f, %f, %f, %f)", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
 			ImGui::Text("(%f, %f, %f, %f)", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);

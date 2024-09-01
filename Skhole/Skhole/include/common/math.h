@@ -167,9 +167,9 @@ namespace Skhole {
 	{
 		return mat4
 		(
-			2 * q.w * q.w + 2 * q.x * q.x - 1, 2 * q.x * q.y - 2 * q.z * q.w,     2 * q.x * q.z + 2 * q.y * q.w,     0,
-			2 * q.x * q.y + 2 * q.z * q.w,	   2 * q.w * q.w + 2 * q.y * q.y - 1, 2 * q.y * q.z - 2 * q.x * q.w,     0,
-			2 * q.x * q.z - 2 * q.y * q.w,     2 * q.y * q.z + 2 * q.x * q.w,     2 * q.w * q.w + 2 * q.z * q.z - 1, 0,
+			2 * q.w * q.w + 2 * q.x * q.x - 1, 2 * q.x * q.y - 2 * q.z * q.w, 2 * q.x * q.z + 2 * q.y * q.w, 0,
+			2 * q.x * q.y + 2 * q.z * q.w, 2 * q.w * q.w + 2 * q.y * q.y - 1, 2 * q.y * q.z - 2 * q.x * q.w, 0,
+			2 * q.x * q.z - 2 * q.y * q.w, 2 * q.y * q.z + 2 * q.x * q.w, 2 * q.w * q.w + 2 * q.z * q.z - 1, 0,
 			0, 0, 0, 1
 		);
 	}
@@ -217,7 +217,7 @@ namespace Skhole {
 			}
 			break;
 		default:
-			SKHOLE_UNIMPL(); 
+			SKHOLE_UNIMPL();
 			break;
 		}
 
@@ -266,7 +266,9 @@ namespace Skhole {
 
 	inline Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, const float f) {
 		float dotq = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
-		float sinPhi = std::sqrt(1 - dotq * dotq);
+		float term = 1 - dotq * dotq;
+		if (term <= 0.0001)return q1;
+		float sinPhi = std::sqrt(term);
 
 		float phi = std::asin(sinPhi);
 

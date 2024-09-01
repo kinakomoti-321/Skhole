@@ -158,10 +158,11 @@ namespace Skhole {
 
 		// Animation
 		int nowFrame = 0;
-		int minFrame = 0;
-		int maxFrame = 100;	
+		int startFrame = 0;
+		int endFrame = 100;	
+		bool Runtime = false;
 
-		float fps = 0;
+		int fps = 24;
 		bool useLoopMode = false;
 
 	};

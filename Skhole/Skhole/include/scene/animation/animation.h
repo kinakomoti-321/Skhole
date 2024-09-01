@@ -51,41 +51,32 @@ namespace Skhole {
 			int end = keyFrames.size() - 1;
 			int mid = (start + end) / 2;
 
-
 			int preIndex = 0;
 			int nextIndex = 0;
 
-			while (true) {
-				if (keyFrames[mid].frame = time) {
-					preIndex = mid;
-					nextIndex = mid;
-					break;
-				}
-				else if (keyFrames[mid].frame < time || time < keyFrames[mid + 1].frame) {
-					preIndex = mid;
-					nextIndex = mid + 1;
-					break;
-				}
-				else if (keyFrames[mid].frame > time || time > keyFrames[mid - 1].frame) {
-					preIndex = mid - 1;
-					nextIndex = mid;
-					break;
+			while (end - start > 1) {
+				if (keyFrames[mid].frame < time) {
+					start = mid;
 				}
 				else if (keyFrames[mid].frame > time) {
 					end = mid;
 				}
-				else if (keyFrames[mid].frame < time) {
-					start = mid;
+				else {
+					preIndex = mid;
+					nextIndex = mid;
+					break;
 				}
 
 				mid = (start + end) / 2;
 			}
 
+			preIndex = start;
+			nextIndex = start + 1;
 
 			T& preValue = keyFrames[preIndex].value;
 			T& nextValue = keyFrames[nextIndex].value;
 
-			float f = (float)(time - preIndex) / (float)(nextIndex - preIndex);
+			float f = (float)(time - keyFrames[preIndex].frame) / (float)(keyFrames[nextIndex].frame - keyFrames[preIndex].frame);
 
 			T value = LerpFrame(preValue, nextValue, f);
 			return value;
