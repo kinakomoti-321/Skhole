@@ -518,11 +518,13 @@ namespace Skhole {
 			for (int i = 0; i < modelAnim.size(); i++)
 			{
 				auto& anim = modelAnim[i];
-				auto& object = inObjects[i];
 
 				for (int i = 0; i < anim.channels.size(); i++) {
 					auto& sampler = anim.samplers[i];
 					auto& channel = anim.channels[i];
+
+					auto& object = inObjects[channel.target_node];
+
 					auto& animKeyAccessor = model.accessors[sampler.input];
 					auto& animDataAccessor = model.accessors[sampler.output];
 
@@ -576,9 +578,9 @@ namespace Skhole {
 							object->scaleAnimation.AppendKey(keyFrame);
 						}
 					}
+					object->SetAnimationKey();
 				}
 
-				object->SetAnimationKey();
 			}
 		}
 

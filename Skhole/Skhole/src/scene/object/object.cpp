@@ -13,7 +13,7 @@ namespace Skhole {
 			worldTransformMatrix = GetTransformMatrix(time);
 		}
 		else {
-			worldTransformMatrix = parentObject->SetWorldTransformMatrix(time) * GetTransformMatrix(time);
+			worldTransformMatrix = GetTransformMatrix(time) * parentObject->SetWorldTransformMatrix(time) ;
 		}
 
 		return worldTransformMatrix.value();
