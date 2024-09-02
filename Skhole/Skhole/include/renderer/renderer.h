@@ -18,7 +18,7 @@ namespace Skhole
 		GLFWwindow* window;
 	};
 
-	enum UpdateCommandType {
+	typedef enum class UpdateCommandType {
 		CAMERA,
 		MATERIAL,
 		TEXTURE,
@@ -130,7 +130,7 @@ namespace Skhole
 
 		// Renderer Data
 		virtual ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) = 0;
-		virtual ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<BasicCamera>& basicCamera) = 0;
+		virtual ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) = 0;
 		virtual ShrPtr<RendererParameter> GetRendererParameter() = 0;
 
 		virtual void InitFrameGUI() = 0;

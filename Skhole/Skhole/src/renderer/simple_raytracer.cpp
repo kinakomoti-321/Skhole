@@ -340,15 +340,15 @@ namespace Skhole {
 		return materialDef;
 	}
 
-	ShrPtr<RendererDefinisionCamera> SimpleRaytracer::GetCamera(const ShrPtr<BasicCamera>& camera)
+	ShrPtr<RendererDefinisionCamera> SimpleRaytracer::GetCamera(const ShrPtr<RendererDefinisionCamera>& camera)
 	{
 		ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
 		cameraDef->cameraName = camera->cameraName;
 
-		cameraDef->basicParameter.position = camera->position;
-		cameraDef->basicParameter.cameraDir = camera->cameraDir;
-		cameraDef->basicParameter.cameraUp = camera->cameraUp;
-		cameraDef->basicParameter.fov = camera->fov;
+		cameraDef->position = camera->position;
+		cameraDef->foward = camera->foward;
+		cameraDef->up = camera->up;
+		cameraDef->fov = camera->fov;
 
 		cameraDef->extensionParameters = m_camExtensionParams;
 
@@ -416,11 +416,13 @@ namespace Skhole {
 		auto param = std::dynamic_pointer_cast<ParamUint>(raytracerParam->rendererParameters[0]);
 		uniformBufferObject.mode = param->value;
 
-		uniformBufferObject.cameraPos = camera->basicParameter.position;
-		uniformBufferObject.cameraDir = camera->basicParameter.cameraDir;
-		uniformBufferObject.cameraUp = camera->basicParameter.cameraUp;
-		uniformBufferObject.cameraRight = camera->basicParameter.cameraRight;
-		uniformBufferObject.cameraParam.x = camera->basicParameter.fov;
+		uniformBufferObject.cameraPos = camera->GetCameraPosition(time);
+		vec3 cameraDir, cameraUp, cameraRight;
+		camera->GetCameraDirections(time, cameraDir, cameraUp, cameraRight);
+		uniformBufferObject.cameraDir = cameraDir;
+		uniformBufferObject.cameraUp = cameraUp;
+		uniformBufferObject.cameraRight = cameraRight;
+		uniformBufferObject.cameraParam.x = camera->fov; 
 		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
 
 		void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(UniformBufferObject));

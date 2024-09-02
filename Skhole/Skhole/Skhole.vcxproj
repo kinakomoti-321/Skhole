@@ -179,6 +179,7 @@
     <ClInclude Include="include\renderer\buffer_manager.h" />
     <ClInclude Include="include\renderer\update_command.h" />
     <ClInclude Include="include\scene\camera\camera.h" />
+    <ClInclude Include="include\scene\object\cameraObject.h" />
     <ClInclude Include="include\scene\object\sample_geometry.h" />
     <ClInclude Include="include\common\timer.h" />
     <ClInclude Include="include\editor\editor.h" />

@@ -295,10 +295,10 @@ namespace Skhole
 				ImGui::Text("Renderer Camera");
 				auto& camera = m_scene->m_camera;
 
-				updateCamera |= ImGui::InputFloat3("Position", camera->basicParameter.position.v);
-				updateCamera |= ImGui::InputFloat3("Direction Vector", camera->basicParameter.cameraDir.v);
-				updateCamera |= ImGui::InputFloat3("Up Vector", camera->basicParameter.cameraUp.v);
-				updateCamera |= ImGui::InputFloat("FOV", &camera->basicParameter.fov);
+				updateCamera |= ImGui::InputFloat3("Position", camera->position.v);
+				updateCamera |= ImGui::InputFloat3("Direction Vector", camera->foward.v);
+				updateCamera |= ImGui::InputFloat3("Up Vector", camera->up.v);
+				updateCamera |= ImGui::InputFloat("FOV", &camera->fov);
 
 
 				for (auto& camParam : camera->extensionParameters) {
@@ -332,6 +332,34 @@ namespace Skhole
 
 				updateCamera |= ImGui::InputFloat("Speed", &m_cameraController.cameraSpeed);
 				updateCamera |= ImGui::InputFloat("Sensitivity", &m_cameraController.sensitivity);
+
+				static bool previewMode = true;
+				updateCamera |= ImGui::Checkbox("PreviewMode", &previewMode);
+
+				static int cameraID = 0;
+				int preCamId = cameraID;
+				std::vector<const char*> items = { "None" };
+				for (auto& cameraIdx : m_scene->m_cameraObjectIndices) {
+					items.push_back(m_scene->m_objects[cameraIdx]->GetObjectName());
+				}
+				if (ImGui::Combo("Camera", &cameraID, items.data(), IM_ARRAYSIZE(items.data()))) {
+					if (cameraID == 0) {
+						m_scene->m_camera->camera = nullptr;
+					}
+					else if (cameraID != 0) {
+						auto& camIndices = m_scene->m_cameraObjectIndices;
+						auto& object = m_scene->m_objects[camIndices[cameraID - 1]];
+						if (object->GetObjectType() == ObjectType::CAMERA)
+						{
+							m_scene->m_camera->camera = std::static_pointer_cast<CameraObject>(object);
+						}
+						else {
+							cameraID = preCamId;
+						}
+					}
+
+					updateCamera = true;
+				}
 
 				if (updateCamera) {
 					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());

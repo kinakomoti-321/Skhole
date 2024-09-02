@@ -2,6 +2,13 @@
 
 #include <include.h>
 #include <renderer/renderer.h>
+#include <scene/scene.h>
+#include <scene/object/geometry.h>
+#include <scene/object/instance.h>
+#include <scene/material/material.h>
+#include <scene/material/texture.h>
+#include <scene/camera/camera.h>
+#include <scene/object/cameraObject.h>
 #include <renderer/simple_raytracer.h>
 #include <editor/file.h>
 #include <loader/loader.h>
@@ -62,9 +69,9 @@ namespace Skhole {
 		void Rotate(vec2 offset) {
 			vec2 angleT = offset * sensitivity;
 
-			vec3 cameraDir = camera->basicParameter.cameraDir;
-			vec3 cameraUp = camera->basicParameter.cameraUp;
-			vec3 cameraRight = camera->basicParameter.cameraRight;
+			vec3 cameraDir = camera->foward;
+			vec3 cameraUp = camera->up;
+			vec3 cameraRight = camera->right;
 
 			mat3 rotY = rotateY(-angleT.x);
 			Quaternion cameraQuternion = QuatanionFromAxis(-angleT.y * 2.0, cameraRight);
@@ -74,22 +81,22 @@ namespace Skhole {
 			cameraRight = rotUp * (rotY * cameraRight);
 			cameraUp = rotUp * (rotY * cameraUp);
 
-			camera->basicParameter.cameraDir = normalize(cameraDir);
-			camera->basicParameter.cameraRight = normalize(cameraRight);
-			camera->basicParameter.cameraUp = normalize(cameraUp);
+			camera->foward = normalize(cameraDir);
+			camera->right = normalize(cameraRight);
+			camera->up = normalize(cameraUp);
 		}
 
 		void UpPosition(float magnitude) {
-			camera->basicParameter.position += camera->basicParameter.cameraDir * cameraSpeed * magnitude;
+			camera->position += camera->foward * cameraSpeed * magnitude;
 		}
 		void DownPosition(float magnitude) {
-			camera->basicParameter.position -= camera->basicParameter.cameraDir * cameraSpeed * magnitude;
+			camera->position -= camera->foward * cameraSpeed * magnitude;
 		}
 		void LeftPosition(float magnitude) {
-			camera->basicParameter.position -= camera->basicParameter.cameraRight * cameraSpeed * magnitude;
+			camera->position -= camera->right * cameraSpeed * magnitude;
 		}
 		void RightPosition(float magnitude) {
-			camera->basicParameter.position += camera->basicParameter.cameraRight * cameraSpeed * magnitude;
+			camera->position += camera->right * cameraSpeed * magnitude;
 		}
 
 		ShrPtr<RendererDefinisionCamera> camera;
@@ -159,7 +166,7 @@ namespace Skhole {
 		// Animation
 		int currentFrame = 0;
 		int startFrame = 0;
-		int endFrame = 100;	
+		int endFrame = 100;
 		bool Runtime = false;
 
 		int fps = 24;

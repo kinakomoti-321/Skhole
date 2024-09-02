@@ -7,10 +7,11 @@
 
 namespace Skhole {
 
-	enum ObjectType {
+	typedef enum class ObjectType {
 		INSTANCE,
 		LIGHT,
-		VOLUME
+		VOLUME,
+		CAMERA,
 	};
 
 	class Object {

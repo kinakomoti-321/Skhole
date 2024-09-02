@@ -188,6 +188,9 @@
     <ClInclude Include="include\loader\gltf_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\scene\object\cameraObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />

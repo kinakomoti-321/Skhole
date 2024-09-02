@@ -34,7 +34,7 @@ namespace Skhole
 
 		//RendererData GetRendererData() override;
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
-		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<BasicCamera>& basicCamera) override;
+		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) override;
 		ShrPtr<RendererParameter> GetRendererParameter() override;
 
 

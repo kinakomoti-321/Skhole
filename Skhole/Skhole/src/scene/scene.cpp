@@ -127,9 +127,9 @@ namespace Skhole {
 			m_materials.push_back(renderer->GetMaterial(mat));
 		}
 
-		m_basicCamera = MakeShr<BasicCamera>();
+		m_camera = MakeShr<RendererDefinisionCamera>();
 
-		m_camera = renderer->GetCamera(m_basicCamera);
+		m_camera = renderer->GetCamera(m_camera);
 
 		m_rendererParameter = renderer->GetRendererParameter();
 	}

@@ -38,7 +38,8 @@ namespace Skhole {
 		std::vector<ShrPtr<BasicMaterial>> m_basicMaterials;
 		std::vector<ShrPtr<Texture>> m_textures;
 
-		ShrPtr<BasicCamera> m_basicCamera;
+		std::vector<uint32_t> m_cameraObjectIndices;
+
 		ShrPtr<RendererDefinisionCamera> m_camera;
 
 		ShrPtr<RendererParameter> m_rendererParameter;
