@@ -128,8 +128,8 @@ namespace Skhole
 			m_renderer->UpdateScene(m_updateInfo);
 
 			RealTimeRenderingInfo renderInfo;
-			renderInfo.frame = nowFrame;
-			renderInfo.time = float(nowFrame) / float(fps);
+			renderInfo.frame = currentFrame;
+			renderInfo.time = float(currentFrame) / float(fps);
 			renderInfo.spp = 100;
 
 			m_renderer->RealTimeRender(renderInfo);
@@ -343,28 +343,18 @@ namespace Skhole
 			{
 				ImGui::Text("Animation Information");
 
-				ImGui::InputInt("Start Frame", &startFrame);
-				ImGui::InputInt("End Frame", &endFrame);
+				bool updateAnimation = false;
 
-				ImGui::InputInt("FPS", &fps);
-				ImGui::InputInt("Current Frame", &nowFrame);
+				updateAnimation |= ImGui::SliderInt("Frame", &currentFrame, startFrame, endFrame);
+				updateAnimation |= ImGui::InputInt("Start Frame", &startFrame);
+				updateAnimation |= ImGui::InputInt("End Frame", &endFrame);
 
-				ImGui::Checkbox("Loop Mode", &useLoopMode);
-				ImGui::Checkbox("Runtime", &Runtime);
+				updateAnimation |= ImGui::InputInt("FPS", &fps);
 
-				if (Runtime) {
-					nowFrame++;
-					if (nowFrame > endFrame) {
-						if (useLoopMode) {
-							nowFrame = startFrame;
-						}
-						else {
-							nowFrame = endFrame;
-							Runtime = false;
-						}
-					}
-				}
-				if (Runtime) {
+				updateAnimation |= ImGui::Checkbox("Loop Mode", &useLoopMode);
+				updateAnimation |= ImGui::Checkbox("Runtime", &Runtime);
+
+				if (updateAnimation) {
 					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
 				}
 
@@ -372,6 +362,22 @@ namespace Skhole
 			}
 
 			ImGui::EndTabBar();
+		}
+
+		if (Runtime) {
+			currentFrame++;
+			if (currentFrame > endFrame) {
+				if (useLoopMode) {
+					currentFrame = startFrame;
+				}
+				else {
+					currentFrame = endFrame;
+					Runtime = false;
+				}
+			}
+		}
+		if (Runtime) {
+			m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
 		}
 
 		ImGui::End();
@@ -457,7 +463,7 @@ namespace Skhole
 
 			ImGui::Separator();
 
-			mat4 matrix = object->GetTransformMatrix(float(nowFrame) / fps);
+			mat4 matrix = object->GetTransformMatrix(float(currentFrame) / fps);
 			ImGui::Text("Transform Matrix");
 			ImGui::Text("(%f, %f, %f, %f)", matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]);
 			ImGui::Text("(%f, %f, %f, %f)", matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]);

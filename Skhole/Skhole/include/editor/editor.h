@@ -157,7 +157,7 @@ namespace Skhole {
 		bool useGUI = false;
 
 		// Animation
-		int nowFrame = 0;
+		int currentFrame = 0;
 		int startFrame = 0;
 		int endFrame = 100;	
 		bool Runtime = false;
