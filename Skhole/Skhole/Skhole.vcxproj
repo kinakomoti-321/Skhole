@@ -154,6 +154,7 @@
     <ClCompile Include="src\loader\gltf_loader.cpp" />
     <ClCompile Include="src\loader\obj_loader.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\post_process\example.cpp" />
     <ClCompile Include="src\renderer\simple_raytracer.cpp" />
     <ClCompile Include="src\scene\object\object.cpp" />
     <ClCompile Include="src\scene\scene.cpp" />
@@ -176,6 +177,9 @@
     <ClInclude Include="include\loader\gltf_loader.h" />
     <ClInclude Include="include\loader\loader.h" />
     <ClInclude Include="include\loader\obj_loader.h" />
+    <ClInclude Include="include\post_process\example.h" />
+    <ClInclude Include="include\post_process\post_processor.h" />
+    <ClInclude Include="include\post_process\post_processor_interface.h" />
     <ClInclude Include="include\renderer\buffer_manager.h" />
     <ClInclude Include="include\renderer\update_command.h" />
     <ClInclude Include="include\scene\camera\camera.h" />
@@ -203,6 +207,7 @@
     <ClInclude Include="include\vulkan_helpler\vk_imgui.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shader\postprocess\example\example.comp" />
     <None Include="shader\simple_raytracer\closesthit.glsl" />
     <None Include="shader\simple_raytracer\miss.glsl" />
     <None Include="shader\simple_raytracer\payload.glsl" />

@@ -63,6 +63,9 @@
     <ClCompile Include="src\loader\gltf_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\post_process\example.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\include.h">
@@ -191,11 +194,21 @@
     <ClInclude Include="include\scene\object\cameraObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\post_process\post_processor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\post_process\example.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\post_process\post_processor_interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />
     <None Include="shader\simple_raytracer\miss.glsl" />
     <None Include="shader\simple_raytracer\raygen.glsl" />
     <None Include="shader\simple_raytracer\payload.glsl" />
+    <None Include="shader\postprocess\example\example.comp" />
   </ItemGroup>
 </Project>

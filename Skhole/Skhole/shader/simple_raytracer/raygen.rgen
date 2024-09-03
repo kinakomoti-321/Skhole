@@ -97,12 +97,6 @@ void main()
 {
     seed = ((gl_LaunchIDEXT.x + gl_LaunchIDEXT.y * ubo.width) + 1) * ubo.numSample;
 
-//    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + rnd2()) / vec2(gl_LaunchSizeEXT.xy);
-//    uv.y = 1.0 - uv.y;
-//    float aspect = ubo.cameraParam.y;
-//    uv.x *= aspect;
-//
-
     vec2 uv = (vec2(gl_LaunchIDEXT.xy + rnd2()) * 2.0 - gl_LaunchSizeEXT.xy) / vec2(gl_LaunchSizeEXT.y);
     uv.y  = -uv.y;
 

@@ -5,6 +5,8 @@
 #include <vulkan_helpler/vk_buffer.h>
 #include <vulkan_helpler/vk_hepler.h>
 #include <vulkan_helpler/vk_imgui.h>
+#include <post_process/post_processor.h>
+#include <post_process/post_processor_interface.h>
 
 #include <renderer/buffer_manager.h>
 
@@ -215,6 +217,11 @@ namespace Skhole
 
 		Image accumImage;
 
+
+		//--------------------------------------
+		// Post Process
+		//--------------------------------------
+		ShrPtr<PostProcessor> m_postProcessor;
 
 		//--------------------------------------
 		// Scene

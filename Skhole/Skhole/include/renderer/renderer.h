@@ -2,6 +2,7 @@
 
 #include <include.h>
 #include <scene/scene.h>
+#include <post_process/post_processor.h>
 
 
 namespace Skhole
@@ -16,6 +17,8 @@ namespace Skhole
 
 		bool useWindow;
 		GLFWwindow* window;
+
+		PostProcessType posproType = PostProcessType::Example;
 	};
 
 	typedef enum class UpdateCommandType {

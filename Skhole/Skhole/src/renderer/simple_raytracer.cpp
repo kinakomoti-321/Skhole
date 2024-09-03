@@ -122,6 +122,20 @@ namespace Skhole {
 				vk::ImageLayout::eGeneral);
 			});
 
+		//--------------------------------------
+		// PostProcessor
+		//--------------------------------------
+		m_postProcessor = GetPostProcessor(desc.posproType);
+
+		PostProcessor::Desc ppDesc{};
+		ppDesc.physicalDevice = m_context.physicalDevice;
+		ppDesc.device = *m_context.device;
+		ppDesc.queue = m_context.queue;
+		ppDesc.commandPool = *m_commandPool;
+		ppDesc.width = desc.Width;
+		ppDesc.height = desc.Height;
+		m_postProcessor->Init(ppDesc);
+
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
@@ -164,7 +178,7 @@ namespace Skhole {
 				break;
 			case UpdateCommandType::OBJECT:
 				objCommand = std::static_pointer_cast<UpdateObjectCommand>(command);
-				m_scene->m_objects[objCommand->objectIndex]->ResetWorldTransformMatrix();	
+				m_scene->m_objects[objCommand->objectIndex]->ResetWorldTransformMatrix();
 				break;
 			default:
 				SKHOLE_UNIMPL("Command");
@@ -180,6 +194,8 @@ namespace Skhole {
 
 	void SimpleRaytracer::Destroy()
 	{
+		m_postProcessor->Destroy(*m_context.device);
+
 		m_context.device->waitIdle();
 		accumImage.Release(*m_context.device);
 		m_bindingManager.Release(*m_context.device);
@@ -308,6 +324,8 @@ namespace Skhole {
 		m_materaialBuffer.Unmap(*m_context.device);
 
 		m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue);
+
+
 	}
 
 	void SimpleRaytracer::InitBufferManager() {
@@ -422,7 +440,7 @@ namespace Skhole {
 		uniformBufferObject.cameraDir = cameraDir;
 		uniformBufferObject.cameraUp = cameraUp;
 		uniformBufferObject.cameraRight = cameraRight;
-		uniformBufferObject.cameraParam.x = camera->GetYFov(); 
+		uniformBufferObject.cameraParam.x = camera->GetYFov();
 		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
 
 		void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(UniformBufferObject));
@@ -641,11 +659,18 @@ namespace Skhole {
 		pipelineCreateInfo.setMaxPipelineRayRecursionDepth(1);
 		auto result = m_context.device->createRayTracingPipelineKHRUnique(
 			nullptr, nullptr, pipelineCreateInfo);
+
 		if (result.result != vk::Result::eSuccess) {
 			std::cerr << "Failed to create ray tracing pipeline.\n";
 			std::abort();
 		}
+
 		m_pipeline = std::move(result.value);
+
+		vk::DescriptorSetAllocateInfo descSetAllocInfo{};
+		descSetAllocInfo.setDescriptorPool(m_bindingManager.descriptorPool);
+		descSetAllocInfo.setSetLayouts(m_bindingManager.descriptorSetLayout);
+
 	}
 
 	void SimpleRaytracer::CreateShaderBindingTable() {
