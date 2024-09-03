@@ -48,9 +48,9 @@ namespace Skhole {
 				auto& indices = geometry->m_indices;
 				auto& matIndices = geometry->m_materialIndices;
 
-				vertexCount += vertices.size();
-				indexCount += indices.size();
-				matIndexCount += matIndices.size();
+				vertexCount += (uint32_t)vertices.size();
+				indexCount += (uint32_t)indices.size();
+				matIndexCount += (uint32_t)matIndices.size();
 			}
 
 			vk::BufferUsageFlags bufferUsage{

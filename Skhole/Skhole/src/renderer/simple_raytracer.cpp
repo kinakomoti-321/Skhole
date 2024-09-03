@@ -54,8 +54,8 @@ namespace Skhole {
 		m_commandBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
 
 		m_imGuiRenderPass = VkHelper::CreateRenderPass(
-			vk::Format::eB8G8R8A8Unorm,
-			vk::ImageLayout::eGeneral,
+			vk::Format::eR8G8B8A8Unorm,
+			vk::ImageLayout::eColorAttachmentOptimal,
 			vk::ImageLayout::ePresentSrcKHR,
 			*m_context.device
 		);
@@ -72,7 +72,7 @@ namespace Skhole {
 		swapchainInfo.commandPool = *m_commandPool;
 		swapchainInfo.renderPass = m_imGuiRenderPass.get();
 
-		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment;
+		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
 
 		swapchainInfo.width = desc.Width;
 		swapchainInfo.height = desc.Height;
@@ -115,12 +115,44 @@ namespace Skhole {
 			vk::MemoryPropertyFlagBits::eDeviceLocal
 		);
 
+		renderImage.Init(
+			m_context.physicalDevice, *m_context.device,
+			m_desc.Width, m_desc.Height,
+			vk::Format::eR32G32B32A32Sfloat,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
+		posproIamge.Init(
+			m_context.physicalDevice, *m_context.device,
+			m_desc.Width, m_desc.Height,
+			vk::Format::eR8G8B8A8Unorm,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
 		vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
 			[&](vk::CommandBuffer commandBuffer) {
-				vkutils::setImageLayout(commandBuffer, accumImage.GetImage(),
-				vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eGeneral);
+				vkutils::setImageLayout(
+					commandBuffer, accumImage.GetImage(),
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eGeneral
+				);
+				vkutils::setImageLayout(
+					commandBuffer, renderImage.GetImage(),
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eGeneral
+				);
+				vkutils::setImageLayout(
+					commandBuffer, posproIamge.GetImage(),
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eGeneral
+				);
 			});
+
+
 
 		//--------------------------------------
 		// PostProcessor
@@ -466,7 +498,7 @@ namespace Skhole {
 
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
+		//vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
 
 		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *m_pipeline);
 
@@ -486,6 +518,35 @@ namespace Skhole {
 			m_desc.Width, m_desc.Height, 1
 		);
 
+
+		vkutils::setImageLayout(*m_commandBuffer, posproIamge.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);
+
+		vk::ImageCopy region;
+		region.srcSubresource = vk::ImageSubresourceLayers()
+			.setAspectMask(vk::ImageAspectFlagBits::eColor)
+			.setMipLevel(0)
+			.setBaseArrayLayer(0)
+			.setLayerCount(1);
+		region.srcOffset = vk::Offset3D(0, 0, 0);
+
+		region.dstSubresource = vk::ImageSubresourceLayers()
+			.setAspectMask(vk::ImageAspectFlagBits::eColor)
+			.setMipLevel(0)
+			.setBaseArrayLayer(0)
+			.setLayerCount(1);
+		region.dstOffset = vk::Offset3D(0, 0, 0);
+		region.extent = vk::Extent3D(m_desc.Width, m_desc.Height, 1);
+
+
+		m_commandBuffer->copyImage(
+			posproIamge.GetImage(), vk::ImageLayout::eTransferSrcOptimal,
+			image, vk::ImageLayout::eTransferDstOptimal,
+			region
+		);
+
+		vkutils::setImageLayout(*m_commandBuffer, posproIamge.GetImage(), vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eAttachmentOptimal);
 
 		//--------------------
 		// ImGUI
@@ -525,8 +586,13 @@ namespace Skhole {
 			*m_asManager.TLAS.accel, 0, 1, *m_context.device
 		);
 
+		//m_bindingManager.WriteImage(
+		//	imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+		//	vk::DescriptorType::eStorageImage, 1, 1, *m_context.device
+		//);
+
 		m_bindingManager.WriteImage(
-			imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+			posproIamge.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
 			vk::DescriptorType::eStorageImage, 1, 1, *m_context.device
 		);
 

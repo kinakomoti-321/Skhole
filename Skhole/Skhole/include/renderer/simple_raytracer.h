@@ -216,6 +216,8 @@ namespace Skhole
 		DeviceBuffer m_materaialBuffer;
 
 		Image accumImage;
+		Image renderImage;
+		Image posproIamge; 
 
 
 		//--------------------------------------

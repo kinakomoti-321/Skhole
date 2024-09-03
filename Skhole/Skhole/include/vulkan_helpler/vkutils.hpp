@@ -206,7 +206,7 @@ inline vk::SurfaceFormatKHR chooseSurfaceFormat(
     vk::SurfaceKHR surface) {
     auto availableFormats = physicalDevice.getSurfaceFormatsKHR(surface);
     for (const auto& availableFormat : availableFormats) {
-        if (availableFormat.format == vk::Format::eB8G8R8A8Unorm) {
+        if (availableFormat.format == vk::Format::eR8G8B8A8Unorm) {
             return availableFormat;
         }
     }
