@@ -1,11 +1,15 @@
 #version 460
 layout(local_size_x = 1, local_size_y = 1) in;
 
-layout(binding = 0, rgba8) uniform image2D image;
+layout(binding = 0, rgba32f) uniform image2D inputImage;
+layout(binding = 1, rgba8) uniform image2D outputImage;
 
 void main() {
 	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
-    vec3 accumCol = imageLoad(image, pos).xyz; 
+    vec3 inputCol = imageLoad(inputImage, pos).xyz; 
+	vec3 outputCol;
+	outputCol = inputCol; 
+//	outputCol.x = inputCol.x; 
 
-	imageStore(image, pos, vec4(accumCol.x,0,0,1));
+	imageStore(outputImage, pos, vec4(outputCol,1));
 }

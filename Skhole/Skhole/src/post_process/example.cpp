@@ -6,7 +6,8 @@ namespace Skhole {
 		auto& device = desc.device;
 		auto& queue = desc.queue;
 		auto& commandPool = desc.commandPool;
-
+		width = desc.width;
+		height = desc.height;
 
 		vk::DescriptorPoolSize poolSize{ vk::DescriptorType::eStorageImage,10 };
 		vk::DescriptorPoolCreateInfo descPoolInfo{};
@@ -23,10 +24,14 @@ namespace Skhole {
 		shaderStageInfo.setModule(*csModule);
 		shaderStageInfo.setPName("main");
 
-		vk::DescriptorSetLayoutBinding binding{ 0, vk::DescriptorType::eStorageImage, 3, vk::ShaderStageFlagBits::eCompute };
+		std::vector<vk::DescriptorSetLayoutBinding> binding{
+			{ 0, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
+			{ 1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute }
+		};
+
 		vk::DescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.setBindingCount(1);
-		layoutInfo.setPBindings(&binding);
+		layoutInfo.setBindingCount(binding.size());
+		layoutInfo.setPBindings(binding.data());
 
 		descriptorSetLayout = device.createDescriptorSetLayoutUnique(layoutInfo);
 
@@ -51,13 +56,13 @@ namespace Skhole {
 
 	void PPExample::Execute(vk::CommandBuffer command, const ExecuteDesc& desc) {
 		auto& device = desc.device;
+
+		std::vector<vk::WriteDescriptorSet> writeDescSets;
+
 		// Frame
-		std::vector<vk::DescriptorImageInfo> descBufferInfo;
 		vk::DescriptorImageInfo descImageInfo{};
 		descImageInfo.setImageView(desc.inputImage);
 		descImageInfo.setImageLayout(vk::ImageLayout::eGeneral);
-
-		descBufferInfo.push_back(descImageInfo);
 
 		vk::WriteDescriptorSet writeDescSet{};
 		writeDescSet.setDstSet(*descriptorSet);
@@ -65,7 +70,22 @@ namespace Skhole {
 		writeDescSet.setDescriptorType(vk::DescriptorType::eStorageImage);
 		writeDescSet.setDescriptorCount(1);
 		writeDescSet.setPImageInfo(&descImageInfo);
-		device.updateDescriptorSets(writeDescSet, nullptr);
+
+		vk::DescriptorImageInfo descImageInfo2{};
+		descImageInfo2.setImageView(desc.outputImage);
+		descImageInfo2.setImageLayout(vk::ImageLayout::eGeneral);
+
+		vk::WriteDescriptorSet writeDescSet2{};
+		writeDescSet2.setDstSet(*descriptorSet);
+		writeDescSet2.setDstBinding(1);
+		writeDescSet2.setDescriptorType(vk::DescriptorType::eStorageImage);
+		writeDescSet2.setDescriptorCount(1);
+		writeDescSet2.setPImageInfo(&descImageInfo2);
+
+		writeDescSets.push_back(writeDescSet);
+		writeDescSets.push_back(writeDescSet2);
+
+		device.updateDescriptorSets(writeDescSets, nullptr);
 
 		// Execute
 		command.bindPipeline(vk::PipelineBindPoint::eCompute, *computePipeline);

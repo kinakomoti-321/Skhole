@@ -498,7 +498,6 @@ namespace Skhole {
 
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-		//vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eGeneral);
 
 		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *m_pipeline);
 
@@ -518,7 +517,14 @@ namespace Skhole {
 			m_desc.Width, m_desc.Height, 1
 		);
 
+		// Post Process
+		PostProcessor::ExecuteDesc desc{};
+		desc.device = *m_context.device;
+		desc.inputImage = renderImage.GetImageView();
+		desc.outputImage = posproIamge.GetImageView();
 
+		m_postProcessor->Execute(*m_commandBuffer,desc);
+		// Copy RenderImage -> WindowImage
 		vkutils::setImageLayout(*m_commandBuffer, posproIamge.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);
 
@@ -592,7 +598,7 @@ namespace Skhole {
 		//);
 
 		m_bindingManager.WriteImage(
-			posproIamge.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+			renderImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
 			vk::DescriptorType::eStorageImage, 1, 1, *m_context.device
 		);
 

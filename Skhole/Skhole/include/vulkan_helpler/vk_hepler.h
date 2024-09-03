@@ -302,12 +302,6 @@ namespace VkHelper {
 		}
 
 		void Release(vk::Device device) {
-			//for (auto& frame : frameBuffers)
-			//	device.destroyFramebuffer(*frame);
-
-			//for (auto& view : swapchainImageViews)
-			//	device.destroyImageView(*view);
-			
 			frameBuffers.clear();
 			swapchainImageViews.clear();	
 
@@ -315,13 +309,6 @@ namespace VkHelper {
 
 			swapchainImages.clear();
 			*swapchain = VK_NULL_HANDLE;
-
-			//frameBuffers = std::vector<vk::UniqueFramebuffer>();
-			//swapchainImageViews = std::vector<vk::UniqueImageView>();
-			//swapchainImages = std::vector<vk::Image>();
-			//frameBuffers.clear();
-			//swapchainImageViews.clear();	
-			//swapchainImages.clear();
 		}
 
 		vk::SurfaceFormatKHR surfaceFormat;
