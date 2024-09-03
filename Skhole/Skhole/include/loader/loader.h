@@ -30,7 +30,6 @@ namespace Skhole {
 					loadScene->m_textures
 				);
 
-				return loadScene;
 			}
 			else if (extension == "glb" || extension == "gltf") {
 				LoadGLTFFile(
@@ -41,11 +40,21 @@ namespace Skhole {
 					loadScene->m_textures
 				);
 
-				return loadScene;
 			}
 			else {
 				SKHOLE_UNIMPL();
 			}
+
+			// Camera Setting
+			int objIndex = 0;
+			for (auto& object : loadScene->m_objects) {
+				if (object->GetObjectType() == ObjectType::CAMERA) {
+					loadScene->m_cameraObjectIndices.push_back(objIndex);
+				}
+				objIndex++;
+			}
+
+			return loadScene;
 		}
 
 	};

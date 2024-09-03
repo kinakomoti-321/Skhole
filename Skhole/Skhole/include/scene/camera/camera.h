@@ -41,6 +41,15 @@ namespace Skhole
 			}
 		}
 
+		float GetYFov() {
+			if (camera == nullptr) {
+				return fov;
+			}
+			else {
+				return camera->yFov;
+			}
+		}
+
 	};
 
 

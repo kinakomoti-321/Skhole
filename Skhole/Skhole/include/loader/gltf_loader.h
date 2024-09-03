@@ -6,6 +6,7 @@
 #include <scene/material/texture.h>
 #include <scene/material/material.h>
 #include <scene/object/instance.h>
+#include <scene/object/cameraObject.h>
 namespace Skhole {
 
 	// For GLTF Binary Data

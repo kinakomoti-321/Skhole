@@ -202,7 +202,6 @@ namespace Skhole {
 		// Load Mesh
 		//-----------------------------------------------------
 		auto& modelMesh = model.meshes;
-		//inGeometies.resize(model.meshes.size());
 		for (const auto& mesh : modelMesh) {
 			auto geometry = MakeShr<Geometry>();
 
@@ -345,12 +344,6 @@ namespace Skhole {
 		auto& modelNode = model.nodes;
 		for (const auto& node : modelNode)
 		{
-			//object->objectName = node.name;
-			//object->localPosition = vec3(node.translation[0], node.translation[1], node.translation[2]);
-			//object->localRotationEular = vec3(node.rotation[0], node.rotation[1], node.rotation[2]); // TODO Quaternion
-			//object->localScale = vec3(node.scale[0], node.scale[1], node.scale[2]);
-
-
 			ShrPtr<Object> object;
 
 			if (node.mesh != -1)
@@ -366,7 +359,11 @@ namespace Skhole {
 			}
 			else if (node.camera != -1)
 			{
-				SKHOLE_UNIMPL("Not Comaptible Camera");
+				ShrPtr<CameraObject> camera = MakeShr<CameraObject>();
+				auto gltfCamera = model.cameras[node.camera];
+
+				camera->yFov = RadianToDegree(gltfCamera.perspective.yfov);
+				object = camera;
 			}
 			else if (node.light != -1)
 			{

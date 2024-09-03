@@ -5,6 +5,9 @@
 using namespace VectorLikeGLSL;
 
 namespace Skhole {
+	constexpr float PI = 3.14159265358979323846f;
+	constexpr float TAU = 6.28318530717958647692f;
+
 	inline mat4 IdentityMat4() {
 		mat4 identity(0);
 		identity[0][0] = 1.0f;
@@ -254,7 +257,6 @@ namespace Skhole {
 		);
 	}
 
-
 	inline mat3 NormalTransformMatrix3x3(const mat4& m) {
 		mat3 m3x3(0);
 		m3x3[0] = m[0].xyz;
@@ -274,5 +276,13 @@ namespace Skhole {
 
 		return (q1 * std::sin((1 - f) * phi) + q2 * std::sin(f * phi)) / sinPhi;
 
+	}
+
+	inline float DegreeToRadian(float degree) {
+		return degree * TAU / 360.0f;
+	}
+
+	inline float RadianToDegree(float radian) {
+		return radian * 360.0f / TAU;
 	}
 }

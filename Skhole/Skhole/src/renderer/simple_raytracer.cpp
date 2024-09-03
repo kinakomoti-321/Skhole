@@ -422,7 +422,7 @@ namespace Skhole {
 		uniformBufferObject.cameraDir = cameraDir;
 		uniformBufferObject.cameraUp = cameraUp;
 		uniformBufferObject.cameraRight = cameraRight;
-		uniformBufferObject.cameraParam.x = camera->fov; 
+		uniformBufferObject.cameraParam.x = camera->GetYFov(); 
 		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
 
 		void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(UniformBufferObject));

@@ -96,14 +96,17 @@ void tangentSpaceBasis(vec3 normal,inout vec3 t,inout vec3 b){
 void main()
 {
     seed = ((gl_LaunchIDEXT.x + gl_LaunchIDEXT.y * ubo.width) + 1) * ubo.numSample;
-    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + rnd2()) / vec2(gl_LaunchSizeEXT.xy);
-    uv.y = 1.0 - uv.y;
-    float aspect = ubo.cameraParam.y;
-    uv.x *= aspect;
+
+//    vec2 uv = (vec2(gl_LaunchIDEXT.xy) + rnd2()) / vec2(gl_LaunchSizeEXT.xy);
+//    uv.y = 1.0 - uv.y;
+//    float aspect = ubo.cameraParam.y;
+//    uv.x *= aspect;
+//
+
+    vec2 uv = (vec2(gl_LaunchIDEXT.xy + rnd2()) * 2.0 - gl_LaunchSizeEXT.xy) / vec2(gl_LaunchSizeEXT.y);
+    uv.y  = -uv.y;
 
     vec3 origin = ubo.cameraPos;
-    vec3 target = vec3(uv * 2.0 - 1.0, 2);
-    vec3 direction = normalize(target - origin);
 
     Ray ray;
     ray.origin = ubo.cameraPos;
@@ -115,7 +118,7 @@ void main()
         ubo.cameraDir,
         ubo.cameraUp,
         ubo.cameraRight,
-        uv * 2.0 - 1.0,
+        uv,
         f
     );
 

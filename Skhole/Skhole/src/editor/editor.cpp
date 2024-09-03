@@ -177,6 +177,8 @@ namespace Skhole
 							m_scene->RendererSet(m_renderer);
 
 							m_renderer->SetScene(m_scene);
+
+							cameraIndex = 0;
 						}
 					}
 					ImGui::TreePop();
@@ -336,25 +338,24 @@ namespace Skhole
 				static bool previewMode = true;
 				updateCamera |= ImGui::Checkbox("PreviewMode", &previewMode);
 
-				static int cameraID = 0;
-				int preCamId = cameraID;
+				int preCamId = cameraIndex;
 				std::vector<const char*> items = { "None" };
 				for (auto& cameraIdx : m_scene->m_cameraObjectIndices) {
 					items.push_back(m_scene->m_objects[cameraIdx]->GetObjectName());
 				}
-				if (ImGui::Combo("Camera", &cameraID, items.data(), IM_ARRAYSIZE(items.data()))) {
-					if (cameraID == 0) {
+				if (ImGui::Combo("Camera", &cameraIndex, items.data(), items.size())) {
+					if (cameraIndex == 0) {
 						m_scene->m_camera->camera = nullptr;
 					}
-					else if (cameraID != 0) {
+					else if (cameraIndex != 0) {
 						auto& camIndices = m_scene->m_cameraObjectIndices;
-						auto& object = m_scene->m_objects[camIndices[cameraID - 1]];
+						auto& object = m_scene->m_objects[camIndices[cameraIndex - 1]];
 						if (object->GetObjectType() == ObjectType::CAMERA)
 						{
 							m_scene->m_camera->camera = std::static_pointer_cast<CameraObject>(object);
 						}
 						else {
-							cameraID = preCamId;
+							cameraIndex = preCamId;
 						}
 					}
 
@@ -445,6 +446,7 @@ namespace Skhole
 		if (ImGui::CollapsingHeader("Object Type")) {
 			ImGui::Indent(20.0f);
 			ShrPtr<Instance> instance;
+			ShrPtr<CameraObject> camera;
 			switch (object->GetObjectType())
 			{
 			case ObjectType::INSTANCE:
@@ -458,6 +460,12 @@ namespace Skhole
 
 			case ObjectType::VOLUME:
 				SKHOLE_UNIMPL();
+				break;
+
+			case ObjectType::CAMERA:
+				camera = std::static_pointer_cast<CameraObject>(object);
+				ImGui::Text("Object Type : CAMERA");
+				ImGui::InputFloat("Fov : ", &camera->yFov);
 				break;
 
 			default:

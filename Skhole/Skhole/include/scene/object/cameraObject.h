@@ -16,7 +16,8 @@ namespace Skhole {
 
 		vec3 GetCameraPosition(float time) {
 			mat4 worldTransform = GetWorldTransformMatrix(time);
-			return worldTransform * vec4(0.0, 0.0, 0.0, 1.0);
+			vec4 worldPos = worldTransform * vec4(0.0, 0.0, 0.0, 1.0);
+			return worldPos.xyz;
 		}
 
 		void GetCameraDirection(float time,vec3& foward, vec3& up, vec3& right) {
@@ -26,6 +27,8 @@ namespace Skhole {
 			up = directionTransform * vec3(0.0, 1.0, 0.0);
 			right = directionTransform * vec3(1.0, 0.0, 0.0);
 		}
+
+		float GetYFov() { return yFov; }
 	};
 
 }

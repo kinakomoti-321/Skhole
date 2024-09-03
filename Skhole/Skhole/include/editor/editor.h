@@ -172,6 +172,8 @@ namespace Skhole {
 		int fps = 24;
 		bool useLoopMode = false;
 
+		int cameraIndex = 0;
+
 	};
 }
 
