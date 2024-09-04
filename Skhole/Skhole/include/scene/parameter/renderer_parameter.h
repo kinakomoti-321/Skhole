@@ -1,5 +1,6 @@
 #pragma once
 #include <include.h>
+#include <post_process/post_processor.h>
 #include <scene/parameter/parameter.h>
 
 namespace Skhole {
@@ -13,6 +14,7 @@ namespace Skhole {
 		uint32_t frame;
 
 		std::vector<ShrPtr<Parameter>> rendererParameters;
+		PostProcessParameter posproParameters;
 	};
 };
 

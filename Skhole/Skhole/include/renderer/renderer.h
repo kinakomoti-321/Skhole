@@ -26,6 +26,7 @@ namespace Skhole
 		MATERIAL,
 		TEXTURE,
 		OBJECT,
+		RENDERER
 	};
 
 	class UpdateCommand {
@@ -42,7 +43,7 @@ namespace Skhole
 		~UpdateRendererCommand() {};
 
 		UpdateCommandType GetCommandType() override {
-			return UpdateCommandType::CAMERA;
+			return UpdateCommandType::RENDERER;
 		}
 	};
 

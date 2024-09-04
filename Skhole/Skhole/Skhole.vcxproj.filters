@@ -203,6 +203,12 @@
     <ClInclude Include="include\post_process\post_processor_interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\post_process\pp_none.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\simple_raytracer\closesthit.glsl" />

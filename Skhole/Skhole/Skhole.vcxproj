@@ -174,12 +174,14 @@
     <ClInclude Include="include\common\math.h" />
     <ClInclude Include="include\common\util.h" />
     <ClInclude Include="include\editor\file.h" />
+    <ClInclude Include="include\editor\imgui_helper.h" />
     <ClInclude Include="include\loader\gltf_loader.h" />
     <ClInclude Include="include\loader\loader.h" />
     <ClInclude Include="include\loader\obj_loader.h" />
     <ClInclude Include="include\post_process\example.h" />
     <ClInclude Include="include\post_process\post_processor.h" />
     <ClInclude Include="include\post_process\post_processor_interface.h" />
+    <ClInclude Include="include\post_process\pp_none.h" />
     <ClInclude Include="include\renderer\buffer_manager.h" />
     <ClInclude Include="include\renderer\update_command.h" />
     <ClInclude Include="include\scene\camera\camera.h" />

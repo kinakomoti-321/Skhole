@@ -13,7 +13,7 @@ namespace Skhole {
 
 	struct PostProcessParameter {
 		std::string name = "default";
-		std::vector<Parameter> param;
+		std::vector<ShrPtr<Parameter>> param;
 	};
 
 	class PostProcessor {

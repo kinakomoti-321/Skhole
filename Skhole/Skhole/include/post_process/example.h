@@ -21,6 +21,11 @@ namespace Skhole {
 		PostProcessParameter GetParamter() override;
 
 	private:
+		const std::vector<ShrPtr<Parameter>> params = {
+			MakeShr<ParamVec>("color", vec3(1.0f, 0.0f, 0.0f)),
+			MakeShr<ParamFloat>("intensity", 1.0f)
+		};
+
 		vk::UniquePipeline computePipeline;
 		vk::UniqueShaderModule csModule;
 		vk::UniqueDescriptorSetLayout descriptorSetLayout;

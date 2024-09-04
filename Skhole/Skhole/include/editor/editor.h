@@ -13,6 +13,7 @@
 #include <editor/file.h>
 #include <loader/loader.h>
 #include <common/math.h>
+#include <editor/imgui_helper.h>
 
 namespace Skhole {
 
@@ -129,7 +130,6 @@ namespace Skhole {
 		void ShowObjectGUI();
 		void ShowMaterialGUI();
 		void ShowGeometryGUI();
-
 
 		void ControlCamera();
 

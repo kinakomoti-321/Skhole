@@ -5,13 +5,14 @@
 using namespace VectorLikeGLSL;
 namespace Skhole {
 
-	enum ParameterType
+	enum class ParameterType
 	{
 		FLOAT,
 		VECTOR,
 		COLOR,
 		BOOL,
 		UINT,
+		PARAMETER,
 	};
 
 	class Parameter {
@@ -19,7 +20,7 @@ namespace Skhole {
 		virtual std::string getParamName() = 0;
 		virtual	ParameterType getParamType() = 0;
 		virtual void setParamValue(std::variant<float, vec3, vec4, bool, uint32_t> value) = 0;
-		virtual ShrPtr<Parameter> Copy() = 0; 
+		virtual ShrPtr<Parameter> Copy() = 0;
 	};
 
 	class ParameterBool : public Parameter {
@@ -80,9 +81,9 @@ namespace Skhole {
 		std::string m_paramName;
 	};
 
-	class ParamterVector : public Parameter {
+	class ParameterVector : public Parameter {
 	public:
-		ParamterVector(std::string name, vec3 v) : m_paramName(name), value(v) {}
+		ParameterVector(std::string name, vec3 v) : m_paramName(name), value(v) {}
 
 		std::string getParamName() override {
 			return m_paramName;
@@ -100,7 +101,7 @@ namespace Skhole {
 		}
 
 		ShrPtr<Parameter> Copy() override {
-			return std::make_shared<ParamterVector>(m_paramName, value);
+			return std::make_shared<ParameterVector>(m_paramName, value);
 		}
 
 		vec3 value;
@@ -167,10 +168,37 @@ namespace Skhole {
 		std::string m_paramName;
 	};
 
+	class ParameterParameter : public Parameter {
+	public:
+		ParameterParameter(std::string name, std::vector<ShrPtr<Parameter>>& v) : m_paramName(name), value(v) {}
+
+		std::string getParamName() override {
+			return m_paramName;
+		}
+
+		ParameterType getParamType() override {
+			return ParameterType::PARAMETER;
+		}
+
+		void setParamValue(std::variant<float, vec3, vec4, bool, uint32_t> in_value) override {
+			SKHOLE_ERROR("Parameter Parameter is not allowed to set value");
+		}
+
+		ShrPtr<Parameter> Copy() override {
+			return std::make_shared<ParameterParameter>(m_paramName, value);
+		}
+
+		std::vector<ShrPtr<Parameter>> value;
+
+	private:
+		std::string m_paramName;
+
+	};
+
 
 	using ParamBool = ParameterBool;
 	using ParamFloat = ParameterFloat;
-	using ParamVec = ParamterVector;
+	using ParamVec = ParameterVector;
 	using ParamCol = ParameterColor;
 	using ParamUint = ParameterUint;
 }

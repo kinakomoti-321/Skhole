@@ -134,7 +134,6 @@ namespace Skhole
 
 			m_renderer->RealTimeRender(renderInfo);
 
-
 		}
 
 		m_renderer->Destroy();
@@ -149,8 +148,6 @@ namespace Skhole
 	void Editor::ShowGUI() {
 		ShowSceneGUI();
 		ShowRendererGUI();
-		//ShowObjectGUI();
-		//ShowMateralGUI();
 
 		useGUI = ImGui::IsAnyItemActive();
 	}
@@ -249,43 +246,25 @@ namespace Skhole
 				ImGui::Text("sample : %u", rendererData->sample);
 				ImGui::InputScalar("SPP", ImGuiDataType_U32, &rendererData->spp);
 
+				bool updateRenderer = false;
 				if (ImGui::TreeNode("Renderer Parameter")) {
-
-					bool updateRenderer = false;
-					for (auto& rendererParam : rendererData->rendererParameters) {
-						ShrPtr<ParamFloat> floatParam;
-						ShrPtr<ParamVec> vec3Param;
-						ShrPtr<ParamUint> textureIDParam;
-
-						switch (rendererParam->getParamType())
-						{
-						case ParameterType::FLOAT:
-							floatParam = std::static_pointer_cast<ParamFloat>(rendererParam);
-							updateRenderer |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
-							break;
-
-						case ParameterType::VECTOR:
-							vec3Param = std::static_pointer_cast<ParamVec>(rendererParam);
-							updateRenderer |= ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
-							break;
-
-						case ParameterType::UINT:
-							textureIDParam = std::static_pointer_cast<ParamUint>(rendererParam);
-							updateRenderer |= ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
-							break;
-
-						default:
-							SKHOLE_UNIMPL();
-							break;
-						}
-					}
-
-					if (updateRenderer)
-					{
-						m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
-					}
+					updateRenderer |= ParameterGUI(rendererData->rendererParameters);
 
 					ImGui::TreePop();
+				}
+
+				if (ImGui::TreeNode("PostProcess")) {
+					auto& posPro = rendererData->posproParameters;
+
+					StringText("Post Processer : " + posPro.name);
+					updateRenderer |= ParameterGUI(posPro.param);
+
+					ImGui::TreePop();
+				}
+
+				if (updateRenderer)
+				{
+					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
 				}
 
 				ImGui::EndTabItem();
@@ -303,34 +282,7 @@ namespace Skhole
 				updateCamera |= ImGui::InputFloat("FOV", &camera->fov);
 
 
-				for (auto& camParam : camera->extensionParameters) {
-					ShrPtr<ParamFloat> floatParam;
-					ShrPtr<ParamVec> vec3Param;
-					ShrPtr<ParamUint> textureIDParam;
-
-					switch (camParam->getParamType())
-					{
-					case ParameterType::FLOAT:
-						floatParam = std::static_pointer_cast<ParamFloat>(camParam);
-						updateCamera |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
-						break;
-
-					case ParameterType::VECTOR:
-						vec3Param = std::static_pointer_cast<ParamVec>(camParam);
-						updateCamera |= ImGui::InputFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v);
-						break;
-
-					case ParameterType::UINT:
-						textureIDParam = std::static_pointer_cast<ParamUint>(camParam);
-						ImGui::Text(textureIDParam->getParamName().c_str());
-						break;
-
-					default:
-						SKHOLE_UNIMPL();
-						break;
-					}
-				}
-
+				updateCamera |= ParameterGUI(camera->extensionParameters);
 
 				updateCamera |= ImGui::InputFloat("Speed", &m_cameraController.cameraSpeed);
 				updateCamera |= ImGui::InputFloat("Sensitivity", &m_cameraController.sensitivity);
@@ -546,45 +498,10 @@ namespace Skhole
 
 		auto& mat = m_scene->m_materials[selectedIndex];
 		bool materialUpdate = false;
-		for (auto& matParam : mat->materialParameters) {
-			ShrPtr<ParamBool> boolParam;
-			ShrPtr<ParamFloat> floatParam;
-			ShrPtr<ParamVec> vec3Param;
-			ShrPtr<ParamCol> vec4Param;
-			ShrPtr<ParamUint> textureIDParam;
+		std::string materialName = "Material Name : " + mat->materialName;
+		ImGui::Text(materialName.c_str());
+		materialUpdate |= ParameterGUI(mat->materialParameters);
 
-			switch (matParam->getParamType())
-			{
-			case ParameterType::BOOL:
-				boolParam = std::static_pointer_cast<ParamBool>(matParam);
-				materialUpdate |= ImGui::Checkbox(boolParam->getParamName().c_str(), &boolParam->value);
-				break;
-
-			case ParameterType::FLOAT:
-				floatParam = std::static_pointer_cast<ParamFloat>(matParam);
-				materialUpdate |= ImGui::InputFloat(floatParam->getParamName().c_str(), &floatParam->value);
-				break;
-
-			case ParameterType::VECTOR:
-				vec3Param = std::static_pointer_cast<ParamVec>(matParam);
-				materialUpdate |= ImGui::SliderFloat3(vec3Param->getParamName().c_str(), vec3Param->value.v, 0.0f, 1.0f);
-				break;
-
-			case ParameterType::COLOR:
-				vec4Param = std::static_pointer_cast<ParamCol>(matParam);
-				materialUpdate |= ImGui::ColorEdit4(vec4Param->getParamName().c_str(), vec4Param->value.v);
-				break;
-
-			case ParameterType::UINT:
-				textureIDParam = std::static_pointer_cast<ParamUint>(matParam);
-				materialUpdate |= ImGui::InputScalar(textureIDParam->getParamName().c_str(), ImGuiDataType_U32, &textureIDParam->value);
-				break;
-
-			default:
-				SKHOLE_UNIMPL();
-				break;
-			}
-		}
 		if (materialUpdate) {
 			m_updateInfo.commands.push_back(std::make_shared<UpdateMaterialCommand>(selectedIndex));
 		}

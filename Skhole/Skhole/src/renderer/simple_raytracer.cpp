@@ -204,6 +204,8 @@ namespace Skhole {
 			switch (command->GetCommandType()) {
 			case UpdateCommandType::CAMERA:
 				break;
+			case UpdateCommandType::RENDERER:
+				break;
 			case UpdateCommandType::MATERIAL:
 				matCommand = std::static_pointer_cast<UpdateMaterialCommand>(command);
 				UpdateMaterialBuffer(matCommand->materialIndex);
@@ -226,9 +228,9 @@ namespace Skhole {
 
 	void SimpleRaytracer::Destroy()
 	{
-		m_postProcessor->Destroy(*m_context.device);
-
 		m_context.device->waitIdle();
+
+		m_postProcessor->Destroy(*m_context.device);
 		accumImage.Release(*m_context.device);
 		m_bindingManager.Release(*m_context.device);
 		m_imGuiManager.Destroy(*m_context.device);
@@ -402,6 +404,7 @@ namespace Skhole {
 
 		cameraDef->extensionParameters = m_camExtensionParams;
 
+
 		return cameraDef;
 	}
 
@@ -414,6 +417,7 @@ namespace Skhole {
 		rendererParameter->sample = 1;
 
 		rendererParameter->rendererParameters = m_rendererExtensionParams;
+		rendererParameter->posproParameters = m_postprocessParams;
 
 		return rendererParameter;
 	}
@@ -523,7 +527,7 @@ namespace Skhole {
 		desc.inputImage = renderImage.GetImageView();
 		desc.outputImage = posproIamge.GetImageView();
 
-		m_postProcessor->Execute(*m_commandBuffer,desc);
+		m_postProcessor->Execute(*m_commandBuffer, desc);
 		// Copy RenderImage -> WindowImage
 		vkutils::setImageLayout(*m_commandBuffer, posproIamge.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);
@@ -859,5 +863,13 @@ namespace Skhole {
 		material.emissionColor = p5->value;
 
 		return material;
+	}
+
+	void SimpleRaytracer::SetPostprocess(PostProcessType type) {
+		m_postProcessor = GetPostProcessor(type);
+		m_postprocessParams = m_postProcessor->GetParamter();
+	}
+	void SimpleRaytracer::DestroyPostprocess() {
+		m_postProcessor->Destroy(*m_context.device);
 	}
 }

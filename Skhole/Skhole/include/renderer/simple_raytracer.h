@@ -125,6 +125,9 @@ namespace Skhole
 		void UpdateMaterialBuffer(uint32_t matId);
 		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& material);
 
+		void SetPostprocess(PostProcessType type);
+		void DestroyPostprocess();
+
 	private:
 		//--------------------------------------
 		// Renderer Data
@@ -153,6 +156,8 @@ namespace Skhole
 		{
 			MakeShr<ParamUint>("Ckeck Mode",0),
 		};
+
+		PostProcessParameter m_postprocessParams;
 
 
 		//--------------------------------------
@@ -217,7 +222,7 @@ namespace Skhole
 
 		Image accumImage;
 		Image renderImage;
-		Image posproIamge; 
+		Image posproIamge;
 
 
 		//--------------------------------------

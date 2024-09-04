@@ -107,7 +107,15 @@ namespace Skhole {
 		device.destroyDescriptorPool(*descriptorPool);
 		device.destroyDescriptorSetLayout(*descriptorSetLayout);
 		device.destroyPipelineLayout(*pipelineLayout);
+		device.destroyDescriptorSetLayout(*descriptorSetLayout);
 		device.destroyPipeline(*computePipeline);
 		device.destroyShaderModule(*csModule);
+
+		*descriptorPool = VK_NULL_HANDLE;
+		*descriptorSetLayout = VK_NULL_HANDLE;
+		*pipelineLayout = VK_NULL_HANDLE;
+		*computePipeline = VK_NULL_HANDLE;
+		*csModule = VK_NULL_HANDLE;
+
 	}
 }
