@@ -103,7 +103,9 @@ namespace Skhole {
 	}
 
 	void PPExample::Resize(uint32_t width, uint32_t height) {
-		SKHOLE_UNIMPL();
+		this->width = width;
+		this->height = height;
+		//SKHOLE_UNIMPL();
 	}
 
 	void PPExample::Destroy(vk::Device device) {

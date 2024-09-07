@@ -94,7 +94,7 @@ namespace Skhole {
 		//--------------------------------------
 		// Create Buffer
 		//--------------------------------------
-		
+
 		uniformBufferObject.frame = m_raytracerParameter.frame;
 		uniformBufferObject.spp = m_raytracerParameter.spp;
 		uniformBufferObject.width = m_desc.Width;
@@ -243,7 +243,6 @@ namespace Skhole {
 
 	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
 	{
-
 		m_desc.Width = width;
 		m_desc.Height = height;
 
@@ -258,7 +257,8 @@ namespace Skhole {
 		swapchainInfo.commandPool = *m_commandPool;
 		swapchainInfo.renderPass = m_imGuiRenderPass.get();
 
-		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment;
+		//swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment;
+		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
 
 		swapchainInfo.width = m_desc.Width;
 		swapchainInfo.height = m_desc.Height;
@@ -266,6 +266,24 @@ namespace Skhole {
 		m_swapchainContext.Init(swapchainInfo);
 
 		accumImage.Release(*m_context.device);
+		renderImage.Release(*m_context.device);
+		posproIamge.Release(*m_context.device);
+
+		//accumImage.Init(
+		//	m_context.physicalDevice, *m_context.device,
+		//	m_desc.Width, m_desc.Height,
+		//	vk::Format::eR32G32B32A32Sfloat,
+		//	vk::ImageTiling::eOptimal,
+		//	vk::ImageUsageFlagBits::eStorage,
+		//	vk::MemoryPropertyFlagBits::eDeviceLocal
+		//);
+
+		//vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
+		//	[&](vk::CommandBuffer commandBuffer) {
+		//		vkutils::setImageLayout(commandBuffer, accumImage.GetImage(),
+		//		vk::ImageLayout::eUndefined,
+		//		vk::ImageLayout::eGeneral);
+		//	});
 
 		accumImage.Init(
 			m_context.physicalDevice, *m_context.device,
@@ -276,12 +294,45 @@ namespace Skhole {
 			vk::MemoryPropertyFlagBits::eDeviceLocal
 		);
 
+		renderImage.Init(
+			m_context.physicalDevice, *m_context.device,
+			m_desc.Width, m_desc.Height,
+			vk::Format::eR32G32B32A32Sfloat,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
+		posproIamge.Init(
+			m_context.physicalDevice, *m_context.device,
+			m_desc.Width, m_desc.Height,
+			vk::Format::eR8G8B8A8Unorm,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eDeviceLocal
+		);
+
 		vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
 			[&](vk::CommandBuffer commandBuffer) {
-				vkutils::setImageLayout(commandBuffer, accumImage.GetImage(),
-				vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eGeneral);
+				vkutils::setImageLayout(
+					commandBuffer, accumImage.GetImage(),
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eGeneral
+				);
+				vkutils::setImageLayout(
+					commandBuffer, renderImage.GetImage(),
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eGeneral
+				);
+				vkutils::setImageLayout(
+					commandBuffer, posproIamge.GetImage(),
+					vk::ImageLayout::eUndefined,
+					vk::ImageLayout::eGeneral
+				);
 			});
+
+		m_postProcessor->Resize(width, height);
+		m_scene->m_rendererParameter->sample = 1;
 	}
 
 	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
