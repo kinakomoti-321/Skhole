@@ -358,8 +358,6 @@ namespace Skhole {
 		m_materaialBuffer.Unmap(*m_context.device);
 
 		m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue);
-
-
 	}
 
 	void SimpleRaytracer::InitBufferManager() {
@@ -417,7 +415,7 @@ namespace Skhole {
 		rendererParameter->sample = 1;
 
 		rendererParameter->rendererParameters = m_rendererExtensionParams;
-		rendererParameter->posproParameters = m_postprocessParams;
+		rendererParameter->posproParameters = m_postProcessor->GetParamter();
 
 		return rendererParameter;
 	}
@@ -526,6 +524,7 @@ namespace Skhole {
 		desc.device = *m_context.device;
 		desc.inputImage = renderImage.GetImageView();
 		desc.outputImage = posproIamge.GetImageView();
+		desc.param = m_scene->m_rendererParameter->posproParameters;
 
 		m_postProcessor->Execute(*m_commandBuffer, desc);
 		// Copy RenderImage -> WindowImage

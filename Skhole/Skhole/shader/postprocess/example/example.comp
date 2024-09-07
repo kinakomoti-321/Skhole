@@ -3,13 +3,17 @@ layout(local_size_x = 1, local_size_y = 1) in;
 
 layout(binding = 0, rgba32f) uniform image2D inputImage;
 layout(binding = 1, rgba8) uniform image2D outputImage;
+layout(binding = 2) uniform ubo{
+	vec4 col;
+	float intensity;
+};
 
 void main() {
 	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
     vec3 inputCol = imageLoad(inputImage, pos).xyz; 
 	vec3 outputCol;
 	outputCol = inputCol; 
-//	outputCol.x = inputCol.x; 
+	outputCol = outputCol * intensity;
 
 	imageStore(outputImage, pos, vec4(outputCol,1));
 }

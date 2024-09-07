@@ -39,7 +39,6 @@ namespace Skhole
 		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) override;
 		ShrPtr<RendererParameter> GetRendererParameter() override;
 
-
 		void InitFrameGUI() override;
 
 		void UpdateScene(const UpdataInfo& command) override;

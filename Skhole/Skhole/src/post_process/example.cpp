@@ -9,14 +9,15 @@ namespace Skhole {
 		width = desc.width;
 		height = desc.height;
 
-		vk::DescriptorPoolSize poolSize{ vk::DescriptorType::eStorageImage,10 };
-		vk::DescriptorPoolCreateInfo descPoolInfo{};
-		descPoolInfo.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-		descPoolInfo.setPoolSizeCount(1);
-		descPoolInfo.setPPoolSizes(&poolSize);
-		descPoolInfo.setMaxSets(1);
+		bindingManager.bindings = {
+			{0,vk::DescriptorType::eStorageImage,1,vk::ShaderStageFlagBits::eCompute},
+			{1,vk::DescriptorType::eStorageImage,1,vk::ShaderStageFlagBits::eCompute},
+			{2,vk::DescriptorType::eUniformBuffer,1,vk::ShaderStageFlagBits::eCompute}
+		};
 
-		descriptorPool = device.createDescriptorPoolUnique(descPoolInfo);
+		bindingManager.SetLayout(device);
+		bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, device);
+
 		csModule = vkutils::createShaderModule(device, "shader/postprocess/example/example.comp.spv");
 
 		vk::PipelineShaderStageCreateInfo shaderStageInfo{};
@@ -24,18 +25,8 @@ namespace Skhole {
 		shaderStageInfo.setModule(*csModule);
 		shaderStageInfo.setPName("main");
 
-		std::vector<vk::DescriptorSetLayoutBinding> binding{
-			{ 0, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute },
-			{ 1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eCompute }
-		};
-
-		vk::DescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.setBindingCount(binding.size());
-		layoutInfo.setPBindings(binding.data());
-
-		descriptorSetLayout = device.createDescriptorSetLayoutUnique(layoutInfo);
-
-		vk::PipelineLayoutCreateInfo pipelineLayoutInfo{ {},*descriptorSetLayout };
+		vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
+		pipelineLayoutInfo.setSetLayouts(bindingManager.descriptorSetLayout);
 		pipelineLayout = device.createPipelineLayoutUnique(pipelineLayoutInfo);
 
 		vk::ComputePipelineCreateInfo pipelineInfo{ {},shaderStageInfo,*pipelineLayout };
@@ -44,58 +35,68 @@ namespace Skhole {
 			SKHOLE_ERROR("Failed to create compute pipeline");
 		}
 
+		uniformBuffer.init(
+			physicalDevice,
+			device,
+			sizeof(UniformObject),
+			vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eHostCached | vk::MemoryPropertyFlagBits::eHostVisible
+		);
+
 		computePipeline = std::move(result.value);
 
-		vk::DescriptorSetAllocateInfo allocInfo{};
-		allocInfo.setDescriptorPool(*descriptorPool);
-		allocInfo.setDescriptorSetCount(1);
-		allocInfo.setPSetLayouts(&*descriptorSetLayout);
-
-		descriptorSet = std::move(device.allocateDescriptorSetsUnique(allocInfo)[0]);
+		bindingManager.SetDescriptorSet(device);
 	}
 
 	void PPExample::Execute(vk::CommandBuffer command, const ExecuteDesc& desc) {
 		auto& device = desc.device;
 
-		std::vector<vk::WriteDescriptorSet> writeDescSets;
-
 		// Frame
-		vk::DescriptorImageInfo descImageInfo{};
-		descImageInfo.setImageView(desc.inputImage);
-		descImageInfo.setImageLayout(vk::ImageLayout::eGeneral);
-
-		vk::WriteDescriptorSet writeDescSet{};
-		writeDescSet.setDstSet(*descriptorSet);
-		writeDescSet.setDstBinding(0);
-		writeDescSet.setDescriptorType(vk::DescriptorType::eStorageImage);
-		writeDescSet.setDescriptorCount(1);
-		writeDescSet.setPImageInfo(&descImageInfo);
-
-		vk::DescriptorImageInfo descImageInfo2{};
-		descImageInfo2.setImageView(desc.outputImage);
-		descImageInfo2.setImageLayout(vk::ImageLayout::eGeneral);
-
-		vk::WriteDescriptorSet writeDescSet2{};
-		writeDescSet2.setDstSet(*descriptorSet);
-		writeDescSet2.setDstBinding(1);
-		writeDescSet2.setDescriptorType(vk::DescriptorType::eStorageImage);
-		writeDescSet2.setDescriptorCount(1);
-		writeDescSet2.setPImageInfo(&descImageInfo2);
-
-		writeDescSets.push_back(writeDescSet);
-		writeDescSets.push_back(writeDescSet2);
-
-		device.updateDescriptorSets(writeDescSets, nullptr);
+		WriteBinding(device, desc);
 
 		// Execute
 		command.bindPipeline(vk::PipelineBindPoint::eCompute, *computePipeline);
-		command.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *pipelineLayout, 0, *descriptorSet, nullptr);
+		command.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *pipelineLayout, 0, bindingManager.descriptorSet, nullptr);
 		command.dispatch(width, height, 1);
 
 	}
 
+	void PPExample::WriteBinding(vk::Device device, const ExecuteDesc& desc) {
+
+		// Uniform Buffer	
+		auto& parameter = desc.param.param;
+		uniformObject.color = CastParamCol(parameter[0])->value;
+		uniformObject.intensity = CastParamFloat(parameter[1])->value;
+
+		CopyBuffer(device, uniformBuffer, &uniformObject, uniformBuffer.GetBufferSize());
+
+		VkHelper::BindingManager::WritingInfo info;
+		info.numImage = 2;
+		info.numBuffer = 1;
+		bindingManager.StartWriting(info);
+
+		bindingManager.WriteImage(
+			desc.inputImage, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+			vk::DescriptorType::eStorageImage, 0, 1, device
+		);
+
+		bindingManager.WriteImage(
+			desc.outputImage, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+			vk::DescriptorType::eStorageImage, 1, 1, device
+		);
+
+		bindingManager.WriteBuffer(
+			uniformBuffer.buffer.get(), 0, uniformBuffer.GetBufferSize(),
+			vk::DescriptorType::eUniformBuffer, 2, 1, device
+		);
+
+		bindingManager.EndWriting(device);
+	}
+
 	PostProcessParameter PPExample::GetParamter() {
 		PostProcessParameter param;
+		param.name = "Example Post Process";
+		param.param = params;
 		return param;
 	}
 
@@ -105,14 +106,11 @@ namespace Skhole {
 
 	void PPExample::Destroy(vk::Device device) {
 		device.destroyDescriptorPool(*descriptorPool);
-		device.destroyDescriptorSetLayout(*descriptorSetLayout);
 		device.destroyPipelineLayout(*pipelineLayout);
-		device.destroyDescriptorSetLayout(*descriptorSetLayout);
 		device.destroyPipeline(*computePipeline);
 		device.destroyShaderModule(*csModule);
 
 		*descriptorPool = VK_NULL_HANDLE;
-		*descriptorSetLayout = VK_NULL_HANDLE;
 		*pipelineLayout = VK_NULL_HANDLE;
 		*computePipeline = VK_NULL_HANDLE;
 		*csModule = VK_NULL_HANDLE;

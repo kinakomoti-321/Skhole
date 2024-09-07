@@ -31,6 +31,8 @@ namespace Skhole {
 			vk::Device device;
 			vk::ImageView inputImage;
 			vk::ImageView outputImage;
+
+			PostProcessParameter param;
 		};
 
 		virtual void Init(const Desc& desc) = 0;

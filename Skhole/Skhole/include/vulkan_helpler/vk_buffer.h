@@ -7,6 +7,7 @@ namespace Skhole {
 		vk::UniqueBuffer buffer;
 		vk::UniqueDeviceMemory memory;
 		vk::DeviceAddress address{};
+		size_t bufferSize;
 
 		void init(vk::PhysicalDevice physicalDevice,
 			vk::Device device,
@@ -17,6 +18,7 @@ namespace Skhole {
 			// Create buffer
 			vk::BufferCreateInfo createInfo{};
 			createInfo.setSize(size);
+			bufferSize = size;
 			createInfo.setUsage(usage);
 			buffer = device.createBufferUnique(createInfo);
 
@@ -69,6 +71,10 @@ namespace Skhole {
 			*buffer = VK_NULL_HANDLE;
 			*memory = VK_NULL_HANDLE;
 		}
+
+		size_t GetBufferSize() {
+			return bufferSize;
+		}
 	};
 
 	struct DeviceBuffer {
@@ -112,17 +118,17 @@ namespace Skhole {
 				copyRegion.setSrcOffset(offset);
 				copyRegion.setDstOffset(offset);
 				commandBuffer.copyBuffer(*hostBuffer.buffer, *deviceBuffer.buffer, copyRegion);
-			});
+				});
 		}
 
-		void UploadToDevice(vk::Device device, vk::CommandPool commandPool, vk::Queue queue,uint32_t srcOffset, uint32_t dstOffset, uint32_t size) {
+		void UploadToDevice(vk::Device device, vk::CommandPool commandPool, vk::Queue queue, uint32_t srcOffset, uint32_t dstOffset, uint32_t size) {
 			vkutils::oneTimeSubmit(device, commandPool, queue, [&](vk::CommandBuffer commandBuffer) {
 				vk::BufferCopy copyRegion{};
 				copyRegion.setSize(size);
 				copyRegion.setSrcOffset(srcOffset);
 				copyRegion.setDstOffset(dstOffset);
 				commandBuffer.copyBuffer(*hostBuffer.buffer, *deviceBuffer.buffer, copyRegion);
-			});
+				});
 		}
 
 		vk::Buffer GetDeviceBuffer() {
@@ -226,8 +232,8 @@ namespace Skhole {
 	class Image {
 
 	public:
-		Image(){}
-		~Image(){}
+		Image() {}
+		~Image() {}
 
 		void Init(
 			vk::PhysicalDevice physicalDevice,
@@ -262,18 +268,18 @@ namespace Skhole {
 
 			m_imageMemory = device.allocateMemory(allocInfo);
 			device.bindImageMemory(m_image, m_imageMemory, 0);
-		
+
 			vk::ImageViewCreateInfo viewInfo{};
 			viewInfo.setImage(m_image);
 			viewInfo.setViewType(vk::ImageViewType::e2D);
 			viewInfo.setFormat(format);
 			viewInfo.setSubresourceRange({ vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 });
 
-			m_imageView = device.createImageView(viewInfo,nullptr);
+			m_imageView = device.createImageView(viewInfo, nullptr);
 		}
 
 		vk::Image GetImage() {
-			return m_image;	
+			return m_image;
 		}
 
 		vk::ImageView GetImageView() {
@@ -285,10 +291,16 @@ namespace Skhole {
 			device.destroyImage(m_image);
 			device.freeMemory(m_imageMemory);
 		}
-		
+
 	private:
 		vk::Image m_image;
 		vk::ImageView m_imageView;
 		vk::DeviceMemory m_imageMemory;
 	};
+
+	inline void CopyBuffer(vk::Device device, Buffer& buffer, void* src, size_t size, size_t offset = 0) {
+		void* data = buffer.Map(device, offset, size);
+		memcpy(data, src, size);
+		buffer.Ummap(device);
+	}
 }

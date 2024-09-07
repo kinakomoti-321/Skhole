@@ -21,18 +21,28 @@ namespace Skhole {
 		PostProcessParameter GetParamter() override;
 
 	private:
+		struct UniformObject {
+			vec4 color = vec4(0.0);
+			float intensity = 1.0f;
+		};
+
+		void WriteBinding(vk::Device device, const ExecuteDesc& desc);
+
 		const std::vector<ShrPtr<Parameter>> params = {
-			MakeShr<ParamVec>("color", vec3(1.0f, 0.0f, 0.0f)),
+			MakeShr<ParamCol>("color", vec4(1.0f, 0.0f, 0.0f,0.0f)),
 			MakeShr<ParamFloat>("intensity", 1.0f)
 		};
 
 		vk::UniquePipeline computePipeline;
 		vk::UniqueShaderModule csModule;
-		vk::UniqueDescriptorSetLayout descriptorSetLayout;
-		vk::UniqueDescriptorSet descriptorSet;
+		VkHelper::BindingManager bindingManager;
+
 		vk::UniquePipelineLayout pipelineLayout;
 
 		vk::UniqueDescriptorPool descriptorPool;
+
+		UniformObject uniformObject;
+		Buffer uniformBuffer;
 
 		uint32_t width, height;
 

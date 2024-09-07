@@ -195,10 +195,46 @@ namespace Skhole {
 
 	};
 
-
 	using ParamBool = ParameterBool;
 	using ParamFloat = ParameterFloat;
 	using ParamVec = ParameterVector;
 	using ParamCol = ParameterColor;
 	using ParamUint = ParameterUint;
+
+	inline ShrPtr<ParamBool> CastParamBool(ShrPtr<Parameter> param) {
+		if (param->getParamType() != ParameterType::BOOL) {
+			SKHOLE_ABORT("Parameter is not Bool Type");
+		}
+		return std::static_pointer_cast<ParamBool>(param);
+	}
+
+	inline ShrPtr<ParamFloat> CastParamFloat(ShrPtr<Parameter> param) {
+		if (param->getParamType() != ParameterType::FLOAT) {
+			SKHOLE_ABORT("Parameter is not Float Type");
+		}
+		return std::static_pointer_cast<ParamFloat>(param);
+	}
+
+	inline ShrPtr<ParamVec> CastParamVec(ShrPtr<Parameter> param) {
+		if (param->getParamType() != ParameterType::VECTOR) {
+			SKHOLE_ABORT("Parameter is not Vector Type");
+		}
+		return std::static_pointer_cast<ParamVec>(param);
+	}
+
+	inline ShrPtr<ParamCol> CastParamCol(ShrPtr<Parameter> param) {
+		if (param->getParamType() != ParameterType::COLOR) {
+			SKHOLE_ABORT("Parameter is not Color Type");
+		}
+		return std::static_pointer_cast<ParamCol>(param);
+	}
+
+	inline ShrPtr<ParamUint> CastParamUint(ShrPtr<Parameter> param) {
+		if (param->getParamType() != ParameterType::UINT) {
+			SKHOLE_ABORT("Parameter is not Uint Type");
+		}
+		return std::static_pointer_cast<ParamUint>(param);
+	}
+
+
 }
