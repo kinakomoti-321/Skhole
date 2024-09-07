@@ -83,13 +83,18 @@ namespace Skhole {
 		// Create Pipeline
 		//--------------------------------------
 
+		SKHOLE_LOG("... Creating Pipeline");
 		CreateRaytracingPipeline();
+		SKHOLE_LOG("... End Creating Pipeline");
 
+		SKHOLE_LOG("... Initialization ImGUI");
 		InitImGui();
+		SKHOLE_LOG("... End Initialization ImGUI");
 
 		//--------------------------------------
 		// Create Buffer
 		//--------------------------------------
+		
 		uniformBufferObject.frame = m_raytracerParameter.frame;
 		uniformBufferObject.spp = m_raytracerParameter.spp;
 		uniformBufferObject.width = m_desc.Width;

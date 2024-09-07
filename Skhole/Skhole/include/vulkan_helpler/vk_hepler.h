@@ -52,6 +52,10 @@ namespace VkHelper {
 		std::vector<BindingLayoutElement> bindings;
 		std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
 
+		std::vector<ShrPtr<vk::DescriptorBufferInfo>> writeBufferInfo;
+		std::vector<ShrPtr<vk::DescriptorImageInfo>> writeImageInfo;
+		std::vector<ShrPtr<vk::WriteDescriptorSetAccelerationStructureKHR>> writeASInfo;
+
 		void SetLayout(vk::Device device) {
 			std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
 			for (auto& binding : bindings) {
@@ -96,15 +100,6 @@ namespace VkHelper {
 			descriptorSet = device.allocateDescriptorSets(allocInfo)[0];
 		}
 
-		//struct WritingInfo {
-		//	uint32_t numBuffer = 0;
-		//	uint32_t numImage = 0;
-		//	uint32_t numAS = 0;
-		//};
-
-		std::vector<ShrPtr<vk::DescriptorBufferInfo>> writeBufferInfo;
-		std::vector<ShrPtr<vk::DescriptorImageInfo>> writeImageInfo;
-		std::vector<ShrPtr<vk::WriteDescriptorSetAccelerationStructureKHR>> writeASInfo;
 
 		void StartWriting() {
 			writeBufferInfo.clear();
@@ -205,6 +200,7 @@ namespace VkHelper {
 		};
 
 		void InitCore(const VulkanInitialzeInfo& info) {
+			SKHOLE_LOG("... Initialization Vulkan Context");
 			instance = vkutils::createInstance(VK_API_VERSION_1_2, info.layers);
 			debugMessage = vkutils::createDebugMessenger(*instance);
 
@@ -214,6 +210,7 @@ namespace VkHelper {
 			queueIndex = vkutils::findGeneralQueueFamily(physicalDevice, *surface);
 			device = vkutils::createLogicalDevice(physicalDevice, queueIndex, info.extensions);
 			queue = device->getQueue(queueIndex, 0);
+			SKHOLE_LOG("... End Initialization Vulkan Context");
 		}
 
 		vk::UniqueInstance instance;
@@ -247,6 +244,7 @@ namespace VkHelper {
 		~SwapchainContext() {}
 
 		void Init(const SwapChainInfo& info) {
+			SKHOLE_LOG("... Initialization Vulkan Screen")
 			surfaceFormat = vkutils::chooseSurfaceFormat(info.physicalDevice, info.surface);
 
 			swapchain = vkutils::createSwapchain(
@@ -298,6 +296,8 @@ namespace VkHelper {
 
 				frameBuffers[i] = info.device.createFramebufferUnique(framebufferInfo);
 			}
+
+			SKHOLE_LOG("... End Initialization Vulkan Screen")
 		}
 
 		void Release(vk::Device device) {

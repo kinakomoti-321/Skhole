@@ -2,6 +2,7 @@
 
 namespace Skhole {
 	void PPExample::Init(const Desc& desc) {
+		SKHOLE_LOG("... Initialization PostProcessor");
 		auto& physicalDevice = desc.physicalDevice;
 		auto& device = desc.device;
 		auto& queue = desc.queue;
@@ -46,6 +47,7 @@ namespace Skhole {
 		computePipeline = std::move(result.value);
 
 		bindingManager.SetDescriptorSet(device);
+		SKHOLE_LOG("... End Initialization PostProcessor");
 	}
 
 	void PPExample::Execute(vk::CommandBuffer command, const ExecuteDesc& desc) {
