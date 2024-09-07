@@ -70,10 +70,10 @@ namespace Skhole {
 
 		CopyBuffer(device, uniformBuffer, &uniformObject, uniformBuffer.GetBufferSize());
 
-		VkHelper::BindingManager::WritingInfo info;
-		info.numImage = 2;
-		info.numBuffer = 1;
-		bindingManager.StartWriting(info);
+		//VkHelper::BindingManager::WritingInfo info;
+		//info.numImage = 2;
+		//info.numBuffer = 1;
+		bindingManager.StartWriting();
 
 		bindingManager.WriteImage(
 			desc.inputImage, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,

@@ -583,22 +583,11 @@ namespace Skhole {
 
 
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
-		//std::vector<vk::WriteDescriptorSet> writes(2);
-
-		VkHelper::BindingManager::WritingInfo info;
-		info.numAS = 1;
-		info.numImage = 2;
-		info.numBuffer = 8;
-		m_bindingManager.StartWriting(info);
+		m_bindingManager.StartWriting();
 
 		m_bindingManager.WriteAS(
 			*m_asManager.TLAS.accel, 0, 1, *m_context.device
 		);
-
-		//m_bindingManager.WriteImage(
-		//	imageView, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
-		//	vk::DescriptorType::eStorageImage, 1, 1, *m_context.device
-		//);
 
 		m_bindingManager.WriteImage(
 			renderImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,

@@ -96,28 +96,26 @@ namespace VkHelper {
 			descriptorSet = device.allocateDescriptorSets(allocInfo)[0];
 		}
 
-		struct WritingInfo {
-			uint32_t numBuffer = 0;
-			uint32_t numImage = 0;
-			uint32_t numAS = 0;
-		};
+		//struct WritingInfo {
+		//	uint32_t numBuffer = 0;
+		//	uint32_t numImage = 0;
+		//	uint32_t numAS = 0;
+		//};
 
-		std::vector<vk::DescriptorBufferInfo> writeBufferInfo;
-		std::vector<vk::DescriptorImageInfo> writeImageInfo;
-		std::vector<vk::WriteDescriptorSetAccelerationStructureKHR> writeASInfo;
+		std::vector<ShrPtr<vk::DescriptorBufferInfo>> writeBufferInfo;
+		std::vector<ShrPtr<vk::DescriptorImageInfo>> writeImageInfo;
+		std::vector<ShrPtr<vk::WriteDescriptorSetAccelerationStructureKHR>> writeASInfo;
 
-		void StartWriting(WritingInfo& info) {
-			writeBufferInfo.reserve(info.numBuffer);
-			writeImageInfo.reserve(info.numImage);
-			writeASInfo.reserve(info.numAS);
-
-			uint32_t sum = info.numBuffer + info.numImage + info.numAS;
-			writeDescriptorSets.reserve(sum);
+		void StartWriting() {
+			writeBufferInfo.clear();
+			writeImageInfo.clear();
+			writeASInfo.clear();
+			writeDescriptorSets.clear();
 		}
 
 		void WriteAS(vk::AccelerationStructureKHR& as, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
-			vk::WriteDescriptorSetAccelerationStructureKHR asInfo = {};
-			asInfo.setAccelerationStructures(as);
+			auto asInfo = MakeShr<vk::WriteDescriptorSetAccelerationStructureKHR>();
+			asInfo->setAccelerationStructures(as);
 			writeASInfo.push_back(asInfo);
 
 			vk::WriteDescriptorSet writeDescriptorSet = {};
@@ -125,7 +123,7 @@ namespace VkHelper {
 			writeDescriptorSet.setDstBinding(bindNumber);
 			writeDescriptorSet.setDescriptorCount(descriptorCount);
 			writeDescriptorSet.setDescriptorType(vk::DescriptorType::eAccelerationStructureKHR);
-			writeDescriptorSet.setPNext(&writeASInfo[writeASInfo.size() - 1]);
+			writeDescriptorSet.setPNext(asInfo.get());
 
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
@@ -133,19 +131,20 @@ namespace VkHelper {
 		void WriteBuffer(vk::Buffer buffer, uint32_t offset, uint32_t range,
 			vk::DescriptorType type, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
 
-			vk::DescriptorBufferInfo bufferInfo = {};
-			bufferInfo.setBuffer(buffer);
-			bufferInfo.setOffset(0);
-			bufferInfo.setRange(range);
+			auto bufferInfo = MakeShr<vk::DescriptorBufferInfo>();
+			bufferInfo->setBuffer(buffer);
+			bufferInfo->setOffset(0);
+			bufferInfo->setRange(range);
 
 			writeBufferInfo.push_back(bufferInfo);
+
 
 			vk::WriteDescriptorSet writeDescriptorSet = {};
 			writeDescriptorSet.setDstSet(descriptorSet);
 			writeDescriptorSet.setDstBinding(bindNumber);
 			writeDescriptorSet.setDescriptorCount(descriptorCount);
 			writeDescriptorSet.setDescriptorType(type);
-			writeDescriptorSet.setPBufferInfo(&writeBufferInfo[writeBufferInfo.size() - 1]);
+			writeDescriptorSet.setPBufferInfo(bufferInfo.get());
 
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
@@ -153,10 +152,10 @@ namespace VkHelper {
 		void WriteImage(vk::ImageView imageView, vk::ImageLayout layout, vk::Sampler sampler,
 			vk::DescriptorType type, uint32_t bindNumber, uint32_t descriptorCount, vk::Device device) {
 
-			vk::DescriptorImageInfo imageInfo = {};
-			imageInfo.setImageView(imageView);
-			imageInfo.setImageLayout(layout);
-			if (VK_NULL_HANDLE != sampler) imageInfo.setSampler(sampler);
+			auto imageInfo = MakeShr<vk::DescriptorImageInfo>();
+			imageInfo->setImageView(imageView);
+			imageInfo->setImageLayout(layout);
+			if (VK_NULL_HANDLE != sampler) imageInfo->setSampler(sampler);
 
 			writeImageInfo.push_back(imageInfo);
 
@@ -165,7 +164,7 @@ namespace VkHelper {
 			writeDescriptorSet.setDstBinding(bindNumber);
 			writeDescriptorSet.setDescriptorCount(descriptorCount);
 			writeDescriptorSet.setDescriptorType(type);
-			writeDescriptorSet.setPImageInfo(&writeImageInfo[writeImageInfo.size() - 1]);
+			writeDescriptorSet.setPImageInfo(imageInfo.get());
 
 			writeDescriptorSets.push_back(writeDescriptorSet);
 		}
@@ -303,7 +302,7 @@ namespace VkHelper {
 
 		void Release(vk::Device device) {
 			frameBuffers.clear();
-			swapchainImageViews.clear();	
+			swapchainImageViews.clear();
 
 			device.destroySwapchainKHR(*swapchain);
 
