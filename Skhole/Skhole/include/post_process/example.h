@@ -18,7 +18,6 @@ namespace Skhole {
 		void Execute(vk::CommandBuffer command, const ExecuteDesc& desc) override;
 		void Destroy(vk::Device device) override;
 
-
 		PostProcessParameter GetParamter() override;
 
 	private:

@@ -176,6 +176,35 @@ namespace vkutils {
 			.get<vk::PhysicalDeviceRayTracingPipelinePropertiesKHR>();
 	}
 
+	inline void EnableFeatures(const std::vector<const char*>& extensions, std::vector<ShrPtr<void>>& extensionChain) {
+		for (auto& ex : extensions) {
+			if (ex == VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME) {
+				extensionChain.push_back(MakeShr<vk::PhysicalDeviceSynchronization2FeaturesKHR>(VK_TRUE));
+			}
+			else if (ex == VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME) {
+				extensionChain.push_back(MakeShr<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>(VK_TRUE));
+			}
+			else if (ex == VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME) {
+				extensionChain.push_back(MakeShr<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>(VK_TRUE));
+			}
+			else if (ex == VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME) {
+				extensionChain.push_back(MakeShr<vk::PhysicalDeviceBufferDeviceAddressFeatures>(VK_TRUE));
+			}
+		}
+
+		void* lastPNext = nullptr;
+		for (auto& ex : extensionChain)
+		{
+			if (lastPNext == nullptr) {
+				lastPNext = ex.get();
+			}
+			else {
+				reinterpret_cast<vk::BaseOutStructure*>(lastPNext)->pNext = reinterpret_cast<vk::BaseOutStructure*>(ex.get());
+				lastPNext = ex.get();
+			}
+		}
+	}
+
 	inline vk::UniqueDevice createLogicalDevice(
 		vk::PhysicalDevice physicalDevice,
 		uint32_t queueFamilyIndex,
@@ -189,21 +218,47 @@ namespace vkutils {
 
 		vk::DeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.setQueueCreateInfos(queueCreateInfo);
+		deviceCreateInfo.setEnabledExtensionCount(deviceExtensions.size());
 		deviceCreateInfo.setPEnabledExtensionNames(deviceExtensions);
 		deviceCreateInfo.setFlags(vk::DeviceCreateFlagBits(0));
 
 		SKHOLE_LOG("End Create Vulkan LogicalDevice");
 
-		vk::StructureChain createInfoChain{
-			deviceCreateInfo,
-			vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{VK_TRUE},
-			vk::PhysicalDeviceAccelerationStructureFeaturesKHR{VK_TRUE},
-			vk::PhysicalDeviceBufferDeviceAddressFeatures{VK_TRUE},
-			vk::PhysicalDeviceSynchronization2FeaturesKHR{VK_TRUE},
-		};
+
+		//vk::StructureChain createInfoChain{
+		//	deviceCreateInfo,
+		//	vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{VK_TRUE},
+		//	vk::PhysicalDeviceAccelerationStructureFeaturesKHR{VK_TRUE},
+		//	vk::PhysicalDeviceBufferDeviceAddressFeatures{VK_TRUE},
+		//	vk::PhysicalDeviceSynchronization2FeaturesKHR{VK_TRUE},
+		//};
+
+		std::vector<ShrPtr<void>> extensionChain;
+		//extensionChain.push_back(MakeShr<vk::PhysicalDeviceRayTracingPipelineFeaturesKHR>(VK_TRUE));
+		//extensionChain.push_back(MakeShr<vk::PhysicalDeviceAccelerationStructureFeaturesKHR>(VK_TRUE));
+		//extensionChain.push_back(MakeShr<vk::PhysicalDeviceBufferDeviceAddressFeatures>(VK_TRUE));
+		//extensionChain.push_back(MakeShr<vk::PhysicalDeviceSynchronization2FeaturesKHR>(VK_TRUE));
+
+		//void* lastPNext = nullptr;
+		//for (auto& ex : extensionChain)
+		//{
+		//	if (lastPNext == nullptr) {
+		//		lastPNext = ex.get();
+		//	}
+		//	else {
+		//		reinterpret_cast<vk::BaseOutStructure*>(lastPNext)->pNext = reinterpret_cast<vk::BaseOutStructure*>(ex.get());
+		//		lastPNext = ex.get();
+		//	}
+		//}
+
+		EnableFeatures(deviceExtensions, extensionChain);
+
+		deviceCreateInfo.pNext = extensionChain[0].get();
+
+		//deviceCreateInfo.pNext(&ex1);
 
 		vk::UniqueDevice device = physicalDevice.createDeviceUnique(
-			createInfoChain.get<vk::DeviceCreateInfo>());
+			deviceCreateInfo);
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());
 
 		SKHOLE_LOG("End Create Vulkan LogicalDevice");
