@@ -178,6 +178,7 @@ namespace Skhole
 		std::vector<const char* > m_extension = {
 			// For swapchain
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
 
 			// For ray tracing
 			VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,

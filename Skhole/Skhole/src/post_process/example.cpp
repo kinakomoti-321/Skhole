@@ -60,7 +60,6 @@ namespace Skhole {
 		command.bindPipeline(vk::PipelineBindPoint::eCompute, *computePipeline);
 		command.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *pipelineLayout, 0, bindingManager.descriptorSet, nullptr);
 		command.dispatch(width, height, 1);
-
 	}
 
 	void PPExample::WriteBinding(vk::Device device, const ExecuteDesc& desc) {

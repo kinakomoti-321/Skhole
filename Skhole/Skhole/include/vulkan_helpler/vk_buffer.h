@@ -181,7 +181,7 @@ namespace Skhole {
 			// Create buffer for AS
 			buffer.init(physicalDevice, device,
 				buildSizes.accelerationStructureSize,
-				vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR,
+				vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
 				vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 			// Create AS

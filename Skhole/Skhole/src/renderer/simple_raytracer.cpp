@@ -388,6 +388,7 @@ namespace Skhole {
 	}
 
 	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
+		SKHOLE_LOG_SECTION("Set Scene");
 		m_scene = scene;
 		InitBufferManager();
 		InitAccelerationStructures();
@@ -414,6 +415,7 @@ namespace Skhole {
 		m_materaialBuffer.Unmap(*m_context.device);
 
 		m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue);
+		SKHOLE_LOG_SECTION("End Set Scene");
 	}
 
 	void SimpleRaytracer::InitBufferManager() {

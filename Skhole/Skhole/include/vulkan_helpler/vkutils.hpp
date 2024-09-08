@@ -190,17 +190,23 @@ namespace vkutils {
 		vk::DeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.setQueueCreateInfos(queueCreateInfo);
 		deviceCreateInfo.setPEnabledExtensionNames(deviceExtensions);
+		deviceCreateInfo.setFlags(vk::DeviceCreateFlagBits(0));
+
+		SKHOLE_LOG("End Create Vulkan LogicalDevice");
 
 		vk::StructureChain createInfoChain{
 			deviceCreateInfo,
 			vk::PhysicalDeviceRayTracingPipelineFeaturesKHR{VK_TRUE},
 			vk::PhysicalDeviceAccelerationStructureFeaturesKHR{VK_TRUE},
 			vk::PhysicalDeviceBufferDeviceAddressFeatures{VK_TRUE},
+			vk::PhysicalDeviceSynchronization2FeaturesKHR{VK_TRUE},
 		};
 
 		vk::UniqueDevice device = physicalDevice.createDeviceUnique(
 			createInfoChain.get<vk::DeviceCreateInfo>());
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(device.get());
+
+		SKHOLE_LOG("End Create Vulkan LogicalDevice");
 
 		return device;
 	}
