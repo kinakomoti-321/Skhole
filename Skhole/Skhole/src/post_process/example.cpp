@@ -113,6 +113,8 @@ namespace Skhole {
 		device.destroyPipeline(*computePipeline);
 		device.destroyShaderModule(*csModule);
 
+		bindingManager.Release(device);
+
 		*descriptorPool = VK_NULL_HANDLE;
 		*pipelineLayout = VK_NULL_HANDLE;
 		*computePipeline = VK_NULL_HANDLE;

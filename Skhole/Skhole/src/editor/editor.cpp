@@ -11,7 +11,6 @@ namespace Skhole
 	}
 
 	Editor::~Editor() {
-
 	}
 
 	void Editor::Init(const EditorInitializationDesc& editorDesc) {

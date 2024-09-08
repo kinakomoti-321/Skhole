@@ -237,6 +237,9 @@ namespace Skhole {
 
 		m_postProcessor->Destroy(*m_context.device);
 		accumImage.Release(*m_context.device);
+		renderImage.Release(*m_context.device);
+		posproIamge.Release(*m_context.device);
+
 		m_bindingManager.Release(*m_context.device);
 		m_imGuiManager.Destroy(*m_context.device);
 	}

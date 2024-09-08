@@ -20,8 +20,5 @@ int main() {
 		return -1;
 	}
 
-
-	//Application app;
-	//app.run();
 	return 0;
 }
