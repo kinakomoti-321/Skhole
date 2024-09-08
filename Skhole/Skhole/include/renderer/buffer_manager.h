@@ -24,9 +24,6 @@ namespace Skhole {
 
 		struct InstanceData {
 			uint32_t geometryIndex;
-			uint32_t padding1;
-			uint32_t padding2;
-			uint32_t padding3;
 			vk::TransformMatrixKHR transform;
 			vk::TransformMatrixKHR normalTransform;
 		};

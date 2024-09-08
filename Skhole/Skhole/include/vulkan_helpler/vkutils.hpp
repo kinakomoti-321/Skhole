@@ -190,6 +190,13 @@ namespace vkutils {
 			else if (ex == VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME) {
 				extensionChain.push_back(MakeShr<vk::PhysicalDeviceBufferDeviceAddressFeatures>(VK_TRUE));
 			}
+			else if (ex == VK_KHR_RELAXED_BLOCK_LAYOUT_EXTENSION_NAME) {
+				//extensionChain.push_back(MakeShr<vk::PhysicalDeviceRelaxedBlockLayout)
+				SKHOLE_WARN("NOT IMPLE");
+			}
+			else if (ex == VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME) {
+				extensionChain.push_back(MakeShr<vk::PhysicalDeviceScalarBlockLayoutFeatures>(VK_TRUE));
+			}
 		}
 
 		void* lastPNext = nullptr;

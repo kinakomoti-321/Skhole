@@ -1,6 +1,7 @@
 #version 460
 #extension GL_EXT_ray_tracing : enable
 #extension GL_ARB_shading_language_include : require
+#extension GL_EXT_scalar_block_layout : enable
 
 #include "./payload.glsl"
 
@@ -21,9 +22,6 @@ struct GeometryData{
 
 struct InstanceData{
 	uint geometryIndex;
-	uint padding1;
-	uint padding2;
-	uint padding3;
 
 	vec4 transform0;
 	vec4 transform1;
@@ -53,11 +51,11 @@ layout(std430, binding=4) buffer readonly indexData{
 	uint index[];
 };
 
-layout(std430, binding=5) buffer readonly geometryData{
+layout(scalar, binding=5) buffer readonly geometryData{
 	GeometryData geometry[];
 };
 
-layout(std430, binding=6) buffer readonly instanceData{
+layout(scalar, binding=6) buffer readonly instanceData{
 	InstanceData instance[];
 };
 
