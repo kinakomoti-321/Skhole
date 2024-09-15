@@ -272,22 +272,6 @@ namespace Skhole {
 		renderImage.Release(*m_context.device);
 		posproIamge.Release(*m_context.device);
 
-		//accumImage.Init(
-		//	m_context.physicalDevice, *m_context.device,
-		//	m_desc.Width, m_desc.Height,
-		//	vk::Format::eR32G32B32A32Sfloat,
-		//	vk::ImageTiling::eOptimal,
-		//	vk::ImageUsageFlagBits::eStorage,
-		//	vk::MemoryPropertyFlagBits::eDeviceLocal
-		//);
-
-		//vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
-		//	[&](vk::CommandBuffer commandBuffer) {
-		//		vkutils::setImageLayout(commandBuffer, accumImage.GetImage(),
-		//		vk::ImageLayout::eUndefined,
-		//		vk::ImageLayout::eGeneral);
-		//	});
-
 		accumImage.Init(
 			m_context.physicalDevice, *m_context.device,
 			m_desc.Width, m_desc.Height,
@@ -588,6 +572,7 @@ namespace Skhole {
 		desc.param = m_scene->m_rendererParameter->posproParameters;
 
 		m_postProcessor->Execute(*m_commandBuffer, desc);
+
 		// Copy RenderImage -> WindowImage
 		vkutils::setImageLayout(*m_commandBuffer, posproIamge.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);

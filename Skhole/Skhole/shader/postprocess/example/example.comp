@@ -12,7 +12,7 @@ void main() {
 	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
     vec3 inputCol = imageLoad(inputImage, pos).xyz; 
 	vec3 outputCol;
-	outputCol = inputCol; 
+	outputCol = inputCol * col.xyz; 
 	outputCol = outputCol * intensity;
 
 	imageStore(outputImage, pos, vec4(outputCol,1));

@@ -59,6 +59,7 @@ namespace Skhole {
 		CopyBuffer(device, uniformBuffer, &uniformObject, uniformBuffer.GetBufferSize());
 
 		layer1.StartBinding();
+
 		layer1.SetImage(desc.inputImage, 0, device);
 		layer1.SetImage(desc.outputImage, 1, device);
 		layer1.SetUniformBuffer(*uniformBuffer.buffer, uniformBuffer.GetBufferSize(), 2, device);
