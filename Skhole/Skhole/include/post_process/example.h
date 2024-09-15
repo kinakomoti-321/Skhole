@@ -31,7 +31,7 @@ namespace Skhole {
 		void WriteBinding(vk::Device device, const ExecuteDesc& desc);
 
 		const std::vector<ShrPtr<Parameter>> params = {
-			MakeShr<ParamCol>("color", vec4(1.0f, 0.0f, 0.0f,0.0f)),
+			MakeShr<ParamCol>("color", vec4(1.0f, 1.0f, 1.0f,0.0f)),
 			MakeShr<ParamFloat>("intensity", 1.0f)
 		};
 

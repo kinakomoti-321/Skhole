@@ -471,9 +471,20 @@ namespace Skhole {
 	void SimpleRaytracer::CreateRaytracingPipeline() {
 		PrepareShader();
 
-		CreateDescSetLayout();
-		CreateDescriptorPool();
-		CreateDescSet();
+		std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
+			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
+			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{9, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+		};
+
+		m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
 
 		CreatePipeline();
 		CreateShaderBindingTable();
@@ -780,7 +791,6 @@ namespace Skhole {
 		vk::DescriptorSetAllocateInfo descSetAllocInfo{};
 		descSetAllocInfo.setDescriptorPool(m_bindingManager.descriptorPool);
 		descSetAllocInfo.setSetLayouts(m_bindingManager.descriptorSetLayout);
-
 	}
 
 	void SimpleRaytracer::CreateShaderBindingTable() {
