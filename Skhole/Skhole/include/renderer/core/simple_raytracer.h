@@ -1,7 +1,8 @@
 #pragma once
 
 #include <renderer/renderer.h>
-#include <renderer/raytracing_pipeline.h>
+#include <renderer/common/raytracing_pipeline.h>
+#include <renderer/common/buffer_manager.h>
 
 #include <vulkan_helpler/vkutils.hpp>
 #include <vulkan_helpler/vk_buffer.h>
@@ -9,7 +10,6 @@
 #include <vulkan_helpler/vk_imgui.h>
 #include <post_process/post_processor.h>
 #include <post_process/post_processor_interface.h>
-#include <renderer/buffer_manager.h>
 
 #include <common/util.h>
 
@@ -97,17 +97,9 @@ namespace Skhole
 		// Resources
 		void InitBufferManager();
 		void InitAccelerationStructures();
-		void InitBottomLevelAS();
-		void InitTopLevelAS();
 
 		// Pipeline
 		void CreateRaytracingPipeline();
-
-		//void CreatePipeline();
-		//void CreateShaderBindingTable();
-
-		//void PrepareShader();
-		//void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);
 
 		// Render
 		void UpdateDescriptorSet(vk::ImageView imageView);

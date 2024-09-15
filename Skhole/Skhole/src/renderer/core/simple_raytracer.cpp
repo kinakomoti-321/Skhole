@@ -1,4 +1,4 @@
-#include <renderer/simple_raytracer.h>
+#include <renderer/core/simple_raytracer.h>
 #include <common/log.h>
 #include <vulkan_helpler/vkutils.hpp>
 
@@ -260,7 +260,6 @@ namespace Skhole {
 		swapchainInfo.commandPool = *m_commandPool;
 		swapchainInfo.renderPass = m_imGuiRenderPass.get();
 
-		//swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment;
 		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
 
 		swapchainInfo.width = m_desc.Width;

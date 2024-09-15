@@ -1,4 +1,4 @@
-#include <renderer/raytracing_pipeline.h>
+#include <renderer/common/raytracing_pipeline.h>
 
 namespace Skhole {
 	void RaytracingPipeline::InitPipeline(const Desc& desc)

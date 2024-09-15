@@ -21,7 +21,7 @@
     <ClCompile Include="src\application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\simple_raytracer.cpp">
+    <ClCompile Include="src\renderer\core\simple_raytracer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\vulkan_helpler\vkutils.cpp">
@@ -69,7 +69,7 @@
     <ClCompile Include="src\post_process\layer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\renderer\raytracing_pipeline.cpp">
+    <ClCompile Include="src\renderer\common\raytracing_pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,7 +86,7 @@
     <ClInclude Include="include\renderer\renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\renderer\simple_raytracer.h">
+    <ClInclude Include="include\renderer\core\simple_raytracer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\common\timer.h">
@@ -173,13 +173,13 @@
     <ClInclude Include="include\common\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\renderer\buffer_manager.h">
+    <ClInclude Include="include\renderer\common\buffer_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\scene\parameter\renderer_parameter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\renderer\update_command.h">
+    <ClInclude Include="include\renderer\common\update_command.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\loader\obj_loader.h">
@@ -218,7 +218,13 @@
     <ClInclude Include="include\post_process\layer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\renderer\raytracing_pipeline.h">
+    <ClInclude Include="include\renderer\common\raytracing_pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\renderer\core\caustics_renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\renderer\core\vndf_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

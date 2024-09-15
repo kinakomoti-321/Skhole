@@ -156,8 +156,8 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\post_process\example.cpp" />
     <ClCompile Include="src\post_process\layer.cpp" />
-    <ClCompile Include="src\renderer\raytracing_pipeline.cpp" />
-    <ClCompile Include="src\renderer\simple_raytracer.cpp" />
+    <ClCompile Include="src\renderer\common\raytracing_pipeline.cpp" />
+    <ClCompile Include="src\renderer\core\simple_raytracer.cpp" />
     <ClCompile Include="src\scene\object\object.cpp" />
     <ClCompile Include="src\scene\scene.cpp" />
   </ItemGroup>
@@ -185,9 +185,11 @@
     <ClInclude Include="include\post_process\post_processor.h" />
     <ClInclude Include="include\post_process\post_processor_interface.h" />
     <ClInclude Include="include\post_process\pp_none.h" />
-    <ClInclude Include="include\renderer\buffer_manager.h" />
-    <ClInclude Include="include\renderer\raytracing_pipeline.h" />
-    <ClInclude Include="include\renderer\update_command.h" />
+    <ClInclude Include="include\renderer\common\buffer_manager.h" />
+    <ClInclude Include="include\renderer\common\raytracing_pipeline.h" />
+    <ClInclude Include="include\renderer\core\caustics_renderer.h" />
+    <ClInclude Include="include\renderer\common\update_command.h" />
+    <ClInclude Include="include\renderer\core\vndf_renderer.h" />
     <ClInclude Include="include\scene\camera\camera.h" />
     <ClInclude Include="include\scene\object\cameraObject.h" />
     <ClInclude Include="include\scene\object\sample_geometry.h" />
@@ -195,7 +197,7 @@
     <ClInclude Include="include\editor\editor.h" />
     <ClInclude Include="include\include.h" />
     <ClInclude Include="include\renderer\renderer.h" />
-    <ClInclude Include="include\renderer\simple_raytracer.h" />
+    <ClInclude Include="include\renderer\core\simple_raytracer.h" />
     <ClInclude Include="include\scene\animation\animation.h" />
     <ClInclude Include="include\scene\material\material.h" />
     <ClInclude Include="include\scene\material\texture.h" />
