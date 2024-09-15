@@ -24,8 +24,8 @@ namespace Skhole {
 		void Init(const LayerDesc& desc);
 		void Resize(uint32_t width, uint32_t height);
 		void StartBinding();
-		void SetUniformBuffer(vk::Buffer& buffer, size_t size, uint32_t bindingIndex, vk::Device device);
-		void SetImage(vk::ImageView& image, uint32_t index, vk::Device device);
+		void SetUniformBuffer(const vk::Buffer& buffer, size_t size, uint32_t bindingIndex, vk::Device device);
+		void SetImage(const vk::ImageView& image, uint32_t index, vk::Device device);
 		void EndBinding(vk::Device device);
 		void Execute(vk::CommandBuffer command, uint32_t dispatchW, uint32_t dispatchH);
 		void Destroy(vk::Device device);

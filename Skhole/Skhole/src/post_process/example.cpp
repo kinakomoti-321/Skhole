@@ -10,30 +10,23 @@ namespace Skhole {
 		width = desc.width;
 		height = desc.height;
 
-		std::vector<VkHelper::BindingLayoutElement> binding = {
-			{0,vk::DescriptorType::eStorageImage,1,vk::ShaderStageFlagBits::eCompute},
-			{1,vk::DescriptorType::eStorageImage,1,vk::ShaderStageFlagBits::eCompute},
-			{2,vk::DescriptorType::eUniformBuffer,1,vk::ShaderStageFlagBits::eCompute}
+
+		PPLayer::LayerDesc layerDesc;
+		layerDesc.width = width;
+		layerDesc.height = height;
+		layerDesc.csShaderPath = "shader/postprocess/example/example.comp.spv";
+
+		layerDesc.binding =
+		{
+			{0, vk::DescriptorType::eStorageImage, 1,vk::ShaderStageFlagBits::eCompute},
+			{1, vk::DescriptorType::eStorageImage,1, vk::ShaderStageFlagBits::eCompute},
+			{2, vk::DescriptorType::eUniformBuffer,1, vk::ShaderStageFlagBits::eCompute}
 		};
 
-		bindingManager.SetBindingLayout(device, binding, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+		layerDesc.device = device;
+		layerDesc.physicalDevice = physicalDevice;
 
-		csModule = vkutils::createShaderModule(device, "shader/postprocess/example/example.comp.spv");
-
-		vk::PipelineShaderStageCreateInfo shaderStageInfo{};
-		shaderStageInfo.setStage(vk::ShaderStageFlagBits::eCompute);
-		shaderStageInfo.setModule(*csModule);
-		shaderStageInfo.setPName("main");
-
-		vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-		pipelineLayoutInfo.setSetLayouts(bindingManager.descriptorSetLayout);
-		pipelineLayout = device.createPipelineLayoutUnique(pipelineLayoutInfo);
-
-		vk::ComputePipelineCreateInfo pipelineInfo{ {},shaderStageInfo,*pipelineLayout };
-		auto result = device.createComputePipelineUnique({}, pipelineInfo);
-		if (result.result != vk::Result::eSuccess) {
-			SKHOLE_ERROR("Failed to create compute pipeline");
-		}
+		layer1.Init(layerDesc);
 
 		uniformBuffer.init(
 			physicalDevice,
@@ -42,8 +35,6 @@ namespace Skhole {
 			vk::BufferUsageFlagBits::eUniformBuffer,
 			vk::MemoryPropertyFlagBits::eHostCached | vk::MemoryPropertyFlagBits::eHostVisible
 		);
-
-		computePipeline = std::move(result.value);
 
 		SKHOLE_LOG("... End Initialization PostProcessor");
 	}
@@ -55,9 +46,7 @@ namespace Skhole {
 		WriteBinding(device, desc);
 
 		// Execute
-		command.bindPipeline(vk::PipelineBindPoint::eCompute, *computePipeline);
-		command.bindDescriptorSets(vk::PipelineBindPoint::eCompute, *pipelineLayout, 0, bindingManager.descriptorSet, nullptr);
-		command.dispatch(width, height, 1);
+		layer1.Execute(command, width, height);
 	}
 
 	void PPExample::WriteBinding(vk::Device device, const ExecuteDesc& desc) {
@@ -69,24 +58,12 @@ namespace Skhole {
 
 		CopyBuffer(device, uniformBuffer, &uniformObject, uniformBuffer.GetBufferSize());
 
-		bindingManager.StartWriting();
+		layer1.StartBinding();
+		layer1.SetImage(desc.inputImage, 0, device);
+		layer1.SetImage(desc.outputImage, 1, device);
+		layer1.SetUniformBuffer(*uniformBuffer.buffer, uniformBuffer.GetBufferSize(), 2, device);
 
-		bindingManager.WriteImage(
-			desc.inputImage, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
-			vk::DescriptorType::eStorageImage, 0, 1, device
-		);
-
-		bindingManager.WriteImage(
-			desc.outputImage, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
-			vk::DescriptorType::eStorageImage, 1, 1, device
-		);
-
-		bindingManager.WriteBuffer(
-			uniformBuffer.buffer.get(), 0, uniformBuffer.GetBufferSize(),
-			vk::DescriptorType::eUniformBuffer, 2, 1, device
-		);
-
-		bindingManager.EndWriting(device);
+		layer1.EndBinding(device);
 	}
 
 	PostProcessParameter PPExample::GetParamter() {
@@ -99,19 +76,9 @@ namespace Skhole {
 	void PPExample::Resize(uint32_t width, uint32_t height) {
 		this->width = width;
 		this->height = height;
-		//SKHOLE_UNIMPL();
 	}
 
 	void PPExample::Destroy(vk::Device device) {
-		device.destroyPipelineLayout(*pipelineLayout);
-		device.destroyPipeline(*computePipeline);
-		device.destroyShaderModule(*csModule);
-
-		bindingManager.Release(device);
-
-		*pipelineLayout = VK_NULL_HANDLE;
-		*computePipeline = VK_NULL_HANDLE;
-		*csModule = VK_NULL_HANDLE;
-
+		layer1.Destroy(device);
 	}
 }

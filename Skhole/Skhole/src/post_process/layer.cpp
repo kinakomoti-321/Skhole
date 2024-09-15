@@ -41,11 +41,11 @@ namespace Skhole {
 
 	}
 
-	void PPLayer::SetUniformBuffer(vk::Buffer& buffer, size_t size, uint32_t bindingIndex, vk::Device device) {
+	void PPLayer::SetUniformBuffer(const vk::Buffer& buffer, size_t size, uint32_t bindingIndex, vk::Device device) {
 		bindingManager.WriteBuffer(buffer, 0, size, vk::DescriptorType::eUniformBuffer, bindingIndex, 1, device);
 	}
 
-	void PPLayer::SetImage(vk::ImageView& image, uint32_t bindingIndex, vk::Device device)
+	void PPLayer::SetImage(const vk::ImageView& image, uint32_t bindingIndex, vk::Device device)
 	{
 		bindingManager.WriteImage(
 			image, vk::ImageLayout::eGeneral, VK_NULL_HANDLE,

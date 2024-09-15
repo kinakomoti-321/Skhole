@@ -5,6 +5,7 @@
 
 #include <vulkan_helpler/vk_buffer.h>
 #include <vulkan_helpler/vk_hepler.h>
+#include <post_process/layer.h>
 
 namespace Skhole {
 
@@ -44,6 +45,8 @@ namespace Skhole {
 		Buffer uniformBuffer;
 
 		uint32_t width, height;
+
+		PPLayer layer1;
 	};
 
 }
