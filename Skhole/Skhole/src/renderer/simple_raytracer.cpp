@@ -757,9 +757,9 @@ namespace Skhole {
 
 		m_pipeline = std::move(result.value);
 
-		vk::DescriptorSetAllocateInfo descSetAllocInfo{};
-		descSetAllocInfo.setDescriptorPool(m_bindingManager.descriptorPool);
-		descSetAllocInfo.setSetLayouts(m_bindingManager.descriptorSetLayout);
+		//vk::DescriptorSetAllocateInfo descSetAllocInfo{};
+		//descSetAllocInfo.setDescriptorPool(m_bindingManager.descriptorPool);
+		//descSetAllocInfo.setSetLayouts(m_bindingManager.descriptorSetLayout);
 	}
 
 	void SimpleRaytracer::CreateShaderBindingTable() {

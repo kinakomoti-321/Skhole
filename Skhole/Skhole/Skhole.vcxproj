@@ -156,6 +156,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\post_process\example.cpp" />
     <ClCompile Include="src\post_process\layer.cpp" />
+    <ClCompile Include="src\renderer\raytracing_pipeline.cpp" />
     <ClCompile Include="src\renderer\simple_raytracer.cpp" />
     <ClCompile Include="src\scene\object\object.cpp" />
     <ClCompile Include="src\scene\scene.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="include\post_process\post_processor_interface.h" />
     <ClInclude Include="include\post_process\pp_none.h" />
     <ClInclude Include="include\renderer\buffer_manager.h" />
+    <ClInclude Include="include\renderer\raytracing_pipeline.h" />
     <ClInclude Include="include\renderer\update_command.h" />
     <ClInclude Include="include\scene\camera\camera.h" />
     <ClInclude Include="include\scene\object\cameraObject.h" />
