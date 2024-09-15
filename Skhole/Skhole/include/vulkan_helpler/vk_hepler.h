@@ -50,11 +50,13 @@ namespace VkHelper {
 		vk::DescriptorSet descriptorSet;
 
 		std::vector<BindingLayoutElement> bindings;
-		std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
 
-		std::vector<ShrPtr<vk::DescriptorBufferInfo>> writeBufferInfo;
-		std::vector<ShrPtr<vk::DescriptorImageInfo>> writeImageInfo;
-		std::vector<ShrPtr<vk::WriteDescriptorSetAccelerationStructureKHR>> writeASInfo;
+		void SetBindingLayout(vk::Device device,const std::vector<BindingLayoutElement>& binding, vk::DescriptorPoolCreateFlagBits frag) {
+			bindings = binding;
+			SetLayout(device);
+			SetPool(frag, device);
+			SetDescriptorSet(device);
+		}
 
 		void SetLayout(vk::Device device) {
 			std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
@@ -179,7 +181,11 @@ namespace VkHelper {
 		}
 
 	private:
+		std::vector<ShrPtr<vk::DescriptorBufferInfo>> writeBufferInfo;
+		std::vector<ShrPtr<vk::DescriptorImageInfo>> writeImageInfo;
+		std::vector<ShrPtr<vk::WriteDescriptorSetAccelerationStructureKHR>> writeASInfo;
 
+		std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
 	};
 
 
@@ -245,7 +251,7 @@ namespace VkHelper {
 
 		void Init(const SwapChainInfo& info) {
 			SKHOLE_LOG("... Initialization Vulkan Screen")
-			surfaceFormat = vkutils::chooseSurfaceFormat(info.physicalDevice, info.surface);
+				surfaceFormat = vkutils::chooseSurfaceFormat(info.physicalDevice, info.surface);
 
 			swapchain = vkutils::createSwapchain(
 				info.physicalDevice, info.device, info.surface, info.queueIndex,

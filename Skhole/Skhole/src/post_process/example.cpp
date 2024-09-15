@@ -10,14 +10,13 @@ namespace Skhole {
 		width = desc.width;
 		height = desc.height;
 
-		bindingManager.bindings = {
+		std::vector<VkHelper::BindingLayoutElement> binding = {
 			{0,vk::DescriptorType::eStorageImage,1,vk::ShaderStageFlagBits::eCompute},
 			{1,vk::DescriptorType::eStorageImage,1,vk::ShaderStageFlagBits::eCompute},
 			{2,vk::DescriptorType::eUniformBuffer,1,vk::ShaderStageFlagBits::eCompute}
 		};
 
-		bindingManager.SetLayout(device);
-		bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, device);
+		bindingManager.SetBindingLayout(device, binding, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
 
 		csModule = vkutils::createShaderModule(device, "shader/postprocess/example/example.comp.spv");
 
@@ -46,7 +45,6 @@ namespace Skhole {
 
 		computePipeline = std::move(result.value);
 
-		bindingManager.SetDescriptorSet(device);
 		SKHOLE_LOG("... End Initialization PostProcessor");
 	}
 
@@ -71,9 +69,6 @@ namespace Skhole {
 
 		CopyBuffer(device, uniformBuffer, &uniformObject, uniformBuffer.GetBufferSize());
 
-		//VkHelper::BindingManager::WritingInfo info;
-		//info.numImage = 2;
-		//info.numBuffer = 1;
 		bindingManager.StartWriting();
 
 		bindingManager.WriteImage(
@@ -108,14 +103,12 @@ namespace Skhole {
 	}
 
 	void PPExample::Destroy(vk::Device device) {
-		device.destroyDescriptorPool(*descriptorPool);
 		device.destroyPipelineLayout(*pipelineLayout);
 		device.destroyPipeline(*computePipeline);
 		device.destroyShaderModule(*csModule);
 
 		bindingManager.Release(device);
 
-		*descriptorPool = VK_NULL_HANDLE;
 		*pipelineLayout = VK_NULL_HANDLE;
 		*computePipeline = VK_NULL_HANDLE;
 		*csModule = VK_NULL_HANDLE;

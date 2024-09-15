@@ -8,6 +8,7 @@
 
 namespace Skhole {
 
+
 	class PPExample : public PostProcessor {
 	public:
 		PPExample() {}
@@ -39,13 +40,10 @@ namespace Skhole {
 
 		vk::UniquePipelineLayout pipelineLayout;
 
-		vk::UniqueDescriptorPool descriptorPool;
-
 		UniformObject uniformObject;
 		Buffer uniformBuffer;
 
 		uint32_t width, height;
-
 	};
 
 }

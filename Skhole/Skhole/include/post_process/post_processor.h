@@ -41,7 +41,7 @@ namespace Skhole {
 		virtual void Destroy(vk::Device device) = 0;
 
 		virtual PostProcessParameter GetParamter() = 0;
-
 	};
-		
+
+
 }
