@@ -490,29 +490,6 @@ namespace Skhole {
 		CreateShaderBindingTable();
 	}
 
-	void SimpleRaytracer::CreateDescriptorPool()
-	{
-		m_bindingManager.SetPool(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, *m_context.device);
-	}
-
-	void SimpleRaytracer::CreateDescSetLayout() {
-
-		m_bindingManager.bindings = {
-			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
-			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{9, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-		};
-
-		m_bindingManager.SetLayout(*m_context.device);
-	}
-
 	void SimpleRaytracer::FrameStart(float time) {
 
 		auto& raytracerParam = m_scene->m_rendererParameter;
@@ -754,14 +731,6 @@ namespace Skhole {
 		shaderGroups[hitGroup].setClosestHitShader(closestHitShader);
 		shaderGroups[hitGroup].setAnyHitShader(VK_SHADER_UNUSED_KHR);
 		shaderGroups[hitGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
-	}
-
-
-	void SimpleRaytracer::CreateDescSet() {
-		std::cout << "Create desc set\n";
-
-		m_bindingManager.SetDescriptorSet(*m_context.device);
-
 	}
 
 	void SimpleRaytracer::CreatePipeline() {

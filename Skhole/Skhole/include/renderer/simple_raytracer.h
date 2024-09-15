@@ -99,12 +99,8 @@ namespace Skhole
 		void InitBottomLevelAS();
 		void InitTopLevelAS();
 
-
 		// Pipeline
 		void CreateRaytracingPipeline();
-		void CreateDescriptorPool();
-		void CreateDescSetLayout();
-		void CreateDescSet();
 
 		void CreatePipeline();
 		void CreateShaderBindingTable();
