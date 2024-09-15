@@ -27,6 +27,9 @@ namespace Skhole {
 
 		vk::Pipeline GetPipeline() { return *m_pipeline; }
 		vk::PipelineLayout GetPipelineLayout() { return *m_pipelineLayout; }
+		vk::StridedDeviceAddressRegionKHR GetRaygenRegion() { return raygenRegion; }
+		vk::StridedDeviceAddressRegionKHR GetMissRegion() { return missRegion; }
+		vk::StridedDeviceAddressRegionKHR GetHitRegion() { return hitRegion; }
 
 	private:
 		void CreateShaderModule(const Desc& desc);

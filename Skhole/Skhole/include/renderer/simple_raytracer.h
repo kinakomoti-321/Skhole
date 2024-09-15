@@ -1,13 +1,14 @@
 #pragma once
 
 #include <renderer/renderer.h>
+#include <renderer/raytracing_pipeline.h>
+
 #include <vulkan_helpler/vkutils.hpp>
 #include <vulkan_helpler/vk_buffer.h>
 #include <vulkan_helpler/vk_hepler.h>
 #include <vulkan_helpler/vk_imgui.h>
 #include <post_process/post_processor.h>
 #include <post_process/post_processor_interface.h>
-
 #include <renderer/buffer_manager.h>
 
 #include <common/util.h>
@@ -102,11 +103,11 @@ namespace Skhole
 		// Pipeline
 		void CreateRaytracingPipeline();
 
-		void CreatePipeline();
-		void CreateShaderBindingTable();
+		//void CreatePipeline();
+		//void CreateShaderBindingTable();
 
-		void PrepareShader();
-		void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);
+		//void PrepareShader();
+		//void AddShader(uint32_t shaderIndex, const std::string& shaderName, vk::ShaderStageFlagBits stage);
 
 		// Render
 		void UpdateDescriptorSet(vk::ImageView imageView);
@@ -188,21 +189,8 @@ namespace Skhole
 			VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME,
 		};
 
-
-		std::vector<vk::UniqueShaderModule> shaderModules;
-		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-		std::vector<vk::RayTracingShaderGroupCreateInfoKHR> shaderGroups;
-
 		VkHelper::BindingManager m_bindingManager;
-
-		vk::UniquePipeline m_pipeline;
-		vk::UniquePipelineLayout m_pipelineLayout;
-
-		Buffer sbt{};
-		vk::StridedDeviceAddressRegionKHR raygenRegion{};
-		vk::StridedDeviceAddressRegionKHR missRegion{};
-		vk::StridedDeviceAddressRegionKHR hitRegion{};
-
+		RaytracingPipeline m_raytracingPipeline;
 
 		UniformBufferObject uniformBufferObject;
 		Buffer m_uniformBuffer;

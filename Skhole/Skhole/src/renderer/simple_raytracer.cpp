@@ -469,7 +469,7 @@ namespace Skhole {
 	// Internal Method
 	//--------------------------------------
 	void SimpleRaytracer::CreateRaytracingPipeline() {
-		PrepareShader();
+		//PrepareShader();
 
 		std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
 			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
@@ -486,8 +486,16 @@ namespace Skhole {
 
 		m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
 
-		CreatePipeline();
-		CreateShaderBindingTable();
+		RaytracingPipeline::Desc desc;
+		desc.device = *m_context.device;
+		desc.physicalDevice = m_context.physicalDevice;
+		desc.descriptorSetLayout = m_bindingManager.descriptorSetLayout;
+
+		desc.raygenShaderPath = "shader/simple_raytracer/raygen.rgen.spv";
+		desc.missShaderPath = "shader/simple_raytracer/miss.rmiss.spv";
+		desc.closestHitShaderPath = "shader/simple_raytracer/closesthit.rchit.spv";
+
+		m_raytracingPipeline.InitPipeline(desc);
 	}
 
 	void SimpleRaytracer::FrameStart(float time) {
@@ -534,20 +542,20 @@ namespace Skhole {
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
-		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, *m_pipeline);
+		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_raytracingPipeline.GetPipeline());
 
 		m_commandBuffer->bindDescriptorSets(
 			vk::PipelineBindPoint::eRayTracingKHR,
-			*m_pipelineLayout,
+			m_raytracingPipeline.GetPipelineLayout(),
 			0,
 			m_bindingManager.descriptorSet,
 			nullptr
 		);
 
 		m_commandBuffer->traceRaysKHR(
-			raygenRegion,
-			missRegion,
-			hitRegion,
+			m_raytracingPipeline.GetRaygenRegion(),
+			m_raytracingPipeline.GetMissRegion(),
+			m_raytracingPipeline.GetHitRegion(),
 			{},
 			m_desc.Width, m_desc.Height, 1
 		);
@@ -673,176 +681,6 @@ namespace Skhole {
 
 	void SimpleRaytracer::InitAccelerationStructures() {
 		m_asManager.BuildBLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
-	}
-
-#define SHADER_FILE_PATH "shader/"
-	void SimpleRaytracer::AddShader(
-		uint32_t shaderIndex,
-		const std::string& shaderName,
-		vk::ShaderStageFlagBits stage
-	)
-	{
-		shaderModules[shaderIndex] = vkutils::createShaderModule(*m_context.device, SHADER_FILE_PATH + shaderName);
-		shaderStages[shaderIndex].setStage(stage);
-		shaderStages[shaderIndex].setModule(*shaderModules[shaderIndex]);
-		shaderStages[shaderIndex].setPName("main");
-	}
-
-	void SimpleRaytracer::PrepareShader() {
-		SKHOLE_LOG("Prepare Shader");
-
-		uint32_t raygenShader = 0;
-		uint32_t missShader = 1;
-		uint32_t closestHitShader = 2;
-
-		shaderModules.resize(3);
-		shaderStages.resize(3);
-
-		AddShader(raygenShader, "simple_raytracer/raygen.rgen.spv", vk::ShaderStageFlagBits::eRaygenKHR);
-		AddShader(missShader, "simple_raytracer/miss.rmiss.spv", vk::ShaderStageFlagBits::eMissKHR);
-		AddShader(closestHitShader, "simple_raytracer/closesthit.rchit.spv", vk::ShaderStageFlagBits::eClosestHitKHR);
-
-		uint32_t raygenGroup = 0;
-		uint32_t missGroup = 1;
-		uint32_t hitGroup = 2;
-
-		shaderGroups.resize(3);
-
-		// Raygen group
-		shaderGroups[raygenGroup].setType(
-			vk::RayTracingShaderGroupTypeKHR::eGeneral);
-		shaderGroups[raygenGroup].setGeneralShader(raygenShader);
-		shaderGroups[raygenGroup].setClosestHitShader(VK_SHADER_UNUSED_KHR);
-		shaderGroups[raygenGroup].setAnyHitShader(VK_SHADER_UNUSED_KHR);
-		shaderGroups[raygenGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
-
-		// Miss group
-		shaderGroups[missGroup].setType(
-			vk::RayTracingShaderGroupTypeKHR::eGeneral);
-		shaderGroups[missGroup].setGeneralShader(missShader);
-		shaderGroups[missGroup].setClosestHitShader(VK_SHADER_UNUSED_KHR);
-		shaderGroups[missGroup].setAnyHitShader(VK_SHADER_UNUSED_KHR);
-		shaderGroups[missGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
-
-		// Hit group
-		shaderGroups[hitGroup].setType(
-			vk::RayTracingShaderGroupTypeKHR::eTrianglesHitGroup);
-		shaderGroups[hitGroup].setGeneralShader(VK_SHADER_UNUSED_KHR);
-		shaderGroups[hitGroup].setClosestHitShader(closestHitShader);
-		shaderGroups[hitGroup].setAnyHitShader(VK_SHADER_UNUSED_KHR);
-		shaderGroups[hitGroup].setIntersectionShader(VK_SHADER_UNUSED_KHR);
-	}
-
-	void SimpleRaytracer::CreatePipeline() {
-		std::cout << "Create pipeline\n";
-
-		// Create pipeline layout
-		vk::PipelineLayoutCreateInfo layoutCreateInfo{};
-		layoutCreateInfo.setSetLayouts(m_bindingManager.descriptorSetLayout);
-		m_pipelineLayout = m_context.device->createPipelineLayoutUnique(layoutCreateInfo);
-
-		// Create pipeline
-		vk::RayTracingPipelineCreateInfoKHR pipelineCreateInfo{};
-		pipelineCreateInfo.setLayout(*m_pipelineLayout);
-		pipelineCreateInfo.setStages(shaderStages);
-		pipelineCreateInfo.setGroups(shaderGroups);
-		pipelineCreateInfo.setMaxPipelineRayRecursionDepth(1);
-		auto result = m_context.device->createRayTracingPipelineKHRUnique(
-			nullptr, nullptr, pipelineCreateInfo);
-
-		if (result.result != vk::Result::eSuccess) {
-			std::cerr << "Failed to create ray tracing pipeline.\n";
-			std::abort();
-		}
-
-		m_pipeline = std::move(result.value);
-
-		//vk::DescriptorSetAllocateInfo descSetAllocInfo{};
-		//descSetAllocInfo.setDescriptorPool(m_bindingManager.descriptorPool);
-		//descSetAllocInfo.setSetLayouts(m_bindingManager.descriptorSetLayout);
-	}
-
-	void SimpleRaytracer::CreateShaderBindingTable() {
-		vk::PhysicalDeviceRayTracingPipelinePropertiesKHR rtProperties =
-			vkutils::getRayTracingProps(m_context.physicalDevice);
-		uint32_t handleSize = rtProperties.shaderGroupHandleSize;
-		uint32_t handleAlignment = rtProperties.shaderGroupHandleAlignment;
-		uint32_t baseAlignment = rtProperties.shaderGroupBaseAlignment;
-		uint32_t handleSizeAligned =
-			vkutils::alignUp(handleSize, handleAlignment);
-
-		// Set strides and sizes
-		uint32_t raygenShaderCount = 1;  // raygen count must be 1
-		uint32_t missShaderCount = 1;
-		uint32_t hitShaderCount = 1;
-
-		raygenRegion.setStride(
-			vkutils::alignUp(handleSizeAligned, baseAlignment));
-		raygenRegion.setSize(raygenRegion.stride);
-
-		missRegion.setStride(handleSizeAligned);
-		missRegion.setSize(vkutils::alignUp(missShaderCount * handleSizeAligned,
-			baseAlignment));
-
-		hitRegion.setStride(handleSizeAligned);
-		hitRegion.setSize(vkutils::alignUp(hitShaderCount * handleSizeAligned,
-			baseAlignment));
-
-		// Create SBT
-		vk::DeviceSize sbtSize =
-			raygenRegion.size + missRegion.size + hitRegion.size;
-		sbt.init(m_context.physicalDevice, *m_context.device, sbtSize,
-			vk::BufferUsageFlagBits::eShaderBindingTableKHR |
-			vk::BufferUsageFlagBits::eTransferSrc |
-			vk::BufferUsageFlagBits::eShaderDeviceAddress,
-			vk::MemoryPropertyFlagBits::eHostVisible |
-			vk::MemoryPropertyFlagBits::eHostCoherent);
-
-		// Get shader group handles
-		uint32_t handleCount =
-			raygenShaderCount + missShaderCount + hitShaderCount;
-		uint32_t handleStorageSize = handleCount * handleSize;
-		std::vector<uint8_t> handleStorage(handleStorageSize);
-
-		auto result = m_context.device->getRayTracingShaderGroupHandlesKHR(
-			*m_pipeline, 0, handleCount, handleStorageSize, handleStorage.data());
-		if (result != vk::Result::eSuccess) {
-			std::cerr << "Failed to get ray tracing shader group handles.\n";
-			std::abort();
-		}
-
-		// Copy handles
-		uint32_t handleIndex = 0;
-		uint8_t* sbtHead =
-			static_cast<uint8_t*>(m_context.device->mapMemory(*sbt.memory, 0, sbtSize));
-
-		uint8_t* dstPtr = sbtHead;
-		auto copyHandle = [&](uint32_t index) {
-			std::memcpy(dstPtr, handleStorage.data() + handleSize * index,
-				handleSize);
-			};
-
-		// Raygen
-		copyHandle(handleIndex++);
-
-		// Miss
-		dstPtr = sbtHead + raygenRegion.size;
-		for (uint32_t c = 0; c < missShaderCount; c++) {
-			copyHandle(handleIndex++);
-			dstPtr += missRegion.stride;
-		}
-
-		// Hit
-		dstPtr = sbtHead + raygenRegion.size + missRegion.size;
-		for (uint32_t c = 0; c < hitShaderCount; c++) {
-			copyHandle(handleIndex++);
-			dstPtr += hitRegion.stride;
-		}
-
-		raygenRegion.setDeviceAddress(sbt.address);
-		missRegion.setDeviceAddress(sbt.address + raygenRegion.size);
-		hitRegion.setDeviceAddress(sbt.address + raygenRegion.size +
-			missRegion.size);
 	}
 
 	void SimpleRaytracer::UpdateMaterialBuffer(uint32_t matId) {

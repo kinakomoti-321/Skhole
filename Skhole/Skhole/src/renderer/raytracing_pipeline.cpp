@@ -4,8 +4,8 @@ namespace Skhole {
 	void RaytracingPipeline::InitPipeline(const Desc& desc)
 	{
 		CreateShaderModule(desc);
-		CreateShaderBindingTable(desc);
 		CreatePipeline(desc);
+		CreateShaderBindingTable(desc);
 	}
 
 	void RaytracingPipeline::CreateShaderModule(const Desc& desc)
