@@ -112,6 +112,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinygltf;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\imgui;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\VectorLikeGLSL\VectorLikeGLSL\VectorLikeGLSL\include;C:\VulkanSDK\1.3.290.0\Include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\GLFW\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinyobjloader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +131,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinygltf;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\imgui;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\VectorLikeGLSL\VectorLikeGLSL\VectorLikeGLSL\include;C:\VulkanSDK\1.3.290.0\Include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\GLFW\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinyobjloader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

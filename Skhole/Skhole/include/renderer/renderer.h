@@ -2,8 +2,11 @@
 
 #include <include.h>
 #include <scene/scene.h>
-#include <post_process/post_processor.h>
+#include <renderer/common/raytracing_pipeline.h>
+#include <vulkan_helpler/vk_hepler.h>
+#include <vulkan_helpler/vk_imgui.h>
 
+#include <common/util.h>
 
 namespace Skhole
 {
@@ -145,5 +148,18 @@ namespace Skhole
 		// Rendering
 		virtual void RealTimeRender(const RealTimeRenderingInfo& renderInfo) = 0;
 		virtual void OfflineRender(const OfflineRenderingInfo& renderInfo) = 0;
+
+	protected:
+		ShrPtr<Scene> m_scene;
+		ShrPtr<PostProcessor> m_postProcessor;
+
+		VkHelper::Context m_context;
+		VkHelper::SwapchainContext m_swapchainContext;
+
+		VkHelper::VulkanImGuiManager m_imGuiManager;
+		vk::UniqueRenderPass m_imGuiRenderPass;
+
+		RaytracingPipeline m_raytracingPipeline;
+		VkHelper::BindingManager m_bindingManager;
 	};
 }

@@ -1,13 +1,14 @@
 #pragma once
 
 #include <renderer/renderer.h>
-#include <renderer/common/raytracing_pipeline.h>
+
 #include <renderer/common/buffer_manager.h>
 
 #include <vulkan_helpler/vkutils.hpp>
 #include <vulkan_helpler/vk_buffer.h>
 #include <vulkan_helpler/vk_hepler.h>
 #include <vulkan_helpler/vk_imgui.h>
+
 #include <post_process/post_processor.h>
 #include <post_process/post_processor_interface.h>
 
@@ -151,14 +152,10 @@ namespace Skhole
 		//--------------------------------------
 		// Vulkan
 		//--------------------------------------
-		VkHelper::Context m_context;
-		VkHelper::SwapchainContext m_swapchainContext;
 
 		vk::UniqueCommandPool m_commandPool;
 		vk::UniqueCommandBuffer m_commandBuffer;
 
-		VkHelper::VulkanImGuiManager m_imGuiManager;
-		vk::UniqueRenderPass m_imGuiRenderPass;
 
 		std::vector<const char*> m_layer = {
 			"VK_LAYER_KHRONOS_validation"
@@ -181,8 +178,6 @@ namespace Skhole
 			VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME,
 		};
 
-		VkHelper::BindingManager m_bindingManager;
-		RaytracingPipeline m_raytracingPipeline;
 
 		UniformBufferObject uniformBufferObject;
 		Buffer m_uniformBuffer;
@@ -190,8 +185,6 @@ namespace Skhole
 		//--------------------------------------	
 		// Buffers
 		//--------------------------------------	
-		SceneBufferaManager m_sceneBufferManager;
-		ASManager m_asManager;
 
 		std::vector<Material> m_materials;
 		DeviceBuffer m_materaialBuffer;
@@ -200,15 +193,17 @@ namespace Skhole
 		Image renderImage;
 		Image posproIamge;
 
+		SceneBufferaManager m_sceneBufferManager;
+		ASManager m_asManager;
 
 		//--------------------------------------
 		// Post Process
 		//--------------------------------------
-		ShrPtr<PostProcessor> m_postProcessor;
+		//ShrPtr<PostProcessor> m_postProcessor;
 
 		//--------------------------------------
 		// Scene
 		//--------------------------------------
-		ShrPtr<Scene> m_scene;
+		//ShrPtr<Scene> m_scene;
 	};
 }

@@ -2,6 +2,8 @@
 #include <include.h>
 #include <scene/scene.h>
 #include <vulkan_helpler/vk_buffer.h>
+#include <vulkan_helpler/vk_hepler.h>
+#include <vulkan_helpler/vkutils.hpp>
 
 namespace Skhole {
 	class SceneBufferaManager {

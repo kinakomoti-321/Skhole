@@ -1,5 +1,6 @@
 #pragma once
-
+#include <include.h>
+#include <vulkan_helpler/vkutils.hpp>
 
 namespace VkHelper {
 	inline vk::UniqueRenderPass CreateRenderPass(
@@ -51,7 +52,7 @@ namespace VkHelper {
 
 		std::vector<BindingLayoutElement> bindings;
 
-		void SetBindingLayout(vk::Device device,const std::vector<BindingLayoutElement>& binding, vk::DescriptorPoolCreateFlagBits frag) {
+		void SetBindingLayout(vk::Device device, const std::vector<BindingLayoutElement>& binding, vk::DescriptorPoolCreateFlagBits frag) {
 			bindings = binding;
 			SetLayout(device);
 			SetPool(frag, device);
