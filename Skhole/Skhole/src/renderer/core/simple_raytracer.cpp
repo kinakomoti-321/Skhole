@@ -29,7 +29,7 @@ namespace Skhole {
 			m_context.queue,
 			*m_imGuiRenderPass,
 			2,
-			m_swapchainContext.swapchainImages.size()
+			m_screenContext.swapchainImages.size()
 		);
 	}
 
@@ -37,63 +37,6 @@ namespace Skhole {
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
 		m_desc = desc;
-
-		//--------------------------------------
-		// Vulkan Initialize
-		//--------------------------------------
-		VkHelper::Context::VulkanInitialzeInfo initInfo{};
-		initInfo.apiVersion = VK_API_VERSION_1_2;
-		initInfo.layers = m_layer;
-		initInfo.extensions = m_extension;
-		initInfo.useWindow = desc.useWindow;
-		initInfo.window = desc.window;
-
-		m_context.InitCore(initInfo);
-
-		m_commandPool = vkutils::createCommandPool(*m_context.device, m_context.queueIndex);
-		m_commandBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
-
-		m_imGuiRenderPass = VkHelper::CreateRenderPass(
-			vk::Format::eR8G8B8A8Unorm,
-			vk::ImageLayout::eColorAttachmentOptimal,
-			vk::ImageLayout::ePresentSrcKHR,
-			*m_context.device
-		);
-
-		//--------------------------------------
-		// swapChain Initialize
-		//--------------------------------------
-		VkHelper::SwapChainInfo swapchainInfo{};
-		swapchainInfo.physicalDevice = m_context.physicalDevice;
-		swapchainInfo.device = *m_context.device;
-		swapchainInfo.surface = *m_context.surface;
-		swapchainInfo.queueIndex = m_context.queueIndex;
-		swapchainInfo.queue = m_context.queue;
-		swapchainInfo.commandPool = *m_commandPool;
-		swapchainInfo.renderPass = m_imGuiRenderPass.get();
-
-		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
-
-		swapchainInfo.width = desc.Width;
-		swapchainInfo.height = desc.Height;
-
-		m_swapchainContext.Init(swapchainInfo);
-
-		//--------------------------------------
-		// Create Pipeline
-		//--------------------------------------
-
-		SKHOLE_LOG("... Creating Pipeline");
-		CreateRaytracingPipeline();
-		SKHOLE_LOG("... End Creating Pipeline");
-
-		SKHOLE_LOG("... Initialization ImGUI");
-		InitImGui();
-		SKHOLE_LOG("... End Initialization ImGUI");
-
-		//--------------------------------------
-		// Create Buffer
-		//--------------------------------------
 
 		uniformBufferObject.frame = m_raytracerParameter.frame;
 		uniformBufferObject.spp = m_raytracerParameter.spp;
@@ -157,21 +100,6 @@ namespace Skhole {
 				);
 			});
 
-
-
-		//--------------------------------------
-		// PostProcessor
-		//--------------------------------------
-		m_postProcessor = GetPostProcessor(desc.posproType);
-
-		PostProcessor::Desc ppDesc{};
-		ppDesc.physicalDevice = m_context.physicalDevice;
-		ppDesc.device = *m_context.device;
-		ppDesc.queue = m_context.queue;
-		ppDesc.commandPool = *m_commandPool;
-		ppDesc.width = desc.Width;
-		ppDesc.height = desc.Height;
-		m_postProcessor->Init(ppDesc);
 
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
@@ -249,7 +177,7 @@ namespace Skhole {
 		m_desc.Width = width;
 		m_desc.Height = height;
 
-		m_swapchainContext.Release(*m_context.device);
+		m_screenContext.Release(*m_context.device);
 
 		VkHelper::SwapChainInfo swapchainInfo{};
 		swapchainInfo.physicalDevice = m_context.physicalDevice;
@@ -265,7 +193,7 @@ namespace Skhole {
 		swapchainInfo.width = m_desc.Width;
 		swapchainInfo.height = m_desc.Height;
 
-		m_swapchainContext.Init(swapchainInfo);
+		m_screenContext.Init(swapchainInfo);
 
 		accumImage.Release(*m_context.device);
 		renderImage.Release(*m_context.device);
@@ -330,10 +258,10 @@ namespace Skhole {
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
 
-		auto& swapchain = m_swapchainContext.swapchain;
-		auto& swapchainImages = m_swapchainContext.swapchainImages;
-		auto& swapchainImageViews = m_swapchainContext.swapchainImageViews;
-		auto& swapchainFramebuffers = m_swapchainContext.frameBuffers;
+		auto& swapchain = m_screenContext.swapchain;
+		auto& swapchainImages = m_screenContext.swapchainImages;
+		auto& swapchainImageViews = m_screenContext.swapchainImageViews;
+		auto& swapchainFramebuffers = m_screenContext.frameBuffers;
 
 		auto result = m_context.device->acquireNextImageKHR(
 			*swapchain, std::numeric_limits<uint64_t>::max(),
@@ -464,12 +392,29 @@ namespace Skhole {
 		return rendererParameter;
 	}
 
+
 	//--------------------------------------
 	// Internal Method
 	//--------------------------------------
-	void SimpleRaytracer::CreateRaytracingPipeline() {
-		//PrepareShader();
+	void SimpleRaytracer::InitializeBiniding()
+	{
+		std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
+			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
+			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			{9, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+		};
 
+		m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+	}
+
+	void SimpleRaytracer::CreateRaytracingPipeline() {
 		std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
 			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
 			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},

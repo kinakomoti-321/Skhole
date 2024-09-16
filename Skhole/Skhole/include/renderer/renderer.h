@@ -5,6 +5,8 @@
 #include <renderer/common/raytracing_pipeline.h>
 #include <vulkan_helpler/vk_hepler.h>
 #include <vulkan_helpler/vk_imgui.h>
+#include <post_process/post_processor.h>
+#include <post_process/post_processor_interface.h>
 
 #include <common/util.h>
 
@@ -126,7 +128,6 @@ namespace Skhole
 		Renderer() {};
 		~Renderer() {};
 
-
 		void Initialize(RendererDesc& desc);
 
 		virtual void Destroy() = 0;
@@ -153,11 +154,20 @@ namespace Skhole
 	protected:
 		virtual void InitializeCore(RendererDesc& desc) = 0;
 
+		virtual std::vector<const char*> GetLayer() = 0;
+		virtual std::vector<const char*> GetExtensions() = 0;
+		virtual void InitializeBiniding() = 0;
+
+		void SetResolution(uint32_t width, uint32_t height);
+
 		ShrPtr<Scene> m_scene;
 		ShrPtr<PostProcessor> m_postProcessor;
 
 		VkHelper::Context m_context;
-		VkHelper::SwapchainContext m_swapchainContext;
+		VkHelper::ScreenContext m_screenContext;
+
+		vk::UniqueCommandPool m_commandPool;
+		vk::UniqueCommandBuffer m_commandBuffer;
 
 		VkHelper::VulkanImGuiManager m_imGuiManager;
 		vk::UniqueRenderPass m_imGuiRenderPass;

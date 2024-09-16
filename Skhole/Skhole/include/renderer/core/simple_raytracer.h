@@ -117,6 +117,16 @@ namespace Skhole
 		void SetPostprocess(PostProcessType type);
 		void DestroyPostprocess();
 
+		std::vector<const char*> GetLayer() override {
+			return m_layer;
+		}
+
+		std::vector<const char*> GetExtensions() override {
+			return m_extension;
+		}
+
+		void InitializeBiniding() override;
+
 	private:
 		//--------------------------------------
 		// Renderer Data
@@ -148,15 +158,9 @@ namespace Skhole
 
 		PostProcessParameter m_postprocessParams;
 
-
 		//--------------------------------------
 		// Vulkan
 		//--------------------------------------
-
-		vk::UniqueCommandPool m_commandPool;
-		vk::UniqueCommandBuffer m_commandBuffer;
-
-
 		std::vector<const char*> m_layer = {
 			"VK_LAYER_KHRONOS_validation"
 		};
@@ -178,14 +182,12 @@ namespace Skhole
 			VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME,
 		};
 
-
 		UniformBufferObject uniformBufferObject;
 		Buffer m_uniformBuffer;
 
 		//--------------------------------------	
 		// Buffers
 		//--------------------------------------	
-
 		std::vector<Material> m_materials;
 		DeviceBuffer m_materaialBuffer;
 
@@ -195,15 +197,5 @@ namespace Skhole
 
 		SceneBufferaManager m_sceneBufferManager;
 		ASManager m_asManager;
-
-		//--------------------------------------
-		// Post Process
-		//--------------------------------------
-		//ShrPtr<PostProcessor> m_postProcessor;
-
-		//--------------------------------------
-		// Scene
-		//--------------------------------------
-		//ShrPtr<Scene> m_scene;
 	};
 }

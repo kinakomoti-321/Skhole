@@ -246,9 +246,9 @@ namespace VkHelper {
 		uint32_t height;
 	};
 
-	struct SwapchainContext {
-		SwapchainContext() {}
-		~SwapchainContext() {}
+	struct ScreenContext {
+		ScreenContext() {}
+		~ScreenContext() {}
 
 		void Init(const SwapChainInfo& info) {
 			SKHOLE_LOG("... Initialization Vulkan Screen")
