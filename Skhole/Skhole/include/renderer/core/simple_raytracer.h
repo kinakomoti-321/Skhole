@@ -29,9 +29,9 @@ namespace Skhole
 
 		void InitializeCore(RendererDesc& desc) override;
 
-		void Destroy() override;
+		void DestroyCore() override;
 
-		void Resize(unsigned int width, unsigned int height) override;
+		void ResizeCore(unsigned int width, unsigned int height) override;
 
 		void SetScene(ShrPtr<Scene> scene) override;
 		void DestroyScene() override;
@@ -125,7 +125,6 @@ namespace Skhole
 		// Renderer Data
 		//--------------------------------------
 		std::string rendererName = "Simple RayTracer";
-		RendererDesc m_desc;
 
 		SimpleRaytracerParameter m_raytracerParameter;
 

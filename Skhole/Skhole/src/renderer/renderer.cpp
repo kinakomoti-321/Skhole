@@ -81,7 +81,31 @@ namespace Skhole {
 		InitializeCore(desc);
 	}
 
-	void Renderer::SetResolution(uint32_t width, uint32_t height) {
+	void Renderer::Resize(unsigned int width, unsigned int height)
+	{
+		m_screenContext.Release(*m_context.device);
+
+		VkHelper::SwapChainInfo swapchainInfo{};
+		swapchainInfo.physicalDevice = m_context.physicalDevice;
+		swapchainInfo.device = *m_context.device;
+		swapchainInfo.surface = *m_context.surface;
+		swapchainInfo.queueIndex = m_context.queueIndex;
+		swapchainInfo.queue = m_context.queue;
+		swapchainInfo.commandPool = *m_commandPool;
+		swapchainInfo.renderPass = m_imGuiRenderPass.get();
+		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
+		swapchainInfo.width = width;
+		swapchainInfo.height = height;
+		m_screenContext.Init(swapchainInfo);
+
+		m_renderImages.Resize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
+		m_postProcessor->Resize(width, height);
+
+		m_scene->m_rendererParameter->sample = 1;
+	}
+
+	void Renderer::Destroy()
+	{
 
 	}
 

@@ -130,10 +130,10 @@ namespace Skhole
 		~Renderer() {};
 
 		void Initialize(RendererDesc& desc);
+		void Resize(unsigned int width, unsigned int height);
+		void Destroy();
 
-		virtual void Destroy() = 0;
-
-		virtual void Resize(unsigned int width, unsigned int height) = 0;
+		virtual void DestroyCore() = 0;
 
 		virtual void SetScene(ShrPtr<Scene> scene) = 0;
 		virtual void DestroyScene() = 0;
@@ -154,12 +154,12 @@ namespace Skhole
 
 	protected:
 		virtual void InitializeCore(RendererDesc& desc) = 0;
+		virtual void ResizeCore(unsigned int width, unsigned int height) = 0;
 
 		virtual std::vector<const char*> GetLayer() = 0;
 		virtual std::vector<const char*> GetExtensions() = 0;
 		virtual void InitializeBiniding() = 0;
 
-		void SetResolution(uint32_t width, uint32_t height);
 
 		ShrPtr<Scene> m_scene;
 		ShrPtr<PostProcessor> m_postProcessor;

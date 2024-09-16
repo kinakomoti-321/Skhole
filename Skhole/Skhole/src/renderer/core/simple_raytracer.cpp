@@ -21,12 +21,11 @@ namespace Skhole {
 	void SimpleRaytracer::InitializeCore(RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
-		m_desc = desc;
 
 		uniformBufferObject.frame = m_raytracerParameter.frame;
 		uniformBufferObject.spp = m_raytracerParameter.spp;
-		uniformBufferObject.width = m_desc.Width;
-		uniformBufferObject.height = m_desc.Height;
+		uniformBufferObject.width = desc.Width;
+		uniformBufferObject.height = desc.Height;
 
 		uniformBufferObject.cameraDir = vec3(0.0f, 0.0f, -1.0f);
 		uniformBufferObject.cameraPos = vec3(0.0, 30.0, 50.0);
@@ -98,7 +97,7 @@ namespace Skhole {
 		m_imGuiManager.NewFrame();
 	}
 
-	void SimpleRaytracer::Destroy()
+	void SimpleRaytracer::DestroyCore()
 	{
 		m_context.device->waitIdle();
 
@@ -109,33 +108,33 @@ namespace Skhole {
 		m_imGuiManager.Destroy(*m_context.device);
 	}
 
-	void SimpleRaytracer::Resize(unsigned int width, unsigned int height)
+	void SimpleRaytracer::ResizeCore(unsigned int width, unsigned int height)
 	{
-		m_desc.Width = width;
-		m_desc.Height = height;
+		//m_desc.Width = width;
+		//m_desc.Height = height;
 
-		m_screenContext.Release(*m_context.device);
+		//m_screenContext.Release(*m_context.device);
 
-		VkHelper::SwapChainInfo swapchainInfo{};
-		swapchainInfo.physicalDevice = m_context.physicalDevice;
-		swapchainInfo.device = *m_context.device;
-		swapchainInfo.surface = *m_context.surface;
-		swapchainInfo.queueIndex = m_context.queueIndex;
-		swapchainInfo.queue = m_context.queue;
-		swapchainInfo.commandPool = *m_commandPool;
-		swapchainInfo.renderPass = m_imGuiRenderPass.get();
+		//VkHelper::SwapChainInfo swapchainInfo{};
+		//swapchainInfo.physicalDevice = m_context.physicalDevice;
+		//swapchainInfo.device = *m_context.device;
+		//swapchainInfo.surface = *m_context.surface;
+		//swapchainInfo.queueIndex = m_context.queueIndex;
+		//swapchainInfo.queue = m_context.queue;
+		//swapchainInfo.commandPool = *m_commandPool;
+		//swapchainInfo.renderPass = m_imGuiRenderPass.get();
 
-		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
+		//swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
 
-		swapchainInfo.width = m_desc.Width;
-		swapchainInfo.height = m_desc.Height;
+		//swapchainInfo.width = m_desc.Width;
+		//swapchainInfo.height = m_desc.Height;
 
-		m_screenContext.Init(swapchainInfo);
+		//m_screenContext.Init(swapchainInfo);
 
-		m_renderImages.Resize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
+		//m_renderImages.Resize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
-		m_postProcessor->Resize(width, height);
-		m_scene->m_rendererParameter->sample = 1;
+		//m_postProcessor->Resize(width, height);
+		//m_scene->m_rendererParameter->sample = 1;
 	}
 
 	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
@@ -307,6 +306,9 @@ namespace Skhole {
 
 		auto& raytracerParam = m_scene->m_rendererParameter;
 
+		uint32_t width = m_renderImages.GetWidth();
+		uint32_t height = m_renderImages.GetHeight();
+
 		auto& camera = m_scene->m_camera;
 		uniformBufferObject.spp = raytracerParam->spp;
 		uniformBufferObject.frame = raytracerParam->frame;
@@ -321,7 +323,7 @@ namespace Skhole {
 		uniformBufferObject.cameraUp = cameraUp;
 		uniformBufferObject.cameraRight = cameraRight;
 		uniformBufferObject.cameraParam.x = camera->GetYFov();
-		uniformBufferObject.cameraParam.y = static_cast<float>(m_desc.Width) / static_cast<float>(m_desc.Height);
+		uniformBufferObject.cameraParam.y = static_cast<float>(width) / static_cast<float>(height);
 
 		void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(UniformBufferObject));
 		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
@@ -347,8 +349,10 @@ namespace Skhole {
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
-		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_raytracingPipeline.GetPipeline());
+		uint32_t width = m_renderImages.GetWidth();
+		uint32_t height = m_renderImages.GetHeight();
 
+		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_raytracingPipeline.GetPipeline());
 		m_commandBuffer->bindDescriptorSets(
 			vk::PipelineBindPoint::eRayTracingKHR,
 			m_raytracingPipeline.GetPipelineLayout(),
@@ -356,13 +360,12 @@ namespace Skhole {
 			m_bindingManager.descriptorSet,
 			nullptr
 		);
-
 		m_commandBuffer->traceRaysKHR(
 			m_raytracingPipeline.GetRaygenRegion(),
 			m_raytracingPipeline.GetMissRegion(),
 			m_raytracingPipeline.GetHitRegion(),
 			{},
-			m_desc.Width, m_desc.Height, 1
+			width, height, 1
 		);
 
 		auto& accumImage = m_renderImages.GetAccumImage();
@@ -396,7 +399,7 @@ namespace Skhole {
 			.setBaseArrayLayer(0)
 			.setLayerCount(1);
 		region.dstOffset = vk::Offset3D(0, 0, 0);
-		region.extent = vk::Extent3D(m_desc.Width, m_desc.Height, 1);
+		region.extent = vk::Extent3D(width, height, 1);
 
 
 		m_commandBuffer->copyImage(
@@ -414,7 +417,7 @@ namespace Skhole {
 		vk::RenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
 		renderPassInfo.setFramebuffer(frameBuffer);
-		vk::Rect2D rect({ 0,0 }, { (uint32_t)m_desc.Width,(uint32_t)m_desc.Height });
+		vk::Rect2D rect({ 0,0 }, { (uint32_t)width,(uint32_t)height });
 
 		renderPassInfo.setRenderArea(rect);
 
