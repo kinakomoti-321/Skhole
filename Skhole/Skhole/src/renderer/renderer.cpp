@@ -114,6 +114,7 @@ namespace Skhole {
 
 		m_bindingManager.Release(*m_context.device);
 		m_postProcessor->Destroy(*m_context.device);
+		m_postProcessor = nullptr;
 		m_renderImages.Release(*m_context.device);
 		m_screenContext.Release(*m_context.device);
 		m_imGuiManager.Destroy(*m_context.device);
