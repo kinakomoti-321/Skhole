@@ -39,53 +39,7 @@ namespace Skhole {
 			&uniformBufferObject
 		);
 
-		accumImage.Init(
-			m_context.physicalDevice, *m_context.device,
-			m_desc.Width, m_desc.Height,
-			vk::Format::eR32G32B32A32Sfloat,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
-
-		renderImage.Init(
-			m_context.physicalDevice, *m_context.device,
-			m_desc.Width, m_desc.Height,
-			vk::Format::eR32G32B32A32Sfloat,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
-
-		posproIamge.Init(
-			m_context.physicalDevice, *m_context.device,
-			m_desc.Width, m_desc.Height,
-			vk::Format::eR8G8B8A8Unorm,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
-
-		vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
-			[&](vk::CommandBuffer commandBuffer) {
-				vkutils::setImageLayout(
-					commandBuffer, accumImage.GetImage(),
-					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::eGeneral
-				);
-				vkutils::setImageLayout(
-					commandBuffer, renderImage.GetImage(),
-					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::eGeneral
-				);
-				vkutils::setImageLayout(
-					commandBuffer, posproIamge.GetImage(),
-					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::eGeneral
-				);
-			});
-
-
+		m_renderImages.Initialize(desc.Width, desc.Height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
@@ -149,9 +103,7 @@ namespace Skhole {
 		m_context.device->waitIdle();
 
 		m_postProcessor->Destroy(*m_context.device);
-		accumImage.Release(*m_context.device);
-		renderImage.Release(*m_context.device);
-		posproIamge.Release(*m_context.device);
+		m_renderImages.Release(*m_context.device);
 
 		m_bindingManager.Release(*m_context.device);
 		m_imGuiManager.Destroy(*m_context.device);
@@ -180,55 +132,7 @@ namespace Skhole {
 
 		m_screenContext.Init(swapchainInfo);
 
-		accumImage.Release(*m_context.device);
-		renderImage.Release(*m_context.device);
-		posproIamge.Release(*m_context.device);
-
-		accumImage.Init(
-			m_context.physicalDevice, *m_context.device,
-			m_desc.Width, m_desc.Height,
-			vk::Format::eR32G32B32A32Sfloat,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
-
-		renderImage.Init(
-			m_context.physicalDevice, *m_context.device,
-			m_desc.Width, m_desc.Height,
-			vk::Format::eR32G32B32A32Sfloat,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
-
-		posproIamge.Init(
-			m_context.physicalDevice, *m_context.device,
-			m_desc.Width, m_desc.Height,
-			vk::Format::eR8G8B8A8Unorm,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eTransferSrc,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
-
-		vkutils::oneTimeSubmit(*m_context.device, *m_commandPool, m_context.queue,
-			[&](vk::CommandBuffer commandBuffer) {
-				vkutils::setImageLayout(
-					commandBuffer, accumImage.GetImage(),
-					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::eGeneral
-				);
-				vkutils::setImageLayout(
-					commandBuffer, renderImage.GetImage(),
-					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::eGeneral
-				);
-				vkutils::setImageLayout(
-					commandBuffer, posproIamge.GetImage(),
-					vk::ImageLayout::eUndefined,
-					vk::ImageLayout::eGeneral
-				);
-			});
+		m_renderImages.Resize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
 		m_postProcessor->Resize(width, height);
 		m_scene->m_rendererParameter->sample = 1;
@@ -461,6 +365,10 @@ namespace Skhole {
 			m_desc.Width, m_desc.Height, 1
 		);
 
+		auto& accumImage = m_renderImages.GetAccumImage();
+		auto& renderImage = m_renderImages.GetRenderImage();
+		auto& posproIamge = m_renderImages.GetPostProcessedImage();
+
 		// Post Process
 		PostProcessor::ExecuteDesc desc{};
 		desc.device = *m_context.device;
@@ -526,6 +434,10 @@ namespace Skhole {
 
 
 	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
+		auto& accumImage = m_renderImages.GetAccumImage();
+		auto& renderImage = m_renderImages.GetRenderImage();
+		auto& posproIamge = m_renderImages.GetPostProcessedImage();
+
 		m_bindingManager.StartWriting();
 
 		m_bindingManager.WriteAS(

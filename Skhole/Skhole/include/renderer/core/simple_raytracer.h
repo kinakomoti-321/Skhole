@@ -184,10 +184,6 @@ namespace Skhole
 		std::vector<Material> m_materials;
 		DeviceBuffer m_materaialBuffer;
 
-		Image accumImage;
-		Image renderImage;
-		Image posproIamge;
-
 		SceneBufferaManager m_sceneBufferManager;
 		ASManager m_asManager;
 	};

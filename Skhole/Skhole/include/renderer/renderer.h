@@ -2,6 +2,7 @@
 
 #include <include.h>
 #include <scene/scene.h>
+#include <renderer/common/render_image.h>
 #include <renderer/common/raytracing_pipeline.h>
 #include <vulkan_helpler/vk_hepler.h>
 #include <vulkan_helpler/vk_imgui.h>
@@ -174,5 +175,7 @@ namespace Skhole
 
 		RaytracingPipeline m_raytracingPipeline;
 		VkHelper::BindingManager m_bindingManager;
+
+		RenderImages m_renderImages;
 	};
 }

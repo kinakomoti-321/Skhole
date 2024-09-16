@@ -190,6 +190,7 @@
     <ClInclude Include="include\post_process\pp_none.h" />
     <ClInclude Include="include\renderer\common\buffer_manager.h" />
     <ClInclude Include="include\renderer\common\raytracing_pipeline.h" />
+    <ClInclude Include="include\renderer\common\render_image.h" />
     <ClInclude Include="include\renderer\core\caustics_renderer.h" />
     <ClInclude Include="include\renderer\common\update_command.h" />
     <ClInclude Include="include\renderer\core\vndf_renderer.h" />
