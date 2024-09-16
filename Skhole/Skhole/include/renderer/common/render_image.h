@@ -26,6 +26,7 @@ namespace Skhole {
 		}
 
 		void Release(vk::Device device) {
+			accumImage.Release(device);
 			renderImage.Release(device);
 			postProcessedImage.Release(device);
 		}

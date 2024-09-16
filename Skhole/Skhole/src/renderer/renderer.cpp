@@ -102,11 +102,21 @@ namespace Skhole {
 		m_postProcessor->Resize(width, height);
 
 		m_scene->m_rendererParameter->sample = 1;
+
+		ResizeCore(width, height);
 	}
 
 	void Renderer::Destroy()
 	{
+		m_context.device->waitIdle();
 
+		DestroyCore();
+
+		m_bindingManager.Release(*m_context.device);
+		m_postProcessor->Destroy(*m_context.device);
+		m_renderImages.Release(*m_context.device);
+		m_screenContext.Release(*m_context.device);
+		m_imGuiManager.Destroy(*m_context.device);
 	}
 
 }

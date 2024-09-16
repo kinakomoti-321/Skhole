@@ -99,42 +99,17 @@ namespace Skhole {
 
 	void SimpleRaytracer::DestroyCore()
 	{
-		m_context.device->waitIdle();
+		m_uniformBuffer.Release(*m_context.device);
+		m_materaialBuffer.Release(*m_context.device);
 
-		m_postProcessor->Destroy(*m_context.device);
-		m_renderImages.Release(*m_context.device);
-
-		m_bindingManager.Release(*m_context.device);
-		m_imGuiManager.Destroy(*m_context.device);
+		m_asManager.ReleaseBLAS(*m_context.device);
+		m_asManager.ReleaseTLAS(*m_context.device);
+		m_sceneBufferManager.Release(*m_context.device);
 	}
 
 	void SimpleRaytracer::ResizeCore(unsigned int width, unsigned int height)
 	{
-		//m_desc.Width = width;
-		//m_desc.Height = height;
 
-		//m_screenContext.Release(*m_context.device);
-
-		//VkHelper::SwapChainInfo swapchainInfo{};
-		//swapchainInfo.physicalDevice = m_context.physicalDevice;
-		//swapchainInfo.device = *m_context.device;
-		//swapchainInfo.surface = *m_context.surface;
-		//swapchainInfo.queueIndex = m_context.queueIndex;
-		//swapchainInfo.queue = m_context.queue;
-		//swapchainInfo.commandPool = *m_commandPool;
-		//swapchainInfo.renderPass = m_imGuiRenderPass.get();
-
-		//swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
-
-		//swapchainInfo.width = m_desc.Width;
-		//swapchainInfo.height = m_desc.Height;
-
-		//m_screenContext.Init(swapchainInfo);
-
-		//m_renderImages.Resize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
-
-		//m_postProcessor->Resize(width, height);
-		//m_scene->m_rendererParameter->sample = 1;
 	}
 
 	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
@@ -370,19 +345,19 @@ namespace Skhole {
 
 		auto& accumImage = m_renderImages.GetAccumImage();
 		auto& renderImage = m_renderImages.GetRenderImage();
-		auto& posproIamge = m_renderImages.GetPostProcessedImage();
+		auto& postProcessedImage = m_renderImages.GetPostProcessedImage();
 
 		// Post Process
 		PostProcessor::ExecuteDesc desc{};
 		desc.device = *m_context.device;
 		desc.inputImage = renderImage.GetImageView();
-		desc.outputImage = posproIamge.GetImageView();
+		desc.outputImage = postProcessedImage.GetImageView();
 		desc.param = m_scene->m_rendererParameter->posproParameters;
 
 		m_postProcessor->Execute(*m_commandBuffer, desc);
 
 		// Copy RenderImage -> WindowImage
-		vkutils::setImageLayout(*m_commandBuffer, posproIamge.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+		vkutils::setImageLayout(*m_commandBuffer, postProcessedImage.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);
 
 		vk::ImageCopy region;
@@ -399,16 +374,16 @@ namespace Skhole {
 			.setBaseArrayLayer(0)
 			.setLayerCount(1);
 		region.dstOffset = vk::Offset3D(0, 0, 0);
+
 		region.extent = vk::Extent3D(width, height, 1);
 
-
 		m_commandBuffer->copyImage(
-			posproIamge.GetImage(), vk::ImageLayout::eTransferSrcOptimal,
+			postProcessedImage.GetImage(), vk::ImageLayout::eTransferSrcOptimal,
 			image, vk::ImageLayout::eTransferDstOptimal,
 			region
 		);
 
-		vkutils::setImageLayout(*m_commandBuffer, posproIamge.GetImage(), vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+		vkutils::setImageLayout(*m_commandBuffer, postProcessedImage.GetImage(), vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
 		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eAttachmentOptimal);
 
 		//--------------------

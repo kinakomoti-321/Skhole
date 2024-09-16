@@ -135,7 +135,7 @@ namespace Skhole
 
 		}
 
-		m_renderer->DestroyCore();
+		m_renderer->Destroy();
 		Destroy();
 	}
 
