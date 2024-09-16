@@ -93,14 +93,10 @@ namespace Skhole
 		//--------------------------------------
 		// Private Method
 		//--------------------------------------
-		void InitImGui();
 
 		// Resources
 		void InitBufferManager();
 		void InitAccelerationStructures();
-
-		// Pipeline
-		void CreateRaytracingPipeline();
 
 		// Render
 		void UpdateDescriptorSet(vk::ImageView imageView);
@@ -113,9 +109,6 @@ namespace Skhole
 		// Scene Update;
 		void UpdateMaterialBuffer(uint32_t matId);
 		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& material);
-
-		void SetPostprocess(PostProcessType type);
-		void DestroyPostprocess();
 
 		std::vector<const char*> GetLayer() override {
 			return m_layer;

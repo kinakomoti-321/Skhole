@@ -18,21 +18,6 @@ namespace Skhole {
 
 	}
 
-	void SimpleRaytracer::InitImGui()
-	{
-		m_imGuiManager.Init(
-			m_desc.window,
-			*m_context.instance,
-			m_context.physicalDevice,
-			*m_context.device,
-			m_context.queueIndex,
-			m_context.queue,
-			*m_imGuiRenderPass,
-			2,
-			m_screenContext.swapchainImages.size()
-		);
-	}
-
 	void SimpleRaytracer::InitializeCore(RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
@@ -414,34 +399,6 @@ namespace Skhole {
 		m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
 	}
 
-	void SimpleRaytracer::CreateRaytracingPipeline() {
-		std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
-			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
-			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{9, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-		};
-
-		m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-
-		RaytracingPipeline::Desc desc;
-		desc.device = *m_context.device;
-		desc.physicalDevice = m_context.physicalDevice;
-		desc.descriptorSetLayout = m_bindingManager.descriptorSetLayout;
-
-		desc.raygenShaderPath = "shader/simple_raytracer/raygen.rgen.spv";
-		desc.missShaderPath = "shader/simple_raytracer/miss.rmiss.spv";
-		desc.closestHitShaderPath = "shader/simple_raytracer/closesthit.rchit.spv";
-
-		m_raytracingPipeline.InitPipeline(desc);
-	}
-
 	void SimpleRaytracer::FrameStart(float time) {
 
 		auto& raytracerParam = m_scene->m_rendererParameter;
@@ -660,11 +617,4 @@ namespace Skhole {
 		return material;
 	}
 
-	void SimpleRaytracer::SetPostprocess(PostProcessType type) {
-		m_postProcessor = GetPostProcessor(type);
-		m_postprocessParams = m_postProcessor->GetParamter();
-	}
-	void SimpleRaytracer::DestroyPostprocess() {
-		m_postProcessor->Destroy(*m_context.device);
-	}
 }
