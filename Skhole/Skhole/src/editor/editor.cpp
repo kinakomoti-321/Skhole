@@ -48,7 +48,7 @@ namespace Skhole
 		rendererDesc.window = m_window;
 
 		m_renderer = std::make_shared<SimpleRaytracer>();
-		m_renderer->Init(rendererDesc);
+		m_renderer->Initialize(rendererDesc);
 
 		// Scene Initialization
 		m_scene = std::make_shared<Scene>();

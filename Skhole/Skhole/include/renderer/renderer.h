@@ -126,7 +126,8 @@ namespace Skhole
 		Renderer() {};
 		~Renderer() {};
 
-		virtual void Init(RendererDesc& desc) = 0;
+
+		void Initialize(RendererDesc& desc);
 
 		virtual void Destroy() = 0;
 
@@ -150,6 +151,8 @@ namespace Skhole
 		virtual void OfflineRender(const OfflineRenderingInfo& renderInfo) = 0;
 
 	protected:
+		virtual void InitializeCore(RendererDesc& desc) = 0;
+
 		ShrPtr<Scene> m_scene;
 		ShrPtr<PostProcessor> m_postProcessor;
 

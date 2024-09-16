@@ -27,7 +27,7 @@ namespace Skhole
 		SimpleRaytracer();
 		~SimpleRaytracer();
 
-		void Init(RendererDesc& desc) override;
+		void InitializeCore(RendererDesc& desc) override;
 
 		void Destroy() override;
 
