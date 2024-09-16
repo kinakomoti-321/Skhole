@@ -127,6 +127,7 @@ namespace Skhole
 		std::string rendererName = "Simple RayTracer";
 
 		SimpleRaytracerParameter m_raytracerParameter;
+		PostProcessParameter m_postprocessParams;
 
 		const std::vector<ShrPtr<Parameter>> m_matParams =
 		{
@@ -147,8 +148,6 @@ namespace Skhole
 		{
 			MakeShr<ParamUint>("Ckeck Mode",0),
 		};
-
-		PostProcessParameter m_postprocessParams;
 
 		//--------------------------------------
 		// Vulkan
@@ -174,9 +173,6 @@ namespace Skhole
 			VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME,
 		};
 
-		UniformBufferObject uniformBufferObject;
-		Buffer m_uniformBuffer;
-
 		//--------------------------------------	
 		// Buffers
 		//--------------------------------------	
@@ -185,5 +181,9 @@ namespace Skhole
 
 		SceneBufferaManager m_sceneBufferManager;
 		ASManager m_asManager;
+
+		UniformBufferObject uniformBufferObject;
+		Buffer m_uniformBuffer;
+
 	};
 }
