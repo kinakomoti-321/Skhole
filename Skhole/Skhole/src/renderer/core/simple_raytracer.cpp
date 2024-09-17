@@ -22,6 +22,9 @@ namespace Skhole {
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
 
+		m_uniformBuffer.Init(m_context.physicalDevice, *m_context.device);
+
+		auto& uniformBufferObject = m_uniformBuffer.data;
 		uniformBufferObject.frame = m_raytracerParameter.frame;
 		uniformBufferObject.spp = m_raytracerParameter.spp;
 		uniformBufferObject.width = desc.Width;
@@ -32,11 +35,7 @@ namespace Skhole {
 		uniformBufferObject.cameraUp = vec3(0.0f, 1.0f, 0.0f);
 		uniformBufferObject.cameraRight = vec3(1.0f, 0.0f, 0.0f);
 
-		m_uniformBuffer.init(m_context.physicalDevice, *m_context.device, sizeof(UniformBufferObject),
-			vk::BufferUsageFlagBits::eUniformBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-			&uniformBufferObject
-		);
+		m_uniformBuffer.Update(*m_context.device);
 
 		m_renderImages.Initialize(desc.Width, desc.Height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
@@ -58,8 +57,7 @@ namespace Skhole {
 		m_asManager.ReleaseTLAS(*m_context.device);
 		m_asManager.ReleaseBLAS(*m_context.device);
 
-		m_materials.clear();
-		m_materaialBuffer.Release(*m_context.device);
+		m_materialBuffer.Release(*m_context.device);
 
 		m_scene = nullptr;
 	}
@@ -100,7 +98,7 @@ namespace Skhole {
 	void SimpleRaytracer::DestroyCore()
 	{
 		m_uniformBuffer.Release(*m_context.device);
-		m_materaialBuffer.Release(*m_context.device);
+		m_materialBuffer.Release(*m_context.device);
 
 		m_asManager.ReleaseBLAS(*m_context.device);
 		m_asManager.ReleaseTLAS(*m_context.device);
@@ -172,26 +170,37 @@ namespace Skhole {
 
 		// Set Material
 		{
-			m_materials.reserve(m_scene->m_materials.size());
+			m_materialBuffer.Init(
+				m_context.physicalDevice, *m_context.device,
+				m_scene->m_materials.size()
+			);
+
+			//m_materials.reserve(m_scene->m_materials.size());
 			auto& materials = m_scene->m_materials;
+			int index = 0;
 			for (auto& materialDef : materials)
 			{
-				m_materials.push_back(ConvertMaterial(materialDef));
+				//m_materials.push_back(ConvertMaterial(materialDef));
+				auto material = ConvertMaterial(materialDef);
+				m_materialBuffer.SetMaterial(material, index);
 			}
+
+			m_materialBuffer.UpdateBuffer(*m_context.device, *m_commandPool, m_context.queue);
 		}
 
-		m_materaialBuffer.Init(
-			m_context.physicalDevice, *m_context.device,
-			m_materials.size() * sizeof(Material),
-			vk::BufferUsageFlagBits::eStorageBuffer,
-			vk::MemoryPropertyFlagBits::eDeviceLocal
-		);
+		//m_materaialBuffer.Init(
+		//	m_context.physicalDevice, *m_context.device,
+		//	m_materials.size() * sizeof(Material),
+		//	vk::BufferUsageFlagBits::eStorageBuffer,
+		//	vk::MemoryPropertyFlagBits::eDeviceLocal
+		//);
 
-		void* map = m_materaialBuffer.Map(*m_context.device, 0, m_materials.size() * sizeof(Material));
-		memcpy(map, m_materials.data(), m_materials.size() * sizeof(Material));
-		m_materaialBuffer.Unmap(*m_context.device);
+		//void* map = m_materaialBuffer.Map(*m_context.device, 0, m_materials.size() * sizeof(Material));
+		//memcpy(map, m_materials.data(), m_materials.size() * sizeof(Material));
+		//m_materaialBuffer.Unmap(*m_context.device);
 
-		m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue);
+		//m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue);
+
 		SKHOLE_LOG_SECTION("End Set Scene");
 	}
 
@@ -284,6 +293,8 @@ namespace Skhole {
 		uint32_t width = m_renderImages.GetWidth();
 		uint32_t height = m_renderImages.GetHeight();
 
+		auto& uniformBufferObject = m_uniformBuffer.data;
+
 		auto& camera = m_scene->m_camera;
 		uniformBufferObject.spp = raytracerParam->spp;
 		uniformBufferObject.frame = raytracerParam->frame;
@@ -300,9 +311,11 @@ namespace Skhole {
 		uniformBufferObject.cameraParam.x = camera->GetYFov();
 		uniformBufferObject.cameraParam.y = static_cast<float>(width) / static_cast<float>(height);
 
-		void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(UniformBufferObject));
-		memcpy(map, &uniformBufferObject, sizeof(UniformBufferObject));
-		m_uniformBuffer.Ummap(*m_context.device);
+		//void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(Uniform));
+		//memcpy(map, &uniformBufferObject, sizeof(Uniform));
+		//m_uniformBuffer.Ummap(*m_context.device);
+
+		m_uniformBuffer.Update(*m_context.device);
 
 		m_scene->SetTransformMatrix(time);
 
@@ -428,7 +441,7 @@ namespace Skhole {
 		);
 
 		m_bindingManager.WriteBuffer(
-			*m_uniformBuffer.buffer, 0, sizeof(UniformBufferObject),
+			m_uniformBuffer.GetBuffer(), 0, m_uniformBuffer.GetBufferSize(),
 			vk::DescriptorType::eUniformBuffer, 2, 1, *m_context.device
 		);
 
@@ -453,7 +466,7 @@ namespace Skhole {
 		);
 
 		m_bindingManager.WriteBuffer(
-			m_materaialBuffer.GetDeviceBuffer(), 0, m_materaialBuffer.GetBufferSize(),
+			m_materialBuffer.GetBuffer(), 0, m_materialBuffer.GetBufferSize(),
 			vk::DescriptorType::eStorageBuffer, 7, 1, *m_context.device
 		);
 
@@ -475,15 +488,20 @@ namespace Skhole {
 	}
 
 	void SimpleRaytracer::UpdateMaterialBuffer(uint32_t matId) {
-		m_materials[matId] = ConvertMaterial(m_scene->m_materials[matId]);
 
-		uint32_t byteOffset = matId * sizeof(Material);
+		//m_materials[matId] = ConvertMaterial(m_scene->m_materials[matId]);
+		auto material = ConvertMaterial(m_scene->m_materials[matId]);
+		m_materialBuffer.SetMaterial(material, matId);
 
-		void* map = m_materaialBuffer.Map(*m_context.device, byteOffset, sizeof(Material));
-		memcpy(map, m_materials.data() + matId, sizeof(Material));
-		m_materaialBuffer.Unmap(*m_context.device);
+		m_materialBuffer.UpdateBufferIndex(matId, *m_context.device, *m_commandPool, m_context.queue);
 
-		m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue, byteOffset, sizeof(Material));
+		//uint32_t byteOffset = matId * sizeof(Material);
+
+		//void* map = m_materaialBuffer.Map(*m_context.device, byteOffset, sizeof(Material));
+		//memcpy(map, m_materials.data() + matId, sizeof(Material));
+		//m_materaialBuffer.Unmap(*m_context.device);
+
+		//m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue, byteOffset, sizeof(Material));
 	}
 
 	SimpleRaytracer::Material SimpleRaytracer::ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {

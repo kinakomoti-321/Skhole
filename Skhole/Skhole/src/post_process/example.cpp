@@ -28,7 +28,7 @@ namespace Skhole {
 
 		layer1.Init(layerDesc);
 
-		uniformBuffer.init(
+		uniformBuffer.Init(
 			physicalDevice,
 			device,
 			sizeof(UniformObject),

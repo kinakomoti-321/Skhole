@@ -330,7 +330,7 @@ namespace Skhole {
 			}
 
 			Buffer instanceBuffer;
-			instanceBuffer.init(physicalDevice, device,
+			instanceBuffer.Init(physicalDevice, device,
 				sizeof(vk::AccelerationStructureInstanceKHR) * accels.size(),
 				vk::BufferUsageFlagBits::eAccelerationStructureBuildInputReadOnlyKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -377,22 +377,28 @@ namespace Skhole {
 		~UniformBuffer() {};
 
 		void Init(vk::PhysicalDevice physicalDevice, vk::Device device) {
+
 			buffer.Init(
 				physicalDevice, device,
 				sizeof(T),
 				vk::BufferUsageFlagBits::eUniformBuffer,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 			);
+
 		}
 
 		vk::Buffer GetBuffer() {
-			return buffer.buffer;
+			return buffer.GetBuffer();
 		}
 
-		void Update() {
-			void* map = buffer.Map();
+		size_t GetBufferSize() {
+			return buffer.bufferSize;
+		}
+
+		void Update(vk::Device device) {
+			void* map = buffer.Map(device, 0, sizeof(T));
 			memcpy(map, &data, sizeof(T));
-			buffer.Unmap();
+			buffer.Ummap(device);
 		}
 
 		void Release(vk::Device device) {
@@ -424,24 +430,45 @@ namespace Skhole {
 
 		void SetMaterial(const T& material, int index)
 		{
-			materials[index] = material;
+			if (index < materials.size()) {
+				materials[index] = material;
+			}
+			else {
+				SKHOLE_ERROR("Material index is out of range");
+			}
 		}
 
 		void UpdateBuffer(vk::Device device, vk::CommandPool commandPool, vk::Queue queue)
 		{
-			void* map = buffer.Map(device);
+			void* map = buffer.Map(device, 0, sizeof(T) * materials.size());
 			memcpy(map, materials.data(), materials.size() * sizeof(T));
 			buffer.Unmap(device);
 			buffer.UploadToDevice(device, commandPool, queue);
 		}
 
-		vk::Device GetBuffer()
+		void UpdateBufferIndex(int index, vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
+			size_t byteOffset = index * sizeof(T);
+
+			void* map = buffer.Map(device, byteOffset, sizeof(T));
+			memcpy(map, materials.data() + index, sizeof(T));
+			buffer.Unmap(device);
+
+			buffer.UploadToDevice(device, commandPool, queue, byteOffset, sizeof(T));
+		}
+
+		vk::Buffer GetBuffer()
 		{
 			return buffer.GetDeviceBuffer();
 		}
 
+		size_t GetBufferSize()
+		{
+			return buffer.GetBufferSize();
+		}
+
 		void Release(vk::Device device)
 		{
+			materials.clear();
 			buffer.Release(device);
 		}
 

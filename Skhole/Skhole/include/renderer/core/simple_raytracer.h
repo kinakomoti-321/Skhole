@@ -52,7 +52,7 @@ namespace Skhole
 		//--------------------------------------
 		// Renderer Structures
 		//--------------------------------------
-		struct UniformBufferObject {
+		struct Uniform {
 			uint32_t spp;
 			uint32_t frame;
 			uint32_t sample;
@@ -176,14 +176,10 @@ namespace Skhole
 		//--------------------------------------	
 		// Buffers
 		//--------------------------------------	
-		std::vector<Material> m_materials;
-		DeviceBuffer m_materaialBuffer;
-
 		SceneBufferaManager m_sceneBufferManager;
 		ASManager m_asManager;
 
-		UniformBufferObject uniformBufferObject;
-		Buffer m_uniformBuffer;
-
+		MaterialBuffer<Material> m_materialBuffer;
+		UniformBuffer<Uniform> m_uniformBuffer;
 	};
 }

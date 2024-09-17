@@ -9,7 +9,7 @@ namespace Skhole {
 		vk::DeviceAddress address{};
 		size_t bufferSize;
 
-		void init(vk::PhysicalDevice physicalDevice,
+		void Init(vk::PhysicalDevice physicalDevice,
 			vk::Device device,
 			vk::DeviceSize size,
 			vk::BufferUsageFlags usage,
@@ -72,6 +72,10 @@ namespace Skhole {
 			*memory = VK_NULL_HANDLE;
 		}
 
+		vk::Buffer GetBuffer() {
+			return *buffer;
+		}
+
 		size_t GetBufferSize() {
 			return bufferSize;
 		}
@@ -90,8 +94,8 @@ namespace Skhole {
 			vk::MemoryPropertyFlags memoryProperty
 		)
 		{
-			hostBuffer.init(physicalDevice, device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-			deviceBuffer.init(physicalDevice, device, size, usage | vk::BufferUsageFlagBits::eTransferDst, memoryProperty);
+			hostBuffer.Init(physicalDevice, device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+			deviceBuffer.Init(physicalDevice, device, size, usage | vk::BufferUsageFlagBits::eTransferDst, memoryProperty);
 			bufferSize = size;
 		}
 
@@ -179,7 +183,7 @@ namespace Skhole {
 					primitiveCount);
 
 			// Create buffer for AS
-			buffer.init(physicalDevice, device,
+			buffer.Init(physicalDevice, device,
 				buildSizes.accelerationStructureSize,
 				vk::BufferUsageFlagBits::eAccelerationStructureStorageKHR | vk::BufferUsageFlagBits::eShaderDeviceAddress,
 				vk::MemoryPropertyFlagBits::eDeviceLocal);
@@ -193,7 +197,7 @@ namespace Skhole {
 
 			// Create scratch buffer
 			Buffer scratchBuffer;
-			scratchBuffer.init(physicalDevice, device, buildSizes.buildScratchSize,
+			scratchBuffer.Init(physicalDevice, device, buildSizes.buildScratchSize,
 				vk::BufferUsageFlagBits::eStorageBuffer |
 				vk::BufferUsageFlagBits::eShaderDeviceAddress,
 				vk::MemoryPropertyFlagBits::eDeviceLocal);

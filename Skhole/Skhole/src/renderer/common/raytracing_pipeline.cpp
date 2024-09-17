@@ -127,7 +127,7 @@ namespace Skhole {
 		// Create SBT
 		vk::DeviceSize sbtSize =
 			raygenRegion.size + missRegion.size + hitRegion.size;
-		sbt.init(physicalDevice, device, sbtSize,
+		sbt.Init(physicalDevice, device, sbtSize,
 			vk::BufferUsageFlagBits::eShaderBindingTableKHR |
 			vk::BufferUsageFlagBits::eTransferSrc |
 			vk::BufferUsageFlagBits::eShaderDeviceAddress,
