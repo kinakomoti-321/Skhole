@@ -312,10 +312,6 @@ namespace Skhole {
 		uniformBufferObject.cameraParam.x = camera->GetYFov();
 		uniformBufferObject.cameraParam.y = static_cast<float>(width) / static_cast<float>(height);
 
-		//void* map = m_uniformBuffer.Map(*m_context.device, 0, sizeof(Uniform));
-		//memcpy(map, &uniformBufferObject, sizeof(Uniform));
-		//m_uniformBuffer.Ummap(*m_context.device);
-
 		m_uniformBuffer.Update(*m_context.device);
 
 		m_scene->SetTransformMatrix(time);
@@ -488,21 +484,12 @@ namespace Skhole {
 		m_asManager.BuildBLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
 
-	void SimpleRaytracer::UpdateMaterialBuffer(uint32_t matId) {
-
-		//m_materials[matId] = ConvertMaterial(m_scene->m_materials[matId]);
+	void SimpleRaytracer::UpdateMaterialBuffer(uint32_t matId)
+	{
 		auto material = ConvertMaterial(m_scene->m_materials[matId]);
 		m_materialBuffer.SetMaterial(material, matId);
 
 		m_materialBuffer.UpdateBufferIndex(matId, *m_context.device, *m_commandPool, m_context.queue);
-
-		//uint32_t byteOffset = matId * sizeof(Material);
-
-		//void* map = m_materaialBuffer.Map(*m_context.device, byteOffset, sizeof(Material));
-		//memcpy(map, m_materials.data() + matId, sizeof(Material));
-		//m_materaialBuffer.Unmap(*m_context.device);
-
-		//m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue, byteOffset, sizeof(Material));
 	}
 
 	SimpleRaytracer::Material SimpleRaytracer::ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
