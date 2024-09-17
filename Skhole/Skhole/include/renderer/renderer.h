@@ -160,6 +160,9 @@ namespace Skhole
 		virtual std::vector<const char*> GetExtensions() = 0;
 		virtual void InitializeBiniding() = 0;
 
+		void RaytracingCommand(const vk::CommandBuffer& commandBuffer, uint32_t width, uint32_t height);
+		void CopyRenderToScreen(const vk::CommandBuffer& commandBuffer, vk::Image src, vk::Image screen, uint32_t width, uint32_t height);
+		void RenderImGuiCommand(const vk::CommandBuffer& commandBuffer, vk::Framebuffer frameBuffer, uint32_t width, uint32_t height);
 
 		ShrPtr<Scene> m_scene;
 		ShrPtr<PostProcessor> m_postProcessor;

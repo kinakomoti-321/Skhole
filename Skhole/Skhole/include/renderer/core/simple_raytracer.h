@@ -28,10 +28,8 @@ namespace Skhole
 		~SimpleRaytracer();
 
 		void InitializeCore(RendererDesc& desc) override;
-
-		void DestroyCore() override;
-
 		void ResizeCore(unsigned int width, unsigned int height) override;
+		void DestroyCore() override;
 
 		void SetScene(ShrPtr<Scene> scene) override;
 		void DestroyScene() override;
@@ -39,6 +37,12 @@ namespace Skhole
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
 		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) override;
 		ShrPtr<RendererParameter> GetRendererParameter() override;
+		std::vector<const char*> GetLayer() override {
+			return m_layer;
+		}
+		std::vector<const char*> GetExtensions() override {
+			return m_extension;
+		}
 
 		void InitFrameGUI() override;
 
@@ -92,7 +96,6 @@ namespace Skhole
 		//--------------------------------------
 		// Private Method
 		//--------------------------------------
-
 		// Resources
 		void InitBufferManager();
 		void InitAccelerationStructures();
@@ -109,13 +112,6 @@ namespace Skhole
 		void UpdateMaterialBuffer(uint32_t matId);
 		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& material);
 
-		std::vector<const char*> GetLayer() override {
-			return m_layer;
-		}
-
-		std::vector<const char*> GetExtensions() override {
-			return m_extension;
-		}
 
 		void InitializeBiniding() override;
 

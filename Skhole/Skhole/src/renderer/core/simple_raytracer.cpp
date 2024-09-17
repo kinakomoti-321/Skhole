@@ -29,7 +29,6 @@ namespace Skhole {
 		uniformBufferObject.spp = m_raytracerParameter.spp;
 		uniformBufferObject.width = desc.Width;
 		uniformBufferObject.height = desc.Height;
-
 		uniformBufferObject.cameraDir = vec3(0.0f, 0.0f, -1.0f);
 		uniformBufferObject.cameraPos = vec3(0.0, 30.0, 50.0);
 		uniformBufferObject.cameraUp = vec3(0.0f, 1.0f, 0.0f);
@@ -41,15 +40,6 @@ namespace Skhole {
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
-	ShrPtr<RendererParameter> GetRendererParameter()
-	{
-		ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
-		rendererParameter->rendererName = "Simple Raytracer";
-		rendererParameter->frame = 0;
-		rendererParameter->spp = 100;
-		rendererParameter->sample = 1;
-		return nullptr;
-	}
 
 	void SimpleRaytracer::DestroyScene()
 	{
@@ -62,37 +52,10 @@ namespace Skhole {
 		m_scene = nullptr;
 	}
 
-	void SimpleRaytracer::UpdateScene(const UpdataInfo& updateInfo) {
-		if (updateInfo.commands.size() == 0) return;
 
-		m_scene->m_rendererParameter->sample = 1;
-		for (auto& command : updateInfo.commands) {
-			ShrPtr<UpdateObjectCommand> objCommand;
-			ShrPtr<UpdateMaterialCommand> matCommand;
+	void SimpleRaytracer::ResizeCore(unsigned int width, unsigned int height)
+	{
 
-			switch (command->GetCommandType()) {
-			case UpdateCommandType::CAMERA:
-				break;
-			case UpdateCommandType::RENDERER:
-				break;
-			case UpdateCommandType::MATERIAL:
-				matCommand = std::static_pointer_cast<UpdateMaterialCommand>(command);
-				UpdateMaterialBuffer(matCommand->materialIndex);
-				break;
-			case UpdateCommandType::OBJECT:
-				objCommand = std::static_pointer_cast<UpdateObjectCommand>(command);
-				m_scene->m_objects[objCommand->objectIndex]->ResetWorldTransformMatrix();
-				break;
-			default:
-				SKHOLE_UNIMPL("Command");
-				break;
-			}
-		}
-
-	}
-
-	void SimpleRaytracer::InitFrameGUI() {
-		m_imGuiManager.NewFrame();
 	}
 
 	void SimpleRaytracer::DestroyCore()
@@ -103,11 +66,6 @@ namespace Skhole {
 		m_asManager.ReleaseBLAS(*m_context.device);
 		m_asManager.ReleaseTLAS(*m_context.device);
 		m_sceneBufferManager.Release(*m_context.device);
-	}
-
-	void SimpleRaytracer::ResizeCore(unsigned int width, unsigned int height)
-	{
-
 	}
 
 	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
@@ -175,12 +133,10 @@ namespace Skhole {
 				m_scene->m_materials.size()
 			);
 
-			//m_materials.reserve(m_scene->m_materials.size());
 			auto& materials = m_scene->m_materials;
 			int index = 0;
 			for (auto& materialDef : materials)
 			{
-				//m_materials.push_back(ConvertMaterial(materialDef));
 				auto material = ConvertMaterial(materialDef);
 				m_materialBuffer.SetMaterial(material, index);
 				index++;
@@ -188,19 +144,6 @@ namespace Skhole {
 
 			m_materialBuffer.UpdateBuffer(*m_context.device, *m_commandPool, m_context.queue);
 		}
-
-		//m_materaialBuffer.Init(
-		//	m_context.physicalDevice, *m_context.device,
-		//	m_materials.size() * sizeof(Material),
-		//	vk::BufferUsageFlagBits::eStorageBuffer,
-		//	vk::MemoryPropertyFlagBits::eDeviceLocal
-		//);
-
-		//void* map = m_materaialBuffer.Map(*m_context.device, 0, m_materials.size() * sizeof(Material));
-		//memcpy(map, m_materials.data(), m_materials.size() * sizeof(Material));
-		//m_materaialBuffer.Unmap(*m_context.device);
-
-		//m_materaialBuffer.UploadToDevice(*m_context.device, *m_commandPool, m_context.queue);
 
 		SKHOLE_LOG_SECTION("End Set Scene");
 	}
@@ -214,6 +157,34 @@ namespace Skhole {
 		m_sceneBufferManager.InitInstanceBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
 
+	void SimpleRaytracer::UpdateScene(const UpdataInfo& updateInfo) {
+		if (updateInfo.commands.size() == 0) return;
+
+		m_scene->m_rendererParameter->sample = 1;
+		for (auto& command : updateInfo.commands) {
+			ShrPtr<UpdateObjectCommand> objCommand;
+			ShrPtr<UpdateMaterialCommand> matCommand;
+
+			switch (command->GetCommandType()) {
+			case UpdateCommandType::CAMERA:
+				break;
+			case UpdateCommandType::RENDERER:
+				break;
+			case UpdateCommandType::MATERIAL:
+				matCommand = std::static_pointer_cast<UpdateMaterialCommand>(command);
+				UpdateMaterialBuffer(matCommand->materialIndex);
+				break;
+			case UpdateCommandType::OBJECT:
+				objCommand = std::static_pointer_cast<UpdateObjectCommand>(command);
+				m_scene->m_objects[objCommand->objectIndex]->ResetWorldTransformMatrix();
+				break;
+			default:
+				SKHOLE_UNIMPL("Command");
+				break;
+			}
+		}
+
+	}
 
 	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material)
 	{
@@ -265,10 +236,6 @@ namespace Skhole {
 		return rendererParameter;
 	}
 
-
-	//--------------------------------------
-	// Internal Method
-	//--------------------------------------
 	void SimpleRaytracer::InitializeBiniding()
 	{
 		std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
@@ -285,6 +252,10 @@ namespace Skhole {
 		};
 
 		m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+	}
+
+	void SimpleRaytracer::InitFrameGUI() {
+		m_imGuiManager.NewFrame();
 	}
 
 	void SimpleRaytracer::FrameStart(float time) {
@@ -315,10 +286,10 @@ namespace Skhole {
 		m_uniformBuffer.Update(*m_context.device);
 
 		m_scene->SetTransformMatrix(time);
-
 		m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
 		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
+
 
 	void SimpleRaytracer::FrameEnd()
 	{
@@ -331,27 +302,30 @@ namespace Skhole {
 		}
 	}
 
+
 	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
 		uint32_t width = m_renderImages.GetWidth();
 		uint32_t height = m_renderImages.GetHeight();
 
-		m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_raytracingPipeline.GetPipeline());
-		m_commandBuffer->bindDescriptorSets(
-			vk::PipelineBindPoint::eRayTracingKHR,
-			m_raytracingPipeline.GetPipelineLayout(),
-			0,
-			m_bindingManager.descriptorSet,
-			nullptr
-		);
-		m_commandBuffer->traceRaysKHR(
-			m_raytracingPipeline.GetRaygenRegion(),
-			m_raytracingPipeline.GetMissRegion(),
-			m_raytracingPipeline.GetHitRegion(),
-			{},
-			width, height, 1
-		);
+		//m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_raytracingPipeline.GetPipeline());
+		//m_commandBuffer->bindDescriptorSets(
+		//	vk::PipelineBindPoint::eRayTracingKHR,
+		//	m_raytracingPipeline.GetPipelineLayout(),
+		//	0,
+		//	m_bindingManager.descriptorSet,
+		//	nullptr
+		//);
+		//m_commandBuffer->traceRaysKHR(
+		//	m_raytracingPipeline.GetRaygenRegion(),
+		//	m_raytracingPipeline.GetMissRegion(),
+		//	m_raytracingPipeline.GetHitRegion(),
+		//	{},
+		//	width, height, 1
+		//);
+
+		RaytracingCommand(*m_commandBuffer, width, height);
 
 		auto& accumImage = m_renderImages.GetAccumImage();
 		auto& renderImage = m_renderImages.GetRenderImage();
@@ -366,55 +340,12 @@ namespace Skhole {
 
 		m_postProcessor->Execute(*m_commandBuffer, desc);
 
-		// Copy RenderImage -> WindowImage
-		vkutils::setImageLayout(*m_commandBuffer, postProcessedImage.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
-		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);
-
-		vk::ImageCopy region;
-		region.srcSubresource = vk::ImageSubresourceLayers()
-			.setAspectMask(vk::ImageAspectFlagBits::eColor)
-			.setMipLevel(0)
-			.setBaseArrayLayer(0)
-			.setLayerCount(1);
-		region.srcOffset = vk::Offset3D(0, 0, 0);
-
-		region.dstSubresource = vk::ImageSubresourceLayers()
-			.setAspectMask(vk::ImageAspectFlagBits::eColor)
-			.setMipLevel(0)
-			.setBaseArrayLayer(0)
-			.setLayerCount(1);
-		region.dstOffset = vk::Offset3D(0, 0, 0);
-
-		region.extent = vk::Extent3D(width, height, 1);
-
-		m_commandBuffer->copyImage(
-			postProcessedImage.GetImage(), vk::ImageLayout::eTransferSrcOptimal,
-			image, vk::ImageLayout::eTransferDstOptimal,
-			region
-		);
-
-		vkutils::setImageLayout(*m_commandBuffer, postProcessedImage.GetImage(), vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
-		vkutils::setImageLayout(*m_commandBuffer, image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eAttachmentOptimal);
+		CopyRenderToScreen(*m_commandBuffer, postProcessedImage.GetImage(), image, width, height);
 
 		//--------------------
 		// ImGUI
 		//--------------------
-		vk::RenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
-		renderPassInfo.setFramebuffer(frameBuffer);
-		vk::Rect2D rect({ 0,0 }, { (uint32_t)width,(uint32_t)height });
-
-		renderPassInfo.setRenderArea(rect);
-
-		m_commandBuffer->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-
-		ImGui::Render();
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
-
-		m_commandBuffer->endRenderPass();
-		//--------------------
-		// ImGUI End
-		//--------------------
+		RenderImGuiCommand(*m_commandBuffer, frameBuffer, width, height);
 
 		m_commandBuffer->end();
 
@@ -511,6 +442,16 @@ namespace Skhole {
 		material.emissionColor = p5->value;
 
 		return material;
+	}
+
+	ShrPtr<RendererParameter> GetRendererParameter()
+	{
+		ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
+		rendererParameter->rendererName = "Simple Raytracer";
+		rendererParameter->frame = 0;
+		rendererParameter->spp = 100;
+		rendererParameter->sample = 1;
+		return nullptr;
 	}
 
 }

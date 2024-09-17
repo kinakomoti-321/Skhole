@@ -120,4 +120,69 @@ namespace Skhole {
 		m_imGuiManager.Destroy(*m_context.device);
 	}
 
+	void Renderer::RaytracingCommand(const vk::CommandBuffer& commandBuffer, uint32_t width, uint32_t height) {
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_raytracingPipeline.GetPipeline());
+		commandBuffer.bindDescriptorSets(
+			vk::PipelineBindPoint::eRayTracingKHR,
+			m_raytracingPipeline.GetPipelineLayout(),
+			0,
+			m_bindingManager.descriptorSet,
+			nullptr
+		);
+
+		m_commandBuffer->traceRaysKHR(
+			m_raytracingPipeline.GetRaygenRegion(),
+			m_raytracingPipeline.GetMissRegion(),
+			m_raytracingPipeline.GetHitRegion(),
+			{},
+			width, height, 1
+		);
+	}
+
+	void Renderer::CopyRenderToScreen(const vk::CommandBuffer& commandBuffer, vk::Image src, vk::Image screen, uint32_t width, uint32_t height) {
+		vkutils::setImageLayout(*m_commandBuffer, src, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+		vkutils::setImageLayout(*m_commandBuffer, screen, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);
+
+		vk::ImageCopy region;
+		region.srcSubresource = vk::ImageSubresourceLayers()
+			.setAspectMask(vk::ImageAspectFlagBits::eColor)
+			.setMipLevel(0)
+			.setBaseArrayLayer(0)
+			.setLayerCount(1);
+		region.srcOffset = vk::Offset3D(0, 0, 0);
+
+		region.dstSubresource = vk::ImageSubresourceLayers()
+			.setAspectMask(vk::ImageAspectFlagBits::eColor)
+			.setMipLevel(0)
+			.setBaseArrayLayer(0)
+			.setLayerCount(1);
+		region.dstOffset = vk::Offset3D(0, 0, 0);
+
+		region.extent = vk::Extent3D(width, height, 1);
+
+		m_commandBuffer->copyImage(
+			src, vk::ImageLayout::eTransferSrcOptimal,
+			screen, vk::ImageLayout::eTransferDstOptimal,
+			region
+		);
+
+		vkutils::setImageLayout(*m_commandBuffer, src, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+		vkutils::setImageLayout(*m_commandBuffer, screen, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eAttachmentOptimal);
+	}
+
+	void Renderer::RenderImGuiCommand(const vk::CommandBuffer& commandBuffer, vk::Framebuffer frameBuffer, uint32_t width, uint32_t height) {
+		vk::RenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.setRenderPass(*m_imGuiRenderPass);
+		renderPassInfo.setFramebuffer(frameBuffer);
+		vk::Rect2D rect({ 0,0 }, { (uint32_t)width,(uint32_t)height });
+
+		renderPassInfo.setRenderArea(rect);
+
+		m_commandBuffer->beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *m_commandBuffer);
+
+		m_commandBuffer->endRenderPass();
+	}
 }
