@@ -368,5 +368,86 @@ namespace Skhole {
 		AccelStruct TLAS;
 
 	};
+
+
+	template <typename T>
+	class UniformBuffer {
+	public:
+		UniformBuffer() {};
+		~UniformBuffer() {};
+
+		void Init(vk::PhysicalDevice physicalDevice, vk::Device device) {
+			buffer.Init(
+				physicalDevice, device,
+				sizeof(T),
+				vk::BufferUsageFlagBits::eUniformBuffer,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+			);
+		}
+
+		vk::Buffer GetBuffer() {
+			return buffer.buffer;
+		}
+
+		void Update() {
+			void* map = buffer.Map();
+			memcpy(map, &data, sizeof(T));
+			buffer.Unmap();
+		}
+
+		void Release(vk::Device device) {
+			buffer.Release(device);
+		}
+
+		T data;
+		Buffer buffer;
+	};
+
+	template <typename T>
+	class MaterialBuffer
+	{
+
+	public:
+		MaterialBuffer() {};
+		~MaterialBuffer() {};
+
+		void Init(vk::PhysicalDevice physicalDevice, vk::Device device, uint32_t numMaterial)
+		{
+			materials.resize(numMaterial);
+			buffer.Init(
+				physicalDevice, device,
+				numMaterial * sizeof(T),
+				vk::BufferUsageFlagBits::eStorageBuffer,
+				vk::MemoryPropertyFlagBits::eDeviceLocal
+			);
+		}
+
+		void SetMaterial(const T& material, int index)
+		{
+			materials[index] = material;
+		}
+
+		void UpdateBuffer(vk::Device device, vk::CommandPool commandPool, vk::Queue queue)
+		{
+			void* map = buffer.Map(device);
+			memcpy(map, materials.data(), materials.size() * sizeof(T));
+			buffer.Unmap(device);
+			buffer.UploadToDevice(device, commandPool, queue);
+		}
+
+		vk::Device GetBuffer()
+		{
+			return buffer.GetDeviceBuffer();
+		}
+
+		void Release(vk::Device device)
+		{
+			buffer.Release(device);
+		}
+
+	private:
+		std::vector<T> materials;
+		DeviceBuffer buffer;
+	};
 }
 
