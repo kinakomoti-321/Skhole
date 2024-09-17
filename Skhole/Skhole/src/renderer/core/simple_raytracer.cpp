@@ -183,6 +183,7 @@ namespace Skhole {
 				//m_materials.push_back(ConvertMaterial(materialDef));
 				auto material = ConvertMaterial(materialDef);
 				m_materialBuffer.SetMaterial(material, index);
+				index++;
 			}
 
 			m_materialBuffer.UpdateBuffer(*m_context.device, *m_commandPool, m_context.queue);

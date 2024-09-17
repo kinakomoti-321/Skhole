@@ -443,6 +443,7 @@ namespace Skhole {
 			void* map = buffer.Map(device, 0, sizeof(T) * materials.size());
 			memcpy(map, materials.data(), materials.size() * sizeof(T));
 			buffer.Unmap(device);
+
 			buffer.UploadToDevice(device, commandPool, queue);
 		}
 
