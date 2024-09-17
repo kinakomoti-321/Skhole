@@ -309,22 +309,6 @@ namespace Skhole {
 		uint32_t width = m_renderImages.GetWidth();
 		uint32_t height = m_renderImages.GetHeight();
 
-		//m_commandBuffer->bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, m_raytracingPipeline.GetPipeline());
-		//m_commandBuffer->bindDescriptorSets(
-		//	vk::PipelineBindPoint::eRayTracingKHR,
-		//	m_raytracingPipeline.GetPipelineLayout(),
-		//	0,
-		//	m_bindingManager.descriptorSet,
-		//	nullptr
-		//);
-		//m_commandBuffer->traceRaysKHR(
-		//	m_raytracingPipeline.GetRaygenRegion(),
-		//	m_raytracingPipeline.GetMissRegion(),
-		//	m_raytracingPipeline.GetHitRegion(),
-		//	{},
-		//	width, height, 1
-		//);
-
 		RaytracingCommand(*m_commandBuffer, width, height);
 
 		auto& accumImage = m_renderImages.GetAccumImage();
