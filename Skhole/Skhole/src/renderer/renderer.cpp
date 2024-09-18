@@ -46,9 +46,14 @@ namespace Skhole {
 		pipelineDesc.physicalDevice = m_context.physicalDevice;
 		pipelineDesc.descriptorSetLayout = m_bindingManager.descriptorSetLayout;
 
-		pipelineDesc.raygenShaderPath = "shader/simple_raytracer/raygen.rgen.spv";
-		pipelineDesc.missShaderPath = "shader/simple_raytracer/miss.rmiss.spv";
-		pipelineDesc.closestHitShaderPath = "shader/simple_raytracer/closesthit.rchit.spv";
+		ShaderPaths shaderPaths = GetShaderPaths();
+
+		if (!shaderPaths.raygen.has_value() || !shaderPaths.miss.has_value() || !shaderPaths.closestHit.has_value())
+			SKHOLE_ABORT("Shader Path is not defined");
+
+		pipelineDesc.raygenShaderPath = shaderPaths.raygen.value();
+		pipelineDesc.missShaderPath = shaderPaths.miss.value();
+		pipelineDesc.closestHitShaderPath = shaderPaths.closestHit.value();
 
 		m_raytracingPipeline.InitPipeline(pipelineDesc);
 
@@ -190,7 +195,7 @@ namespace Skhole {
 		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
 		materialDef->materialName = material->materialName;
 
-		DefineMaterial(materialDef,material);
+		DefineMaterial(materialDef, material);
 
 		return materialDef;
 	}

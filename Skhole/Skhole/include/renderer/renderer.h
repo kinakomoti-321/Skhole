@@ -167,6 +167,14 @@ namespace Skhole
 		virtual std::vector<const char*> GetExtensions() = 0;
 		virtual void InitializeBiniding() = 0;
 
+		struct ShaderPaths {
+			std::optional<std::string> raygen;
+			std::optional<std::string> miss;
+			std::optional<std::string> closestHit;
+			std::optional<std::string> anyHit;
+		};
+		virtual ShaderPaths GetShaderPaths() = 0;
+
 		// Rendering Commands
 		void RaytracingCommand(const vk::CommandBuffer& commandBuffer, uint32_t width, uint32_t height);
 		void CopyRenderToScreen(const vk::CommandBuffer& commandBuffer, vk::Image src, vk::Image screen, uint32_t width, uint32_t height);
