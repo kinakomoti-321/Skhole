@@ -45,7 +45,16 @@ namespace Skhole
 
 		ShrPtr<RendererParameter> GetRendererParameter() override
 		{
+			auto rendererParameter = MakeShr<RendererParameter>();
+			rendererParameter->rendererName = "Simple Raytracer";
+			rendererParameter->frame = 0;
+			rendererParameter->spp = 100;
+			rendererParameter->sample = 1;
 
+			CopyParameter(rendererExtensions, rendererParameter->rendererParameters);
+			rendererParameter->posproParameters = m_postProcessor->GetParamter();
+
+			return rendererParameter;
 		}
 
 		std::vector<const char*> GetLayer() override {
