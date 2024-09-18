@@ -208,11 +208,19 @@ namespace Skhole {
 		return std::static_pointer_cast<ParamBool>(param);
 	}
 
+	inline bool GetParamBoolValue(ShrPtr<Parameter> param) {
+		return CastParamBool(param)->value;
+	}
+
 	inline ShrPtr<ParamFloat> CastParamFloat(ShrPtr<Parameter> param) {
 		if (param->getParamType() != ParameterType::FLOAT) {
 			SKHOLE_ABORT("Parameter is not Float Type");
 		}
 		return std::static_pointer_cast<ParamFloat>(param);
+	}
+
+	inline float GetParamFloatValue(ShrPtr<Parameter> param) {
+		return CastParamFloat(param)->value;
 	}
 
 	inline ShrPtr<ParamVec> CastParamVec(ShrPtr<Parameter> param) {
@@ -222,11 +230,19 @@ namespace Skhole {
 		return std::static_pointer_cast<ParamVec>(param);
 	}
 
+	inline vec3 GetParamVecValue(ShrPtr<Parameter> param) {
+		return CastParamVec(param)->value;
+	}
+
 	inline ShrPtr<ParamCol> CastParamCol(ShrPtr<Parameter> param) {
 		if (param->getParamType() != ParameterType::COLOR) {
 			SKHOLE_ABORT("Parameter is not Color Type");
 		}
 		return std::static_pointer_cast<ParamCol>(param);
+	}
+
+	inline vec4 GetParamColValue(ShrPtr<Parameter> param) {
+		return CastParamCol(param)->value;
 	}
 
 	inline ShrPtr<ParamUint> CastParamUint(ShrPtr<Parameter> param) {
@@ -236,5 +252,15 @@ namespace Skhole {
 		return std::static_pointer_cast<ParamUint>(param);
 	}
 
+	inline uint32_t GetParamUintValue(ShrPtr<Parameter> param) {
+		return CastParamUint(param)->value;
+	}
 
+
+	inline void CopyParameter(const std::vector<ShrPtr<Parameter>>& src, std::vector<ShrPtr<Parameter>>& dst)
+	{
+		dst.resize(src.size());
+		for (int i = 0; i < src.size(); i++)
+			dst[i] = src[i]->Copy();
+	}
 }

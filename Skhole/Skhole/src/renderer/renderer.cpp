@@ -185,4 +185,9 @@ namespace Skhole {
 
 		m_commandBuffer->endRenderPass();
 	}
+
+	void Renderer::ResetSample() {
+		m_rendererProperty.sample = 1;
+	}
+
 }

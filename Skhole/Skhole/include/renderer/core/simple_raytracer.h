@@ -37,6 +37,7 @@ namespace Skhole
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
 		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) override;
 		ShrPtr<RendererParameter> GetRendererParameter() override;
+
 		std::vector<const char*> GetLayer() override {
 			return m_layer;
 		}
@@ -91,6 +92,7 @@ namespace Skhole
 
 			vec4 emissionColor;
 		};
+
 
 	private:
 		//--------------------------------------

@@ -15,6 +15,8 @@ namespace Skhole
 {
 	class Scene;
 
+	using ParamDefine = std::vector<ShrPtr<Parameter>>;
+
 	struct RendererDesc
 	{
 		std::string Name;
@@ -166,6 +168,8 @@ namespace Skhole
 		void CopyRenderToScreen(const vk::CommandBuffer& commandBuffer, vk::Image src, vk::Image screen, uint32_t width, uint32_t height);
 		void RenderImGuiCommand(const vk::CommandBuffer& commandBuffer, vk::Framebuffer frameBuffer, uint32_t width, uint32_t height);
 
+		void ResetSample();
+
 		ShrPtr<Scene> m_scene;
 		ShrPtr<PostProcessor> m_postProcessor;
 
@@ -182,5 +186,15 @@ namespace Skhole
 		VkHelper::BindingManager m_bindingManager;
 
 		RenderImages m_renderImages;
+
+	protected:
+		struct RendererProperty
+		{
+			uint32_t spp = 1;
+			uint32_t sample = 0;
+			uint32_t frame = 0;
+		};
+
+		RendererProperty m_rendererProperty;
 	};
 }

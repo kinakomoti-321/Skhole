@@ -70,7 +70,8 @@ namespace Skhole {
 	PostProcessParameter PPExample::GetParamter() {
 		PostProcessParameter param;
 		param.name = "Example Post Process";
-		param.param = params;
+		CopyParameter(params, param.param);
+
 		return param;
 	}
 

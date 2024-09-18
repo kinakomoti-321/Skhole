@@ -40,7 +40,6 @@ namespace Skhole {
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
-
 	void SimpleRaytracer::DestroyScene()
 	{
 		m_sceneBufferManager.Release(*m_context.device);
@@ -203,11 +202,7 @@ namespace Skhole {
 		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
 		materialDef->materialName = material->materialName;
 
-		materialDef->materialParameters.resize(m_matParams.size());
-		for (int i = 0; i < m_matParams.size(); i++)
-		{
-			materialDef->materialParameters[i] = m_matParams[i]->Copy();
-		}
+		CopyParameter(m_matParams, materialDef->materialParameters);
 
 		materialDef->materialParameters[0]->setParamValue(material->basecolor);
 		materialDef->materialParameters[1]->setParamValue(material->metallic);
@@ -228,8 +223,7 @@ namespace Skhole {
 		cameraDef->up = camera->up;
 		cameraDef->fov = camera->fov;
 
-		cameraDef->extensionParameters = m_camExtensionParams;
-
+		CopyParameter(m_camExtensionParams, cameraDef->extensionParameters);
 
 		return cameraDef;
 	}
@@ -242,7 +236,8 @@ namespace Skhole {
 		rendererParameter->spp = 100;
 		rendererParameter->sample = 1;
 
-		rendererParameter->rendererParameters = m_rendererExtensionParams;
+		//rendererParameter->rendererParameters = m_rendererExtensionParams;
+		CopyParameter(m_rendererExtensionParams, rendererParameter->rendererParameters);
 		rendererParameter->posproParameters = m_postProcessor->GetParamter();
 
 		return rendererParameter;
