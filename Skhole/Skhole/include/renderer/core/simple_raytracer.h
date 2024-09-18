@@ -101,12 +101,12 @@ namespace Skhole
 		void InitAccelerationStructures();
 
 		// Render
-		void UpdateDescriptorSet(vk::ImageView imageView);
+		void UpdateDescriptorSet();
 
 		void FrameStart(float time);
 		void FrameEnd();
 
-		void RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer);
+		void RecordCommandBuffer(uint32_t width, uint32_t height);
 
 		// Scene Update;
 		void UpdateMaterialBuffer(uint32_t matId);

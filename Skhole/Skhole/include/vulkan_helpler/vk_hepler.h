@@ -307,6 +307,30 @@ namespace VkHelper {
 			SKHOLE_LOG("... End Initialization Vulkan Screen")
 		}
 
+		int GetFrameIndex(vk::Device device, const vk::Semaphore& semaphore) {
+			auto result = device.acquireNextImageKHR(
+				*swapchain, std::numeric_limits<uint64_t>::max(),
+				semaphore);
+			if (result.result != vk::Result::eSuccess) {
+				std::cerr << "Failed to acquire next image.\n";
+				std::abort();
+			}
+
+			return result.value;
+		}
+
+		vk::Image GetFrameImage(int index) {
+			return swapchainImages[index];
+		}
+
+		vk::ImageView GetFrameImageView(int index) {
+			return *swapchainImageViews[index];
+		}
+
+		vk::Framebuffer GetFrameBuffer(int index) {
+			return *frameBuffers[index];
+		}
+
 		void Release(vk::Device device) {
 			frameBuffers.clear();
 			swapchainImageViews.clear();

@@ -77,23 +77,21 @@ namespace Skhole {
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
 
-		auto& swapchain = m_screenContext.swapchain;
-		auto& swapchainImages = m_screenContext.swapchainImages;
-		auto& swapchainImageViews = m_screenContext.swapchainImageViews;
-		auto& swapchainFramebuffers = m_screenContext.frameBuffers;
 
-		auto result = m_context.device->acquireNextImageKHR(
-			*swapchain, std::numeric_limits<uint64_t>::max(),
-			*imageAvailableSemaphore);
-		if (result.result != vk::Result::eSuccess) {
-			std::cerr << "Failed to acquire next image.\n";
-			std::abort();
-		}
+		uint32_t imageIndex = m_screenContext.GetFrameIndex(*m_context.device, *imageAvailableSemaphore);
 
-		uint32_t imageIndex = result.value;
-		UpdateDescriptorSet(*swapchainImageViews[imageIndex]);
+		uint32_t width = m_renderImages.GetWidth();
+		uint32_t height = m_renderImages.GetHeight();
 
-		RecordCommandBuffer(swapchainImages[imageIndex], *swapchainFramebuffers[imageIndex]);
+		UpdateDescriptorSet();
+
+		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
+
+		RecordCommandBuffer(width, height);
+		CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
+		RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
+
+		m_commandBuffer->end();
 
 		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
 		vk::SubmitInfo submitInfo{};
@@ -105,7 +103,7 @@ namespace Skhole {
 		m_context.queue.waitIdle();
 
 		vk::PresentInfoKHR presentInfo{};
-		presentInfo.setSwapchains(*swapchain);
+		presentInfo.setSwapchains(*m_screenContext.swapchain);
 		presentInfo.setImageIndices(imageIndex);
 		if (m_context.queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
 			std::cerr << "Failed to present.\n";
@@ -113,6 +111,20 @@ namespace Skhole {
 		}
 
 		FrameEnd();
+	}
+
+	void SimpleRaytracer::RecordCommandBuffer(uint32_t width, uint32_t height) {
+
+		RaytracingCommand(*m_commandBuffer, width, height);
+
+		// Post Process
+		PostProcessor::ExecuteDesc desc{};
+		desc.device = *m_context.device;
+		desc.inputImage = m_renderImages.GetRenderImage().GetImageView();
+		desc.outputImage = m_renderImages.GetPostProcessedImage().GetImageView();
+		desc.param = m_scene->m_rendererParameter->posproParameters;
+
+		m_postProcessor->Execute(*m_commandBuffer, desc);
 	}
 
 	void SimpleRaytracer::OfflineRender(const OfflineRenderingInfo& renderInfo)
@@ -303,40 +315,9 @@ namespace Skhole {
 	}
 
 
-	void SimpleRaytracer::RecordCommandBuffer(vk::Image image, vk::Framebuffer frameBuffer) {
-		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-
-		uint32_t width = m_renderImages.GetWidth();
-		uint32_t height = m_renderImages.GetHeight();
-
-		RaytracingCommand(*m_commandBuffer, width, height);
-
-		auto& accumImage = m_renderImages.GetAccumImage();
-		auto& renderImage = m_renderImages.GetRenderImage();
-		auto& postProcessedImage = m_renderImages.GetPostProcessedImage();
-
-		// Post Process
-		PostProcessor::ExecuteDesc desc{};
-		desc.device = *m_context.device;
-		desc.inputImage = renderImage.GetImageView();
-		desc.outputImage = postProcessedImage.GetImageView();
-		desc.param = m_scene->m_rendererParameter->posproParameters;
-
-		m_postProcessor->Execute(*m_commandBuffer, desc);
-
-		CopyRenderToScreen(*m_commandBuffer, postProcessedImage.GetImage(), image, width, height);
-
-		//--------------------
-		// ImGUI
-		//--------------------
-		RenderImGuiCommand(*m_commandBuffer, frameBuffer, width, height);
-
-		m_commandBuffer->end();
-
-	}
 
 
-	void SimpleRaytracer::UpdateDescriptorSet(vk::ImageView imageView) {
+	void SimpleRaytracer::UpdateDescriptorSet() {
 		auto& accumImage = m_renderImages.GetAccumImage();
 		auto& renderImage = m_renderImages.GetRenderImage();
 		auto& posproIamge = m_renderImages.GetPostProcessedImage();
