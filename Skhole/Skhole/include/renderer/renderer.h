@@ -133,7 +133,6 @@ namespace Skhole
 		void Resize(unsigned int width, unsigned int height);
 		void Destroy();
 
-		virtual void DestroyCore() = 0;
 
 		virtual void SetScene(ShrPtr<Scene> scene) = 0;
 		virtual void DestroyScene() = 0;
@@ -153,13 +152,16 @@ namespace Skhole
 		virtual void OfflineRender(const OfflineRenderingInfo& renderInfo) = 0;
 
 	protected:
+		// Internal Methods
 		virtual void InitializeCore(RendererDesc& desc) = 0;
 		virtual void ResizeCore(unsigned int width, unsigned int height) = 0;
+		virtual void DestroyCore() = 0;
 
 		virtual std::vector<const char*> GetLayer() = 0;
 		virtual std::vector<const char*> GetExtensions() = 0;
 		virtual void InitializeBiniding() = 0;
 
+		// Rendering Commands
 		void RaytracingCommand(const vk::CommandBuffer& commandBuffer, uint32_t width, uint32_t height);
 		void CopyRenderToScreen(const vk::CommandBuffer& commandBuffer, vk::Image src, vk::Image screen, uint32_t width, uint32_t height);
 		void RenderImGuiCommand(const vk::CommandBuffer& commandBuffer, vk::Framebuffer frameBuffer, uint32_t width, uint32_t height);
