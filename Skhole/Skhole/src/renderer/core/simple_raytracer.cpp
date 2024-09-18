@@ -197,11 +197,8 @@ namespace Skhole {
 
 	}
 
-	ShrPtr<RendererDefinisionMaterial> SimpleRaytracer::GetMaterial(const ShrPtr<BasicMaterial>& material)
+	void SimpleRaytracer::DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material)
 	{
-		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
-		materialDef->materialName = material->materialName;
-
 		CopyParameter(m_matParams, materialDef->materialParameters);
 
 		materialDef->materialParameters[0]->setParamValue(material->basecolor);
@@ -209,23 +206,11 @@ namespace Skhole {
 		materialDef->materialParameters[2]->setParamValue(material->roughness);
 		materialDef->materialParameters[3]->setParamValue(material->emissionIntensity);
 		materialDef->materialParameters[4]->setParamValue(material->emissionColor);
-
-		return materialDef;
 	}
 
-	ShrPtr<RendererDefinisionCamera> SimpleRaytracer::GetCamera(const ShrPtr<RendererDefinisionCamera>& camera)
+	void SimpleRaytracer::DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef)
 	{
-		ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
-		cameraDef->cameraName = camera->cameraName;
-
-		cameraDef->position = camera->position;
-		cameraDef->foward = camera->foward;
-		cameraDef->up = camera->up;
-		cameraDef->fov = camera->fov;
-
 		CopyParameter(m_camExtensionParams, cameraDef->extensionParameters);
-
-		return cameraDef;
 	}
 
 	ShrPtr<RendererParameter> SimpleRaytracer::GetRendererParameter() {
@@ -236,7 +221,6 @@ namespace Skhole {
 		rendererParameter->spp = 100;
 		rendererParameter->sample = 1;
 
-		//rendererParameter->rendererParameters = m_rendererExtensionParams;
 		CopyParameter(m_rendererExtensionParams, rendererParameter->rendererParameters);
 		rendererParameter->posproParameters = m_postProcessor->GetParamter();
 

@@ -27,33 +27,20 @@ namespace Skhole
 		void SetScene(ShrPtr<Scene> scene) override;
 		void DestroyScene() override;
 
-		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override
+		void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) override
 		{
-			ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
-			materialDef->materialName = material->materialName;
 			CopyParameter(matParams, materialDef->materialParameters);
 
 			materialDef->materialParameters[0]->setParamValue(material->basecolor);
-			materialDef->materialParameters[1]->setParamValue(0.0f);
+			materialDef->materialParameters[1]->setParamValue(material->metallic);
 			materialDef->materialParameters[2]->setParamValue(material->roughness);
-			materialDef->materialParameters[3]->setParamValue(material->metallic);
-			materialDef->materialParameters[4]->setParamValue(material->emissionIntensity);
-			materialDef->materialParameters[5]->setParamValue(material->emissionColor);
-
-			return materialDef;
+			materialDef->materialParameters[3]->setParamValue(material->emissionIntensity);
+			materialDef->materialParameters[4]->setParamValue(material->emissionColor);
 		}
 
-		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) override
+		void DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef) override
 		{
-			ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
-			cameraDef->cameraName = basicCamera->cameraName;
-			cameraDef->position = basicCamera->position;
-			cameraDef->foward = basicCamera->foward;
-			cameraDef->up = basicCamera->up;
-			cameraDef->fov = basicCamera->fov;
 			CopyParameter(camExtension, cameraDef->extensionParameters);
-
-			return cameraDef;
 		}
 
 		ShrPtr<RendererParameter> GetRendererParameter() override

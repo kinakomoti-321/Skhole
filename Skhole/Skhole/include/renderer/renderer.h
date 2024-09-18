@@ -135,13 +135,14 @@ namespace Skhole
 		void Resize(unsigned int width, unsigned int height);
 		void Destroy();
 
-
 		virtual void SetScene(ShrPtr<Scene> scene) = 0;
 		virtual void DestroyScene() = 0;
 
 		// Renderer Data
-		virtual ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) = 0;
-		virtual ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) = 0;
+
+		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material);
+		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera);
+
 		virtual ShrPtr<RendererParameter> GetRendererParameter() = 0;
 
 		virtual void InitFrameGUI() = 0;
@@ -158,6 +159,9 @@ namespace Skhole
 		virtual void InitializeCore(RendererDesc& desc) = 0;
 		virtual void ResizeCore(unsigned int width, unsigned int height) = 0;
 		virtual void DestroyCore() = 0;
+
+		virtual void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) = 0;
+		virtual void DefineCamera(const ShrPtr<RendererDefinisionCamera>& camera) = 0;
 
 		virtual std::vector<const char*> GetLayer() = 0;
 		virtual std::vector<const char*> GetExtensions() = 0;

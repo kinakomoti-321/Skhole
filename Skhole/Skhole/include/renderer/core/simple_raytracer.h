@@ -34,8 +34,9 @@ namespace Skhole
 		void SetScene(ShrPtr<Scene> scene) override;
 		void DestroyScene() override;
 
-		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material) override;
-		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) override;
+		void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) override;
+		void DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef) override;
+
 		ShrPtr<RendererParameter> GetRendererParameter() override;
 
 		std::vector<const char*> GetLayer() override {

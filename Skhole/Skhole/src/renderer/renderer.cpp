@@ -186,6 +186,28 @@ namespace Skhole {
 		m_commandBuffer->endRenderPass();
 	}
 
+	ShrPtr<RendererDefinisionMaterial> Renderer::GetMaterial(const ShrPtr<BasicMaterial>& material) {
+		ShrPtr<RendererDefinisionMaterial> materialDef = MakeShr<RendererDefinisionMaterial>();
+		materialDef->materialName = material->materialName;
+
+		DefineMaterial(materialDef,material);
+
+		return materialDef;
+	}
+
+	ShrPtr<RendererDefinisionCamera> Renderer::GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera) {
+		ShrPtr<RendererDefinisionCamera> cameraDef = MakeShr<RendererDefinisionCamera>();
+		cameraDef->cameraName = basicCamera->cameraName;
+		cameraDef->position = basicCamera->position;
+		cameraDef->foward = basicCamera->foward;
+		cameraDef->up = basicCamera->up;
+		cameraDef->fov = basicCamera->fov;
+
+		DefineCamera(cameraDef);
+
+		return cameraDef;
+	}
+
 	void Renderer::ResetSample() {
 		m_rendererProperty.sample = 1;
 	}
