@@ -10,3 +10,6 @@
 [submodule "Skhole/Skhole/extern/tinygltf"]
 	path = Skhole/Skhole/extern/tinygltf
 	url = git@github.com:syoyo/tinygltf.git
+[submodule "experiment/caustics/CasticsTest/CasticsTest/extern/imgui"]
+	path = experiment/caustics/CasticsTest/CasticsTest/extern/imgui
+	url = https://github.com/ocornut/imgui.git
