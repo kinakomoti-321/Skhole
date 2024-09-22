@@ -53,7 +53,7 @@ namespace Skhole
 		void RealTimeRender(const RealTimeRenderingInfo& renderInfo) override;
 		void OfflineRender(const OfflineRenderingInfo& renderInfo) override;
 
-		ShaderPaths GetShaderPaths() {
+		ShaderPaths GetShaderPaths() override {
 			ShaderPaths paths;
 			paths.raygen = "shader/simple_raytracer/raygen.rgen.spv";
 			paths.miss = "shader/simple_raytracer/miss.rmiss.spv";

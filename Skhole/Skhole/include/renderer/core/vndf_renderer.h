@@ -71,6 +71,30 @@ namespace Skhole
 		void RealTimeRender(const RealTimeRenderingInfo& renderInfo) override;
 		void OfflineRender(const OfflineRenderingInfo& renderInfo) override;
 
+		void InitializeBiniding() override {
+			std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
+				{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+				{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+				{2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+				{3, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
+				{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{9, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			};
+
+			m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+		}
+
+		ShaderPaths GetShaderPaths() override {
+			ShaderPaths paths;
+			paths.raygen = "shader/simple_raytracer/raygen.rgen.spv";
+			paths.miss = "shader/simple_raytracer/miss.rmiss.spv";
+			paths.closestHit = "shader/simple_raytracer/closesthit.rchit.spv";
+			return paths;
+		}
 
 	private:
 		std::vector<const char*> m_layer = {
@@ -153,6 +177,17 @@ namespace Skhole
 			mat.emissionColor = GetParamColValue(material->materialParameters[5]);
 
 			return mat;
+		}
+
+		void UpdateMaterialBuffer(uint32_t matId)
+		{
+			auto& device = *m_context.device;
+			auto& commandPool = *m_commandPool;
+			auto& queue = m_context.queue;
+
+			auto material = ConvertMaterial(m_scene->m_materials[matId]);
+			m_materialBuffer.SetMaterial(material, matId);
+			m_materialBuffer.UpdateBuffer(device, commandPool, queue);
 		}
 
 	private:
