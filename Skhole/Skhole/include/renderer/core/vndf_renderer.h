@@ -87,8 +87,8 @@ namespace Skhole
 
 			material.baseColor = GetParamColValue(materialDef->materialParameters[0]);
 			material.anisotropic = GetParamFloatValue(materialDef->materialParameters[1]);
-			material.metallic = GetParamFloatValue(materialDef->materialParameters[2]);
-			material.roughness = GetParamFloatValue(materialDef->materialParameters[3]);
+			material.roughness = GetParamFloatValue(materialDef->materialParameters[2]);
+			material.metallic = GetParamFloatValue(materialDef->materialParameters[3]);
 			material.emissionIntesity = GetParamFloatValue(materialDef->materialParameters[4]);
 			material.emissionColor = GetParamColValue(materialDef->materialParameters[5]);
 

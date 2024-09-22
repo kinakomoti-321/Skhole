@@ -55,6 +55,7 @@ namespace Skhole {
 	class ParameterFloat : public Parameter {
 	public:
 		ParameterFloat(std::string name, float v) : m_paramName(name), value(v) {}
+		ParameterFloat(std::string name, float v,float minV,float maxV) : m_paramName(name), value(v), minValue(minV), maxValue(maxV) {}
 
 		std::string getParamName() override {
 			return m_paramName;
@@ -76,6 +77,8 @@ namespace Skhole {
 		}
 
 		float value;
+		float minValue = 0.0;
+		float maxValue = 1.0;
 
 	private:
 		std::string m_paramName;

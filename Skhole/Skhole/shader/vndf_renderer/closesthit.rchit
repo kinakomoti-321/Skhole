@@ -37,6 +37,7 @@ struct Material{
 	float anisotropic;
 	float roughness;
 	float metallic;
+
 	float emissionPower;
 	vec4 emissionColor;
 };

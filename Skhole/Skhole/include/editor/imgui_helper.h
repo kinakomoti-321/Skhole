@@ -17,7 +17,7 @@ namespace Skhole {
 		for (auto& param : parameter) {
 			if (param->getParamType() == ParameterType::FLOAT) {
 				auto floatParam = std::static_pointer_cast<ParameterFloat>(param);
-				active |= ImGui::InputFloat(param->getParamName().c_str(), &floatParam->value);
+				active |= ImGui::SliderFloat(param->getParamName().c_str(), &floatParam->value, floatParam->minValue, floatParam->maxValue);
 			}
 			else if (param->getParamType() == ParameterType::BOOL) {
 				auto boolParam = std::static_pointer_cast<ParameterBool>(param);

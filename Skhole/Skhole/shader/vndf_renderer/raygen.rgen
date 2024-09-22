@@ -76,9 +76,16 @@ void main()
 
     vec3 LTE = vec3(0.0);
     vec3 throughput = vec3(1.0);
+    float p0 = 1.0;
 
     for(int depth = 0; depth < 5; depth++){
         
+        p0 = min(max(max(throughput.x,throughput.y),throughput.z),1.0); 
+        if(p0 < rnd1()){
+            break;
+        }
+        throughput /= p0;
+
 		traceRayEXT(
 			topLevelAS,
 			gl_RayFlagsOpaqueEXT,
@@ -122,8 +129,26 @@ void main()
         vec3 localwi;
 
         vec3 basecolor = payload.basecolor;
+        float metallic = payload.metallic;
+        float roughness = payload.roughness;
+        float anisotropic = payload.anisotropic;
         vec2 xi = rnd2();
-        vec3 bsdf = LambertBSDF_Sample(localwo,basecolor,xi,localwi,pdf);
+        vec3 bsdf;
+
+        if(metallic > 0.5)
+        {
+			GGX_Params param;
+			param.F0 = basecolor;
+			param.roughness = roughness;
+			param.anisotropic = anisotropic;
+
+			bsdf = GGX_Sample(localwo,xi,param,localwi,pdf);
+        }
+        else{
+			bsdf = LambertBSDF_Sample(localwo,basecolor,xi,localwi,pdf);
+        }
+
+
         vec3 wi = localToWorld(localwi,t,normal,b);
 
         float cosine = abs(localwi.y);
