@@ -34,6 +34,49 @@ namespace Skhole
 		void SetScene(ShrPtr<Scene> scene) override;
 		void DestroyScene() override;
 
+		void UpdateScene(const UpdataInfo& command) override;
+
+		void InitFrameGUI() override;
+		void RealTimeRender(const RealTimeRenderingInfo& renderInfo) override;
+		void OfflineRender(const OfflineRenderingInfo& renderInfo) override;
+
+		std::vector<const char*> GetLayer() override {
+			return m_layer;
+		}
+		std::vector<const char*> GetExtensions() override {
+			return m_extension;
+		}
+
+		ShaderPaths GetShaderPaths() override {
+			ShaderPaths paths;
+			paths.raygen = "shader/simple_raytracer/raygen.rgen.spv";
+			paths.miss = "shader/simple_raytracer/miss.rmiss.spv";
+			paths.closestHit = "shader/simple_raytracer/closesthit.rchit.spv";
+			return paths;
+		}
+
+		// Material ------------------------------------------
+		struct Material {
+			vec4 baseColor;
+			float roughness;
+			float metallic;
+
+			float emissionIntesity = 1.0;
+			float padding = 0.0;
+
+			vec4 emissionColor;
+		};
+
+		const std::vector<ShrPtr<Parameter>> m_matParams =
+		{
+			MakeShr<ParamCol>("BaseColor", vec4(0.8f)),
+			MakeShr<ParamFloat>("Roughness", 0.0f),
+			MakeShr<ParamFloat>("Metallic", 0.0f),
+
+			MakeShr<ParamFloat>("EmissionIntensity", 0.0f),
+			MakeShr<ParamCol>("Emission", vec4(0.0)),
+		};
+
 		void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) override
 		{
 			CopyParameter(m_matParams, materialDef->materialParameters);
@@ -45,10 +88,34 @@ namespace Skhole
 			materialDef->materialParameters[4]->setParamValue(material->emissionColor);
 		}
 
+		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
+			Material material;
+
+			material.baseColor = GetParamColValue(materialDef->materialParameters[0]);
+			material.metallic = GetParamFloatValue(materialDef->materialParameters[1]);
+			material.roughness = GetParamFloatValue(materialDef->materialParameters[2]);
+			material.emissionIntesity = GetParamFloatValue(materialDef->materialParameters[3]);
+			material.emissionColor = GetParamColValue(materialDef->materialParameters[4]);
+
+			return material;
+		}
+
+		// Camera ------------------------------------------
+		const std::vector<ShrPtr<Parameter>> m_camExtensionParams =
+		{
+			MakeShr<ParamVec>("LookPoint",vec3(0.0f)),
+		};
+
 		void DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef) override
 		{
 			CopyParameter(m_camExtensionParams, cameraDef->extensionParameters);
 		}
+
+		// Renderer ------------------------------------------
+		const std::vector<ShrPtr<Parameter>> m_rendererExtensionParams =
+		{
+			MakeShr<ParamUint>("Ckeck Mode",0),
+		};
 
 		ShrPtr<RendererParameter> GetRendererParameter() override {
 			ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
@@ -61,28 +128,6 @@ namespace Skhole
 			rendererParameter->posproParameters = m_postProcessor->GetParamter();
 
 			return rendererParameter;
-		}
-
-		std::vector<const char*> GetLayer() override {
-			return m_layer;
-		}
-		std::vector<const char*> GetExtensions() override {
-			return m_extension;
-		}
-
-		void InitFrameGUI() override;
-
-		void UpdateScene(const UpdataInfo& command) override;
-
-		void RealTimeRender(const RealTimeRenderingInfo& renderInfo) override;
-		void OfflineRender(const OfflineRenderingInfo& renderInfo) override;
-
-		ShaderPaths GetShaderPaths() override {
-			ShaderPaths paths;
-			paths.raygen = "shader/simple_raytracer/raygen.rgen.spv";
-			paths.miss = "shader/simple_raytracer/miss.rmiss.spv";
-			paths.closestHit = "shader/simple_raytracer/closesthit.rchit.spv";
-			return paths;
 		}
 
 	private:
@@ -104,22 +149,6 @@ namespace Skhole
 			vec4 cameraParam;
 		};
 
-		struct SimpleRaytracerParameter {
-			uint32_t checkMode = 0;
-		};
-
-		struct Material {
-			vec4 baseColor;
-			float roughness;
-			float metallic;
-
-			float emissionIntesity = 1.0;
-			float padding = 0.0;
-
-			vec4 emissionColor;
-		};
-
-
 	private:
 		void FrameStart(float time);
 		void FrameEnd();
@@ -130,18 +159,6 @@ namespace Skhole
 			m_materialBuffer.SetMaterial(material, matId);
 
 			m_materialBuffer.UpdateBufferIndex(matId, *m_context.device, *m_commandPool, m_context.queue);
-		}
-
-		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
-			Material material;
-
-			material.baseColor = GetParamColValue(materialDef->materialParameters[0]);
-			material.metallic = GetParamFloatValue(materialDef->materialParameters[1]);
-			material.roughness = GetParamFloatValue(materialDef->materialParameters[2]);
-			material.emissionIntesity = GetParamFloatValue(materialDef->materialParameters[3]);
-			material.emissionColor = GetParamColValue(materialDef->materialParameters[4]);
-
-			return material;
 		}
 
 		void InitializeBiniding() override {
@@ -227,32 +244,6 @@ namespace Skhole
 		//--------------------------------------
 		std::string rendererName = "Simple RayTracer";
 
-		SimpleRaytracerParameter m_raytracerParameter;
-		PostProcessParameter m_postprocessParams;
-
-		const std::vector<ShrPtr<Parameter>> m_matParams =
-		{
-			MakeShr<ParamCol>("BaseColor", vec4(0.8f)),
-			MakeShr<ParamFloat>("Roughness", 0.0f),
-			MakeShr<ParamFloat>("Metallic", 0.0f),
-
-			MakeShr<ParamFloat>("EmissionIntensity", 0.0f),
-			MakeShr<ParamCol>("Emission", vec4(0.0)),
-		};
-
-		const std::vector<ShrPtr<Parameter>> m_camExtensionParams =
-		{
-			MakeShr<ParamVec>("LookPoint",vec3(0.0f)),
-		};
-
-		const std::vector<ShrPtr<Parameter>> m_rendererExtensionParams =
-		{
-			MakeShr<ParamUint>("Ckeck Mode",0),
-		};
-
-		//--------------------------------------
-		// Vulkan
-		//--------------------------------------
 		std::vector<const char*> m_layer = {
 			"VK_LAYER_KHRONOS_validation"
 		};
@@ -274,9 +265,6 @@ namespace Skhole
 			VK_EXT_SCALAR_BLOCK_LAYOUT_EXTENSION_NAME,
 		};
 
-		//--------------------------------------	
-		// Buffers
-		//--------------------------------------	
 		SceneBufferaManager m_sceneBufferManager;
 		ASManager m_asManager;
 

@@ -18,6 +18,11 @@ namespace Skhole {
 
 	}
 
+	void SimpleRaytracer::ResizeCore(unsigned int width, unsigned int height)
+	{
+
+	}
+
 	void SimpleRaytracer::InitializeCore(RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
@@ -50,12 +55,6 @@ namespace Skhole {
 		m_scene = nullptr;
 	}
 
-
-	void SimpleRaytracer::ResizeCore(unsigned int width, unsigned int height)
-	{
-
-	}
-
 	void SimpleRaytracer::DestroyCore()
 	{
 		m_uniformBuffer.Release(*m_context.device);
@@ -66,53 +65,6 @@ namespace Skhole {
 		m_sceneBufferManager.Release(*m_context.device);
 	}
 
-	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
-	{
-		FrameStart(renderInfo.time);
-
-		vk::UniqueSemaphore imageAvailableSemaphore =
-			m_context.device->createSemaphoreUnique({});
-
-
-		uint32_t imageIndex = m_screenContext.GetFrameIndex(*m_context.device, *imageAvailableSemaphore);
-
-		uint32_t width = m_renderImages.GetWidth();
-		uint32_t height = m_renderImages.GetHeight();
-
-		UpdateDescriptorSet();
-
-		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-
-		RecordCommandBuffer(width, height);
-		CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
-		RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
-
-		m_commandBuffer->end();
-
-		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
-		vk::SubmitInfo submitInfo{};
-		submitInfo.setWaitDstStageMask(waitStage);
-		submitInfo.setCommandBuffers(*m_commandBuffer);
-		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
-		m_context.queue.submit(submitInfo);
-
-		m_context.queue.waitIdle();
-
-		vk::PresentInfoKHR presentInfo{};
-		presentInfo.setSwapchains(*m_screenContext.swapchain);
-		presentInfo.setImageIndices(imageIndex);
-		if (m_context.queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
-			std::cerr << "Failed to present.\n";
-			std::abort();
-		}
-
-		FrameEnd();
-	}
-
-	void SimpleRaytracer::OfflineRender(const OfflineRenderingInfo& renderInfo)
-	{
-		SKHOLE_UNIMPL("Offline Render");
-	}
 
 	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
 		SKHOLE_LOG_SECTION("Set Scene");
@@ -212,7 +164,6 @@ namespace Skhole {
 		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
 
-
 	void SimpleRaytracer::FrameEnd()
 	{
 		m_asManager.ReleaseTLAS(*m_context.device);
@@ -222,6 +173,54 @@ namespace Skhole {
 		if (raytracerParam->sample >= raytracerParam->spp) {
 			raytracerParam->sample = raytracerParam->spp;
 		}
+	}
+
+	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
+	{
+		FrameStart(renderInfo.time);
+
+		vk::UniqueSemaphore imageAvailableSemaphore =
+			m_context.device->createSemaphoreUnique({});
+
+
+		uint32_t imageIndex = m_screenContext.GetFrameIndex(*m_context.device, *imageAvailableSemaphore);
+
+		uint32_t width = m_renderImages.GetWidth();
+		uint32_t height = m_renderImages.GetHeight();
+
+		UpdateDescriptorSet();
+
+		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
+
+		RecordCommandBuffer(width, height);
+		CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
+		RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
+
+		m_commandBuffer->end();
+
+		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
+		vk::SubmitInfo submitInfo{};
+		submitInfo.setWaitDstStageMask(waitStage);
+		submitInfo.setCommandBuffers(*m_commandBuffer);
+		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
+		m_context.queue.submit(submitInfo);
+
+		m_context.queue.waitIdle();
+
+		vk::PresentInfoKHR presentInfo{};
+		presentInfo.setSwapchains(*m_screenContext.swapchain);
+		presentInfo.setImageIndices(imageIndex);
+		if (m_context.queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+			std::cerr << "Failed to present.\n";
+			std::abort();
+		}
+
+		FrameEnd();
+	}
+
+	void SimpleRaytracer::OfflineRender(const OfflineRenderingInfo& renderInfo)
+	{
+		SKHOLE_UNIMPL("Offline Render");
 	}
 
 }
