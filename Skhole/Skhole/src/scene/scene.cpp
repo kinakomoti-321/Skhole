@@ -122,6 +122,7 @@ namespace Skhole {
 	}
 
 	void Scene::RendererSet(const std::shared_ptr<Renderer>& renderer) {
+		SKHOLE_LOG_SECTION("Scene : RendererSet");
 		for (auto& mat : m_basicMaterials)
 		{
 			m_materials.push_back(renderer->GetMaterial(mat));
@@ -132,6 +133,7 @@ namespace Skhole {
 		m_camera = renderer->GetCamera(m_camera);
 
 		m_rendererParameter = renderer->GetRendererParameter();
+		SKHOLE_LOG_SECTION("Scene : RendererSet End");
 	}
 
 

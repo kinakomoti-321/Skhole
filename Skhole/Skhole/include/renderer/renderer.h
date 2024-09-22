@@ -139,7 +139,6 @@ namespace Skhole
 		virtual void DestroyScene() = 0;
 
 		// Renderer Data
-
 		ShrPtr<RendererDefinisionMaterial> GetMaterial(const ShrPtr<BasicMaterial>& material);
 		ShrPtr<RendererDefinisionCamera> GetCamera(const ShrPtr<RendererDefinisionCamera>& basicCamera);
 
@@ -163,6 +162,7 @@ namespace Skhole
 		virtual void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) = 0;
 		virtual void DefineCamera(const ShrPtr<RendererDefinisionCamera>& camera) = 0;
 
+
 		virtual std::vector<const char*> GetLayer() = 0;
 		virtual std::vector<const char*> GetExtensions() = 0;
 		virtual void InitializeBiniding() = 0;
@@ -177,6 +177,7 @@ namespace Skhole
 
 		// Rendering Commands
 		void RaytracingCommand(const vk::CommandBuffer& commandBuffer, uint32_t width, uint32_t height);
+		void RecordCommandBuffer(uint32_t width, uint32_t height);
 		void CopyRenderToScreen(const vk::CommandBuffer& commandBuffer, vk::Image src, vk::Image screen, uint32_t width, uint32_t height);
 		void RenderImGuiCommand(const vk::CommandBuffer& commandBuffer, vk::Framebuffer frameBuffer, uint32_t width, uint32_t height);
 
@@ -198,6 +199,5 @@ namespace Skhole
 		VkHelper::BindingManager m_bindingManager;
 
 		RenderImages m_renderImages;
-
 	};
 }

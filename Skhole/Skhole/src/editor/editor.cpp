@@ -1,5 +1,6 @@
 #include <editor/editor.h>
 #include <common/math.h>
+#include <renderer/core/vndf_renderer.h>
 
 namespace Skhole
 {
@@ -47,6 +48,7 @@ namespace Skhole
 		rendererDesc.useWindow = true;
 		rendererDesc.window = m_window;
 
+		//m_renderer = std::make_shared<SimpleRaytracer>();
 		m_renderer = std::make_shared<SimpleRaytracer>();
 		m_renderer->Initialize(rendererDesc);
 

@@ -32,10 +32,11 @@ namespace Skhole
 			CopyParameter(matParams, materialDef->materialParameters);
 
 			materialDef->materialParameters[0]->setParamValue(material->basecolor);
-			materialDef->materialParameters[1]->setParamValue(material->metallic);
-			materialDef->materialParameters[2]->setParamValue(material->roughness);
-			materialDef->materialParameters[3]->setParamValue(material->emissionIntensity);
-			materialDef->materialParameters[4]->setParamValue(material->emissionColor);
+			materialDef->materialParameters[1]->setParamValue(0.0f);
+			materialDef->materialParameters[2]->setParamValue(material->metallic);
+			materialDef->materialParameters[3]->setParamValue(material->roughness);
+			materialDef->materialParameters[4]->setParamValue(material->emissionIntensity);
+			materialDef->materialParameters[5]->setParamValue(material->emissionColor);
 		}
 
 		void DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef) override
@@ -46,7 +47,7 @@ namespace Skhole
 		ShrPtr<RendererParameter> GetRendererParameter() override
 		{
 			auto rendererParameter = MakeShr<RendererParameter>();
-			rendererParameter->rendererName = "Simple Raytracer";
+			rendererParameter->rendererName = "VNDF Raytracer";
 			rendererParameter->frame = 0;
 			rendererParameter->spp = 100;
 			rendererParameter->sample = 1;
@@ -88,11 +89,72 @@ namespace Skhole
 			m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
 		}
 
+		void UpdateDescriptorSet()
+		{
+			auto& accumImage = m_renderImages.GetAccumImage();
+			auto& renderImage = m_renderImages.GetRenderImage();
+			auto& posproIamge = m_renderImages.GetPostProcessedImage();
+
+			m_bindingManager.StartWriting();
+
+			m_bindingManager.WriteAS(
+				*m_asManager.TLAS.accel, 0, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteImage(
+				renderImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+				vk::DescriptorType::eStorageImage, 1, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteImage(
+				accumImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+				vk::DescriptorType::eStorageImage, 2, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_uniformBuffer.GetBuffer(), 0, m_uniformBuffer.GetBufferSize(),
+				vk::DescriptorType::eUniformBuffer, 3, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.vertexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.vertexBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 4, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.indexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.indexBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 5, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.geometryBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.geometryBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 6, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.instanceBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.instanceBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 7, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_materialBuffer.GetBuffer(), 0, m_materialBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 8, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.matIndexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.matIndexBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 9, 1, *m_context.device
+			);
+
+
+			m_bindingManager.EndWriting(*m_context.device);
+		}
+
 		ShaderPaths GetShaderPaths() override {
 			ShaderPaths paths;
-			paths.raygen = "shader/simple_raytracer/raygen.rgen.spv";
-			paths.miss = "shader/simple_raytracer/miss.rmiss.spv";
-			paths.closestHit = "shader/simple_raytracer/closesthit.rchit.spv";
+			paths.raygen = "shader/vndf_renderer/raygen.rgen.spv";
+			paths.miss = "shader/vndf_renderer/miss.rmiss.spv";
+			paths.closestHit = "shader/vndf_renderer/closesthit.rchit.spv";
 			return paths;
 		}
 

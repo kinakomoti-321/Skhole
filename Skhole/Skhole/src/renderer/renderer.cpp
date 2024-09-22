@@ -4,6 +4,7 @@ namespace Skhole {
 
 	void Renderer::Initialize(RendererDesc& desc)
 	{
+		SKHOLE_LOG_SECTION("Renderer Initialize");
 		VkHelper::Context::VulkanInitialzeInfo initInfo{};
 		initInfo.apiVersion = VK_API_VERSION_1_2;
 		initInfo.layers = GetLayer();
@@ -22,6 +23,8 @@ namespace Skhole {
 			vk::ImageLayout::ePresentSrcKHR,
 			*m_context.device
 		);
+
+		m_renderImages.Initialize(desc.Width, desc.Height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
 		VkHelper::SwapChainInfo swapchainInfo{};
 		swapchainInfo.physicalDevice = m_context.physicalDevice;
@@ -84,6 +87,7 @@ namespace Skhole {
 		m_postProcessor->Init(ppDesc);
 
 		InitializeCore(desc);
+		SKHOLE_LOG_SECTION("End : Renderer Initialize");
 	}
 
 	void Renderer::Resize(unsigned int width, unsigned int height)
@@ -144,6 +148,20 @@ namespace Skhole {
 		);
 	}
 
+	void Renderer::RecordCommandBuffer(uint32_t width, uint32_t height) {
+
+		RaytracingCommand(*m_commandBuffer, width, height);
+
+		// Post Process
+		PostProcessor::ExecuteDesc desc{};
+		desc.device = *m_context.device;
+		desc.inputImage = m_renderImages.GetRenderImage().GetImageView();
+		desc.outputImage = m_renderImages.GetPostProcessedImage().GetImageView();
+		desc.param = m_scene->m_rendererParameter->posproParameters;
+
+		m_postProcessor->Execute(*m_commandBuffer, desc);
+	}
+
 	void Renderer::CopyRenderToScreen(const vk::CommandBuffer& commandBuffer, vk::Image src, vk::Image screen, uint32_t width, uint32_t height) {
 		vkutils::setImageLayout(*m_commandBuffer, src, vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
 		vkutils::setImageLayout(*m_commandBuffer, screen, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal);
@@ -161,6 +179,7 @@ namespace Skhole {
 			.setMipLevel(0)
 			.setBaseArrayLayer(0)
 			.setLayerCount(1);
+
 		region.dstOffset = vk::Offset3D(0, 0, 0);
 
 		region.extent = vk::Extent3D(width, height, 1);

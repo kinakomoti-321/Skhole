@@ -241,7 +241,7 @@
     <None Include="shader\simple_raytracer\closesthit.glsl" />
     <None Include="shader\simple_raytracer\miss.glsl" />
     <None Include="shader\simple_raytracer\raygen.glsl" />
-    <None Include="shader\simple_raytracer\payload.glsl" />
+    <None Include="shader\payload.glsl" />
     <None Include="shader\postprocess\example\example.comp" />
   </ItemGroup>
 </Project>

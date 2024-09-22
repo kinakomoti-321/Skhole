@@ -34,10 +34,34 @@ namespace Skhole
 		void SetScene(ShrPtr<Scene> scene) override;
 		void DestroyScene() override;
 
-		void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) override;
-		void DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef) override;
+		void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) override
+		{
+			CopyParameter(m_matParams, materialDef->materialParameters);
 
-		ShrPtr<RendererParameter> GetRendererParameter() override;
+			materialDef->materialParameters[0]->setParamValue(material->basecolor);
+			materialDef->materialParameters[1]->setParamValue(material->metallic);
+			materialDef->materialParameters[2]->setParamValue(material->roughness);
+			materialDef->materialParameters[3]->setParamValue(material->emissionIntensity);
+			materialDef->materialParameters[4]->setParamValue(material->emissionColor);
+		}
+
+		void DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef) override
+		{
+			CopyParameter(m_camExtensionParams, cameraDef->extensionParameters);
+		}
+
+		ShrPtr<RendererParameter> GetRendererParameter() override {
+			ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
+			rendererParameter->rendererName = "Simple Raytracer";
+			rendererParameter->frame = 0;
+			rendererParameter->spp = 100;
+			rendererParameter->sample = 1;
+
+			CopyParameter(m_rendererExtensionParams, rendererParameter->rendererParameters);
+			rendererParameter->posproParameters = m_postProcessor->GetParamter();
+
+			return rendererParameter;
+		}
 
 		std::vector<const char*> GetLayer() override {
 			return m_layer;
@@ -62,9 +86,6 @@ namespace Skhole
 		}
 
 	private:
-		//--------------------------------------
-		// Renderer Structures
-		//--------------------------------------
 		struct Uniform {
 			uint32_t spp;
 			uint32_t frame;
@@ -100,27 +121,105 @@ namespace Skhole
 
 
 	private:
-		//--------------------------------------
-		// Private Method
-		//--------------------------------------
-		// Resources
-		void InitBufferManager();
-		void InitAccelerationStructures();
-
-		// Render
-		void UpdateDescriptorSet();
-
 		void FrameStart(float time);
 		void FrameEnd();
 
-		void RecordCommandBuffer(uint32_t width, uint32_t height);
+		void UpdateMaterialBuffer(uint32_t matId)
+		{
+			auto material = ConvertMaterial(m_scene->m_materials[matId]);
+			m_materialBuffer.SetMaterial(material, matId);
 
-		// Scene Update;
-		void UpdateMaterialBuffer(uint32_t matId);
-		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& material);
+			m_materialBuffer.UpdateBufferIndex(matId, *m_context.device, *m_commandPool, m_context.queue);
+		}
+
+		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
+			Material material;
+
+			material.baseColor = GetParamColValue(materialDef->materialParameters[0]);
+			material.metallic = GetParamFloatValue(materialDef->materialParameters[1]);
+			material.roughness = GetParamFloatValue(materialDef->materialParameters[2]);
+			material.emissionIntesity = GetParamFloatValue(materialDef->materialParameters[3]);
+			material.emissionColor = GetParamColValue(materialDef->materialParameters[4]);
+
+			return material;
+		}
+
+		void InitializeBiniding() override {
+			std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
+				{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+				{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+				{2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
+				{3, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
+				{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{9, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+			};
+
+			m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+		}
+
+		void UpdateDescriptorSet() {
+			auto& accumImage = m_renderImages.GetAccumImage();
+			auto& renderImage = m_renderImages.GetRenderImage();
+			auto& posproIamge = m_renderImages.GetPostProcessedImage();
+
+			m_bindingManager.StartWriting();
+
+			m_bindingManager.WriteAS(
+				*m_asManager.TLAS.accel, 0, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteImage(
+				renderImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+				vk::DescriptorType::eStorageImage, 1, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteImage(
+				accumImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
+				vk::DescriptorType::eStorageImage, 2, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_uniformBuffer.GetBuffer(), 0, m_uniformBuffer.GetBufferSize(),
+				vk::DescriptorType::eUniformBuffer, 3, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.vertexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.vertexBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 4, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.indexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.indexBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 5, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.geometryBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.geometryBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 6, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.instanceBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.instanceBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 7, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_materialBuffer.GetBuffer(), 0, m_materialBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 8, 1, *m_context.device
+			);
+
+			m_bindingManager.WriteBuffer(
+				m_sceneBufferManager.matIndexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.matIndexBuffer.GetBufferSize(),
+				vk::DescriptorType::eStorageBuffer, 9, 1, *m_context.device
+			);
 
 
-		void InitializeBiniding() override;
+			m_bindingManager.EndWriting(*m_context.device);
+		}
 
 	private:
 		//--------------------------------------

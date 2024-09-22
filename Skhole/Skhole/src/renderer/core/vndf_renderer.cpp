@@ -99,52 +99,89 @@ namespace Skhole {
 		}
 	}
 
-	void RealTimeRender(const RealTimeRenderingInfo& renderInfo)
+	void VNDF_Renderer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
 	{
-		//m_raytracerParameter.spp++;
-
+		//SKHOLE_LOG_SECTION("Render : ");
 		//FrameStart(renderInfo.time);
+		auto time = renderInfo.time;
+		{
+			auto& raytracerParam = m_scene->m_rendererParameter;
 
-		//vk::UniqueSemaphore imageAvailableSemaphore =
-		//	m_context.device->createSemaphoreUnique({});
+			uint32_t width = m_renderImages.GetWidth();
+			uint32_t height = m_renderImages.GetHeight();
+
+			auto& uniformBufferObject = m_uniformBuffer.data;
+
+			auto& camera = m_scene->m_camera;
+			uniformBufferObject.spp = raytracerParam->spp;
+			uniformBufferObject.frame = raytracerParam->frame;
+			uniformBufferObject.sample = raytracerParam->sample;
+			uniformBufferObject.mode = 0;
+
+			uniformBufferObject.cameraPos = camera->GetCameraPosition(time);
+			vec3 cameraDir, cameraUp, cameraRight;
+			camera->GetCameraDirections(time, cameraDir, cameraUp, cameraRight);
+			uniformBufferObject.cameraDir = cameraDir;
+			uniformBufferObject.cameraUp = cameraUp;
+			uniformBufferObject.cameraRight = cameraRight;
+			uniformBufferObject.cameraParam.x = camera->GetYFov();
+			uniformBufferObject.cameraParam.y = static_cast<float>(width) / static_cast<float>(height);
+
+			m_uniformBuffer.Update(*m_context.device);
+
+			m_scene->SetTransformMatrix(time);
+			m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
+			m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+		}
+
+		vk::UniqueSemaphore imageAvailableSemaphore =
+			m_context.device->createSemaphoreUnique({});
 
 
-		//uint32_t imageIndex = m_screenContext.GetFrameIndex(*m_context.device, *imageAvailableSemaphore);
+		uint32_t imageIndex = m_screenContext.GetFrameIndex(*m_context.device, *imageAvailableSemaphore);
 
-		//uint32_t width = m_renderImages.GetWidth();
-		//uint32_t height = m_renderImages.GetHeight();
+		uint32_t width = m_renderImages.GetWidth();
+		uint32_t height = m_renderImages.GetHeight();
 
-		//UpdateDescriptorSet();
+		UpdateDescriptorSet();
 
-		//m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
+		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
-		//RecordCommandBuffer(width, height);
-		//CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
-		//RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
+		RecordCommandBuffer(width, height);
 
-		//m_commandBuffer->end();
+		CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
+		RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
 
-		//vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
-		//vk::SubmitInfo submitInfo{};
-		//submitInfo.setWaitDstStageMask(waitStage);
-		//submitInfo.setCommandBuffers(*m_commandBuffer);
-		//submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
-		//m_context.queue.submit(submitInfo);
+		m_commandBuffer->end();
 
-		//m_context.queue.waitIdle();
+		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
+		vk::SubmitInfo submitInfo{};
+		submitInfo.setWaitDstStageMask(waitStage);
+		submitInfo.setCommandBuffers(*m_commandBuffer);
+		submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
+		m_context.queue.submit(submitInfo);
 
-		//vk::PresentInfoKHR presentInfo{};
-		//presentInfo.setSwapchains(*m_screenContext.swapchain);
-		//presentInfo.setImageIndices(imageIndex);
-		//if (m_context.queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
-		//	std::cerr << "Failed to present.\n";
-		//	std::abort();
-		//}
+		m_context.queue.waitIdle();
 
+		vk::PresentInfoKHR presentInfo{};
+		presentInfo.setSwapchains(*m_screenContext.swapchain);
+		presentInfo.setImageIndices(imageIndex);
+		if (m_context.queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+			std::cerr << "Failed to present.\n";
+			std::abort();
+		}
+
+		m_asManager.ReleaseTLAS(*m_context.device);
+
+		auto& raytracerParam = m_scene->m_rendererParameter;
+		raytracerParam->sample++;
+		if (raytracerParam->sample >= raytracerParam->spp) {
+			raytracerParam->sample = raytracerParam->spp;
+		}
 		//FrameEnd();
 	}
 
-	void OfflineRender(const OfflineRenderingInfo& renderInfo) {
+	void VNDF_Renderer::OfflineRender(const OfflineRenderingInfo& renderInfo) {
 		SKHOLE_UNIMPL();
 	}
 

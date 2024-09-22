@@ -36,7 +36,6 @@ namespace Skhole {
 
 		m_uniformBuffer.Update(*m_context.device);
 
-		m_renderImages.Initialize(desc.Width, desc.Height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
@@ -110,20 +109,6 @@ namespace Skhole {
 		FrameEnd();
 	}
 
-	void SimpleRaytracer::RecordCommandBuffer(uint32_t width, uint32_t height) {
-
-		RaytracingCommand(*m_commandBuffer, width, height);
-
-		// Post Process
-		PostProcessor::ExecuteDesc desc{};
-		desc.device = *m_context.device;
-		desc.inputImage = m_renderImages.GetRenderImage().GetImageView();
-		desc.outputImage = m_renderImages.GetPostProcessedImage().GetImageView();
-		desc.param = m_scene->m_rendererParameter->posproParameters;
-
-		m_postProcessor->Execute(*m_commandBuffer, desc);
-	}
-
 	void SimpleRaytracer::OfflineRender(const OfflineRenderingInfo& renderInfo)
 	{
 		SKHOLE_UNIMPL("Offline Render");
@@ -132,8 +117,11 @@ namespace Skhole {
 	void SimpleRaytracer::SetScene(ShrPtr<Scene> scene) {
 		SKHOLE_LOG_SECTION("Set Scene");
 		m_scene = scene;
-		InitBufferManager();
-		InitAccelerationStructures();
+		m_sceneBufferManager.SetScene(m_scene);
+		m_sceneBufferManager.InitGeometryBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+		m_sceneBufferManager.InitInstanceBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+
+		m_asManager.BuildBLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 
 		// Set Material
 		{
@@ -155,15 +143,6 @@ namespace Skhole {
 		}
 
 		SKHOLE_LOG_SECTION("End Set Scene");
-	}
-
-	void SimpleRaytracer::InitBufferManager() {
-		SKHOLE_LOG("Init Buffer Manager");
-
-		m_sceneBufferManager.SetScene(m_scene);
-
-		m_sceneBufferManager.InitGeometryBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
-		m_sceneBufferManager.InitInstanceBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 	}
 
 	void SimpleRaytracer::UpdateScene(const UpdataInfo& updateInfo) {
@@ -196,60 +175,13 @@ namespace Skhole {
 
 	}
 
-	void SimpleRaytracer::DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material)
-	{
-		CopyParameter(m_matParams, materialDef->materialParameters);
-
-		materialDef->materialParameters[0]->setParamValue(material->basecolor);
-		materialDef->materialParameters[1]->setParamValue(material->metallic);
-		materialDef->materialParameters[2]->setParamValue(material->roughness);
-		materialDef->materialParameters[3]->setParamValue(material->emissionIntensity);
-		materialDef->materialParameters[4]->setParamValue(material->emissionColor);
-	}
-
-	void SimpleRaytracer::DefineCamera(const ShrPtr<RendererDefinisionCamera>& cameraDef)
-	{
-		CopyParameter(m_camExtensionParams, cameraDef->extensionParameters);
-	}
-
-	ShrPtr<RendererParameter> SimpleRaytracer::GetRendererParameter() {
-
-		ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
-		rendererParameter->rendererName = "Simple Raytracer";
-		rendererParameter->frame = 0;
-		rendererParameter->spp = 100;
-		rendererParameter->sample = 1;
-
-		CopyParameter(m_rendererExtensionParams, rendererParameter->rendererParameters);
-		rendererParameter->posproParameters = m_postProcessor->GetParamter();
-
-		return rendererParameter;
-	}
-
-	void SimpleRaytracer::InitializeBiniding()
-	{
-		std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
-			{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-			{2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
-			{3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-			{9, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
-		};
-
-		m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-	}
 
 	void SimpleRaytracer::InitFrameGUI() {
 		m_imGuiManager.NewFrame();
 	}
 
-	void SimpleRaytracer::FrameStart(float time) {
-
+	void SimpleRaytracer::FrameStart(float time)
+	{
 		auto& raytracerParam = m_scene->m_rendererParameter;
 
 		uint32_t width = m_renderImages.GetWidth();
@@ -290,111 +222,6 @@ namespace Skhole {
 		if (raytracerParam->sample >= raytracerParam->spp) {
 			raytracerParam->sample = raytracerParam->spp;
 		}
-	}
-
-
-
-
-	void SimpleRaytracer::UpdateDescriptorSet() {
-		auto& accumImage = m_renderImages.GetAccumImage();
-		auto& renderImage = m_renderImages.GetRenderImage();
-		auto& posproIamge = m_renderImages.GetPostProcessedImage();
-
-		m_bindingManager.StartWriting();
-
-		m_bindingManager.WriteAS(
-			*m_asManager.TLAS.accel, 0, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteImage(
-			renderImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
-			vk::DescriptorType::eStorageImage, 1, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteBuffer(
-			m_uniformBuffer.GetBuffer(), 0, m_uniformBuffer.GetBufferSize(),
-			vk::DescriptorType::eUniformBuffer, 2, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteBuffer(
-			m_sceneBufferManager.vertexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.vertexBuffer.GetBufferSize(),
-			vk::DescriptorType::eStorageBuffer, 3, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteBuffer(
-			m_sceneBufferManager.indexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.indexBuffer.GetBufferSize(),
-			vk::DescriptorType::eStorageBuffer, 4, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteBuffer(
-			m_sceneBufferManager.geometryBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.geometryBuffer.GetBufferSize(),
-			vk::DescriptorType::eStorageBuffer, 5, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteBuffer(
-			m_sceneBufferManager.instanceBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.instanceBuffer.GetBufferSize(),
-			vk::DescriptorType::eStorageBuffer, 6, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteBuffer(
-			m_materialBuffer.GetBuffer(), 0, m_materialBuffer.GetBufferSize(),
-			vk::DescriptorType::eStorageBuffer, 7, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteBuffer(
-			m_sceneBufferManager.matIndexBuffer.GetDeviceBuffer(), 0, m_sceneBufferManager.matIndexBuffer.GetBufferSize(),
-			vk::DescriptorType::eStorageBuffer, 8, 1, *m_context.device
-		);
-
-		m_bindingManager.WriteImage(
-			accumImage.GetImageView(), vk::ImageLayout::eGeneral, VK_NULL_HANDLE,
-			vk::DescriptorType::eStorageImage, 9, 1, *m_context.device
-		);
-
-		m_bindingManager.EndWriting(*m_context.device);
-	}
-
-	void SimpleRaytracer::InitAccelerationStructures() {
-		m_asManager.BuildBLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
-	}
-
-	void SimpleRaytracer::UpdateMaterialBuffer(uint32_t matId)
-	{
-		auto material = ConvertMaterial(m_scene->m_materials[matId]);
-		m_materialBuffer.SetMaterial(material, matId);
-
-		m_materialBuffer.UpdateBufferIndex(matId, *m_context.device, *m_commandPool, m_context.queue);
-	}
-
-	SimpleRaytracer::Material SimpleRaytracer::ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
-		Material material;
-
-		auto p1 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[0]);
-		material.baseColor = p1->value;
-
-		auto p2 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[1]);
-		material.metallic = p2->value;
-
-		auto p3 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[2]);
-		material.roughness = p3->value;
-
-		auto p4 = std::static_pointer_cast<ParamFloat>(materialDef->materialParameters[3]);
-		material.emissionIntesity = p4->value;
-
-		auto p5 = std::static_pointer_cast<ParamCol>(materialDef->materialParameters[4]);
-		material.emissionColor = p5->value;
-
-		return material;
-	}
-
-	ShrPtr<RendererParameter> GetRendererParameter()
-	{
-		ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
-		rendererParameter->rendererName = "Simple Raytracer";
-		rendererParameter->frame = 0;
-		rendererParameter->spp = 100;
-		rendererParameter->sample = 1;
-		return nullptr;
 	}
 
 }
