@@ -214,7 +214,7 @@ namespace Skhole {
 	}
 
 	void Renderer::ResetSample() {
-		m_rendererProperty.sample = 1;
+		m_scene->m_rendererParameter->sample = 1;
 	}
 
 }

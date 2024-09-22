@@ -25,8 +25,8 @@ namespace Skhole {
 		m_uniformBuffer.Init(m_context.physicalDevice, *m_context.device);
 
 		auto& uniformBufferObject = m_uniformBuffer.data;
-		uniformBufferObject.frame = m_raytracerParameter.frame;
-		uniformBufferObject.spp = m_raytracerParameter.spp;
+		uniformBufferObject.frame = 0;
+		uniformBufferObject.spp = 100;
 		uniformBufferObject.width = desc.Width;
 		uniformBufferObject.height = desc.Height;
 		uniformBufferObject.cameraDir = vec3(0.0f, 0.0f, -1.0f);
@@ -69,8 +69,6 @@ namespace Skhole {
 
 	void SimpleRaytracer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
 	{
-		m_raytracerParameter.spp++;
-
 		FrameStart(renderInfo.time);
 
 		vk::UniqueSemaphore imageAvailableSemaphore =
@@ -171,7 +169,8 @@ namespace Skhole {
 	void SimpleRaytracer::UpdateScene(const UpdataInfo& updateInfo) {
 		if (updateInfo.commands.size() == 0) return;
 
-		m_scene->m_rendererParameter->sample = 1;
+		ResetSample();
+
 		for (auto& command : updateInfo.commands) {
 			ShrPtr<UpdateObjectCommand> objCommand;
 			ShrPtr<UpdateMaterialCommand> matCommand;

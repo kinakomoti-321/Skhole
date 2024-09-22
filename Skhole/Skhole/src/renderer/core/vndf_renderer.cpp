@@ -73,7 +73,8 @@ namespace Skhole {
 
 		if (updateInfo.commands.size() == 0) return;
 
-		m_scene->m_rendererParameter->sample = 1;
+		ResetSample();
+
 		for (auto& command : updateInfo.commands) {
 			ShrPtr<UpdateObjectCommand> objCommand;
 			ShrPtr<UpdateMaterialCommand> matCommand;

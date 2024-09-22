@@ -84,10 +84,6 @@ namespace Skhole
 		};
 
 		struct SimpleRaytracerParameter {
-			uint32_t spp = 1;
-			uint32_t sample = 0;
-			uint32_t frame = 0;
-
 			uint32_t checkMode = 0;
 		};
 

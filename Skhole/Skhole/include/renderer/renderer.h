@@ -199,14 +199,5 @@ namespace Skhole
 
 		RenderImages m_renderImages;
 
-	protected:
-		struct RendererProperty
-		{
-			uint32_t spp = 1;
-			uint32_t sample = 0;
-			uint32_t frame = 0;
-		};
-
-		RendererProperty m_rendererProperty;
 	};
 }
