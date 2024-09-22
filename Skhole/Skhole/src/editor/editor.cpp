@@ -49,7 +49,7 @@ namespace Skhole
 		rendererDesc.window = m_window;
 
 		//m_renderer = std::make_shared<SimpleRaytracer>();
-		m_renderer = std::make_shared<SimpleRaytracer>();
+		m_renderer = std::make_shared<VNDF_Renderer>();
 		m_renderer->Initialize(rendererDesc);
 
 		// Scene Initialization

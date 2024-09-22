@@ -1,10 +1,14 @@
 #include <renderer/core/vndf_renderer.h>
 namespace Skhole {
-	void VNDF_Renderer::InitializeCore(RendererDesc& desc) {
-		auto& device = *m_context.device;
-		auto& physicalDevice = m_context.physicalDevice;
 
-		m_uniformBuffer.Init(physicalDevice, device);
+	VNDF_Renderer::VNDF_Renderer()
+	{
+
+	}
+
+	VNDF_Renderer::~VNDF_Renderer()
+	{
+
 	}
 
 	void VNDF_Renderer::ResizeCore(unsigned int width, unsigned int height)
@@ -12,33 +16,62 @@ namespace Skhole {
 
 	}
 
-	void VNDF_Renderer::DestroyCore()
+	void VNDF_Renderer::InitializeCore(RendererDesc& desc)
 	{
-		auto& device = *m_context.device;
-		m_uniformBuffer.Release(device);
-		m_materialBuffer.Release(device);
-		m_asManager.ReleaseBLAS(device);
-		m_asManager.ReleaseTLAS(device);
-		m_sceneBufferManager.Release(device);
+		SKHOLE_LOG_SECTION("Initialze Renderer");
+
+		m_uniformBuffer.Init(m_context.physicalDevice, *m_context.device);
+
+		auto& uniformBufferObject = m_uniformBuffer.data;
+		uniformBufferObject.frame = 0;
+		uniformBufferObject.spp = 100;
+		uniformBufferObject.width = desc.Width;
+		uniformBufferObject.height = desc.Height;
+		uniformBufferObject.cameraDir = vec3(0.0f, 0.0f, -1.0f);
+		uniformBufferObject.cameraPos = vec3(0.0, 30.0, 50.0);
+		uniformBufferObject.cameraUp = vec3(0.0f, 1.0f, 0.0f);
+		uniformBufferObject.cameraRight = vec3(1.0f, 0.0f, 0.0f);
+
+		m_uniformBuffer.Update(*m_context.device);
+
+		SKHOLE_LOG_SECTION("Initialze Renderer Completed");
 	}
 
-	void VNDF_Renderer::SetScene(ShrPtr<Scene> scene)
+	void VNDF_Renderer::DestroyScene()
 	{
-		auto& device = *m_context.device;
-		auto& physicalDevice = m_context.physicalDevice;
-		auto& commandPool = *m_commandPool;
-		auto& queue = m_context.queue;
+		m_sceneBufferManager.Release(*m_context.device);
+		m_asManager.ReleaseTLAS(*m_context.device);
+		m_asManager.ReleaseBLAS(*m_context.device);
 
+		m_materialBuffer.Release(*m_context.device);
+
+		m_scene = nullptr;
+	}
+
+	void VNDF_Renderer::DestroyCore()
+	{
+		m_uniformBuffer.Release(*m_context.device);
+		m_materialBuffer.Release(*m_context.device);
+
+		m_asManager.ReleaseBLAS(*m_context.device);
+		m_asManager.ReleaseTLAS(*m_context.device);
+		m_sceneBufferManager.Release(*m_context.device);
+	}
+
+
+	void VNDF_Renderer::SetScene(ShrPtr<Scene> scene) {
+		SKHOLE_LOG_SECTION("Set Scene");
 		m_scene = scene;
-		m_sceneBufferManager.SetScene(scene);
-		m_sceneBufferManager.InitGeometryBuffer(physicalDevice, device, commandPool, queue);
-		m_sceneBufferManager.InitInstanceBuffer(physicalDevice, device, commandPool, queue);
+		m_sceneBufferManager.SetScene(m_scene);
+		m_sceneBufferManager.InitGeometryBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+		m_sceneBufferManager.InitInstanceBuffer(m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 
-		m_asManager.BuildBLAS(m_sceneBufferManager, physicalDevice, device, commandPool, queue);
+		m_asManager.BuildBLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 
+		// Set Material
 		{
 			m_materialBuffer.Init(
-				physicalDevice, device,
+				m_context.physicalDevice, *m_context.device,
 				m_scene->m_materials.size()
 			);
 
@@ -53,24 +86,11 @@ namespace Skhole {
 
 			m_materialBuffer.UpdateBuffer(*m_context.device, *m_commandPool, m_context.queue);
 		}
-	}
 
-	void VNDF_Renderer::InitFrameGUI() {
-		m_imGuiManager.NewFrame();
-	}
-
-	void VNDF_Renderer::DestroyScene() {
-		m_sceneBufferManager.Release(*m_context.device);
-		m_asManager.ReleaseTLAS(*m_context.device);
-		m_asManager.ReleaseBLAS(*m_context.device);
-
-		m_materialBuffer.Release(*m_context.device);
-
-		m_scene = nullptr;
+		SKHOLE_LOG_SECTION("End Set Scene");
 	}
 
 	void VNDF_Renderer::UpdateScene(const UpdataInfo& updateInfo) {
-
 		if (updateInfo.commands.size() == 0) return;
 
 		ResetSample();
@@ -97,42 +117,60 @@ namespace Skhole {
 				break;
 			}
 		}
+
+	}
+
+
+	void VNDF_Renderer::InitFrameGUI() {
+		m_imGuiManager.NewFrame();
+	}
+
+	void VNDF_Renderer::FrameStart(float time)
+	{
+		auto& raytracerParam = m_scene->m_rendererParameter;
+
+		uint32_t width = m_renderImages.GetWidth();
+		uint32_t height = m_renderImages.GetHeight();
+
+		auto& uniformBufferObject = m_uniformBuffer.data;
+
+		auto& camera = m_scene->m_camera;
+		uniformBufferObject.spp = raytracerParam->spp;
+		uniformBufferObject.frame = raytracerParam->frame;
+		uniformBufferObject.sample = raytracerParam->sample;
+		auto param = std::dynamic_pointer_cast<ParamUint>(raytracerParam->rendererParameters[0]);
+		uniformBufferObject.mode = param->value;
+
+		uniformBufferObject.cameraPos = camera->GetCameraPosition(time);
+		vec3 cameraDir, cameraUp, cameraRight;
+		camera->GetCameraDirections(time, cameraDir, cameraUp, cameraRight);
+		uniformBufferObject.cameraDir = cameraDir;
+		uniformBufferObject.cameraUp = cameraUp;
+		uniformBufferObject.cameraRight = cameraRight;
+		uniformBufferObject.cameraParam.x = camera->GetYFov();
+		uniformBufferObject.cameraParam.y = static_cast<float>(width) / static_cast<float>(height);
+
+		m_uniformBuffer.Update(*m_context.device);
+
+		m_scene->SetTransformMatrix(time);
+		m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
+		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+	}
+
+	void VNDF_Renderer::FrameEnd()
+	{
+		m_asManager.ReleaseTLAS(*m_context.device);
+
+		auto& raytracerParam = m_scene->m_rendererParameter;
+		raytracerParam->sample++;
+		if (raytracerParam->sample >= raytracerParam->spp) {
+			raytracerParam->sample = raytracerParam->spp;
+		}
 	}
 
 	void VNDF_Renderer::RealTimeRender(const RealTimeRenderingInfo& renderInfo)
 	{
-		//SKHOLE_LOG_SECTION("Render : ");
-		//FrameStart(renderInfo.time);
-		auto time = renderInfo.time;
-		{
-			auto& raytracerParam = m_scene->m_rendererParameter;
-
-			uint32_t width = m_renderImages.GetWidth();
-			uint32_t height = m_renderImages.GetHeight();
-
-			auto& uniformBufferObject = m_uniformBuffer.data;
-
-			auto& camera = m_scene->m_camera;
-			uniformBufferObject.spp = raytracerParam->spp;
-			uniformBufferObject.frame = raytracerParam->frame;
-			uniformBufferObject.sample = raytracerParam->sample;
-			uniformBufferObject.mode = 0;
-
-			uniformBufferObject.cameraPos = camera->GetCameraPosition(time);
-			vec3 cameraDir, cameraUp, cameraRight;
-			camera->GetCameraDirections(time, cameraDir, cameraUp, cameraRight);
-			uniformBufferObject.cameraDir = cameraDir;
-			uniformBufferObject.cameraUp = cameraUp;
-			uniformBufferObject.cameraRight = cameraRight;
-			uniformBufferObject.cameraParam.x = camera->GetYFov();
-			uniformBufferObject.cameraParam.y = static_cast<float>(width) / static_cast<float>(height);
-
-			m_uniformBuffer.Update(*m_context.device);
-
-			m_scene->SetTransformMatrix(time);
-			m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
-			m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
-		}
+		FrameStart(renderInfo.time);
 
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
@@ -148,7 +186,6 @@ namespace Skhole {
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
 		RecordCommandBuffer(width, height);
-
 		CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
 		RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
 
@@ -171,20 +208,12 @@ namespace Skhole {
 			std::abort();
 		}
 
-		m_asManager.ReleaseTLAS(*m_context.device);
-
-		auto& raytracerParam = m_scene->m_rendererParameter;
-		raytracerParam->sample++;
-		if (raytracerParam->sample >= raytracerParam->spp) {
-			raytracerParam->sample = raytracerParam->spp;
-		}
-		//FrameEnd();
+		FrameEnd();
 	}
 
-	void VNDF_Renderer::OfflineRender(const OfflineRenderingInfo& renderInfo) {
-		SKHOLE_UNIMPL();
+	void VNDF_Renderer::OfflineRender(const OfflineRenderingInfo& renderInfo)
+	{
+		SKHOLE_UNIMPL("Offline Render");
 	}
-
-
 
 }

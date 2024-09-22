@@ -243,5 +243,6 @@
     <None Include="shader\simple_raytracer\raygen.glsl" />
     <None Include="shader\payload.glsl" />
     <None Include="shader\postprocess\example\example.comp" />
+    <None Include="shader\vndf_renderer\payload.glsl" />
   </ItemGroup>
 </Project>

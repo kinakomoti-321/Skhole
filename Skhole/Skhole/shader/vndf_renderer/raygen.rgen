@@ -2,26 +2,12 @@
 #extension GL_EXT_ray_tracing : enable
 #extension GL_ARB_shading_language_include : require
 
-#include "../payload.glsl"
+#define PI 3.14159265359
 
-uint seed;
-
-uint PCGHash()
-{
-    seed = seed * 747796405u + 2891336453u;
-    uint state = seed;
-    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
-    return (word >> 22u) ^ word;
-}
-
-float rnd1()
-{
-    return PCGHash() / float(0xFFFFFFFFU);    
-}
-
-vec2 rnd2(){
-    return vec2(rnd1(),rnd1());
-}
+#include "./payload.glsl"
+#include "../common/hash.glsl"
+#include "../common/math.glsl"
+#include "../common/bsdf/lambert.glsl"
 
 layout(location = 0) rayPayloadEXT PayLoadStruct payload;
 
@@ -29,8 +15,6 @@ layout(binding = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, rgba8) uniform image2D image;
 
 layout(binding = 2, rgba32f) uniform image2D accumImage;
-
-#define PI 3.14159265359
 
 layout(binding = 3) uniform UBO {
     uint spp;
@@ -56,41 +40,6 @@ struct Ray{
 
 vec3 GetPinholeCameraDir(vec3 cameraDir,vec3 cameraUp,vec3 cameraRight,vec2 uv, float f){
     return normalize(uv.y * cameraUp + uv.x * cameraRight + f * cameraDir);
-}
-
-vec3 worldtoLoacal(vec3 v,vec3 lx, vec3 ly,vec3 lz){
-    return vec3(v.x * lx.x + v.y* lx.y + v.z * lx.z,
-                 v.x * ly.x + v.y * ly.y + v.z * ly.z,
-                 v.x * lz.x + v.y * lz.y + v.z * lz.z);
-}
-
-vec3 localToWorld(const vec3 v, const vec3 lx, const vec3 ly,
-                   const vec3 lz)
-{
-    return vec3(v.x * lx.x + v.y * ly.x + v.z * lz.x,
-                 v.x * lx.y + v.y * ly.y + v.z * lz.y,
-                 v.x * lx.z + v.y * ly.z + v.z * lz.z);
-}
-
-vec3 cosineSampling(vec2 uv,inout float pdf){
-    float theta = acos(1.0 - 2.0f * uv.x) * 0.5;
-    float phi = 2.0 * PI * uv.y;
-    pdf = cos(theta) / PI;
-    return vec3(sin(theta) * cos(phi),cos(theta),sin(theta) * sin(phi));
-}
-
-void tangentSpaceBasis(vec3 normal,inout vec3 t,inout vec3 b){
-    if (abs(normal.y) < 0.9)
-    {
-        t = cross(normal, vec3(0, 1, 0));
-    }
-    else
-    {
-        t = cross(normal, vec3(0, 0, -1));
-    }
-    t = normalize(t);
-    b = cross(t, normal);
-    b = normalize(b);
 }
 
 void main()
@@ -170,13 +119,15 @@ void main()
         float pdf;
 
         vec3 localwo = worldtoLoacal(wo,t,normal,b);
-        vec3 localwi = cosineSampling(rnd2(),pdf);
-        vec3 bsdf = payload.basecolor / PI;
+        vec3 localwi;
 
+        vec3 basecolor = payload.basecolor;
+        vec2 xi = rnd2();
+        vec3 bsdf = LambertBSDF_Sample(localwo,basecolor,xi,localwi,pdf);
         vec3 wi = localToWorld(localwi,t,normal,b);
 
-        float cosine = dot(wi, normal);
-        throughput *= payload.basecolor;
+        float cosine = abs(localwi.y);
+        throughput *= bsdf * cosine / pdf;
 
         ray.origin = position;
         ray.direction = wi;

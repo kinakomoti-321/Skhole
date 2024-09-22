@@ -2,7 +2,7 @@
 #extension GL_EXT_ray_tracing : enable
 #extension GL_ARB_shading_language_include : require
 
-#include "../payload.glsl"
+#include "./payload.glsl"
 
 layout(location = 0) rayPayloadInEXT PayLoadStruct payLoad;
 

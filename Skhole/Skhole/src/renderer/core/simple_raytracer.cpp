@@ -4,10 +4,6 @@
 
 namespace Skhole {
 
-	//--------------------------------------
-	// Interface Method
-	//--------------------------------------
-
 	SimpleRaytracer::SimpleRaytracer()
 	{
 

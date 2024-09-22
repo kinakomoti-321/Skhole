@@ -3,7 +3,7 @@
 #extension GL_ARB_shading_language_include : require
 #extension GL_EXT_scalar_block_layout : enable
 
-#include "../payload.glsl"
+#include "./payload.glsl"
 
 layout(location = 0) rayPayloadInEXT PayLoadStruct payload;
 
@@ -34,12 +34,10 @@ struct InstanceData{
 
 struct Material{
 	vec4 baseColor;
-
+	float anisotropic;
 	float roughness;
 	float metallic;
 	float emissionPower;
-
-	float padding;
 	vec4 emissionColor;
 };
 
@@ -59,7 +57,7 @@ layout(scalar, binding = 7) buffer readonly instanceData{
 	InstanceData instance[];
 };
 
-layout(std430,binding = 8) buffer readonly materialData{
+layout(scalar,binding = 8) buffer readonly materialData{
 	Material materials[];
 };
 
@@ -90,10 +88,10 @@ void main()
 	normal.w = 0.0;
 
 	mat4 normalTransform = mat4(
-	inst.normalTransform0.x, inst.normalTransform1.x, inst.normalTransform2.x, 0.0,
-	inst.normalTransform0.y, inst.normalTransform1.y, inst.normalTransform2.y, 0.0,
-	inst.normalTransform0.z, inst.normalTransform1.z, inst.normalTransform2.z, 0.0,
-	inst.normalTransform0.w, inst.normalTransform1.w, inst.normalTransform2.w, 1.0
+		inst.normalTransform0.x, inst.normalTransform1.x, inst.normalTransform2.x, 0.0,
+		inst.normalTransform0.y, inst.normalTransform1.y, inst.normalTransform2.y, 0.0,
+		inst.normalTransform0.z, inst.normalTransform1.z, inst.normalTransform2.z, 0.0,
+		inst.normalTransform0.w, inst.normalTransform1.w, inst.normalTransform2.w, 1.0
 	);
 
 	normal = normalTransform * normal;
@@ -103,11 +101,15 @@ void main()
 	Material mat = materials[materialIndex];
 
 	payload.basecolor = mat.baseColor.xyz;
+
+	payload.anisotropic = mat.anisotropic;
+	payload.roughness = mat.roughness;
+	payload.metallic = mat.metallic;
+
 	payload.t = gl_HitTEXT;
 	payload.position = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
 	payload.normal = normalize(normal.xyz);
     payload.isMiss = false;
-
 	
 	payload.isLight = mat.emissionPower > 0.0;
 	payload.emission = mat.emissionColor.xyz * mat.emissionPower;

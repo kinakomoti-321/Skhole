@@ -21,6 +21,7 @@ namespace Skhole {
 		vec4 basecolor;
 		Texture BaseColorMap;
 
+		float anisotropic = 0.0f;
 		float metallic;
 		Texture MetallicMap;
 

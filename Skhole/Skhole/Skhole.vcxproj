@@ -225,6 +225,7 @@
     <None Include="shader\simple_raytracer\miss.glsl" />
     <None Include="shader\payload.glsl" />
     <None Include="shader\simple_raytracer\raygen.glsl" />
+    <None Include="shader\vndf_renderer\payload.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
