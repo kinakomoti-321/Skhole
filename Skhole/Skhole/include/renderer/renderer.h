@@ -8,8 +8,8 @@
 #include <vulkan_helpler/vk_imgui.h>
 #include <post_process/post_processor.h>
 #include <post_process/post_processor_interface.h>
-
 #include <common/util.h>
+#include <common/filepath.h>
 
 namespace Skhole
 {
@@ -120,6 +120,7 @@ namespace Skhole
 
 		bool isScreenShot = false;
 		std::string filename = "output";
+		std::string filepath = "./image/";
 	};
 
 	struct OfflineRenderingInfo {

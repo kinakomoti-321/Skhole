@@ -61,7 +61,7 @@ namespace Skhole {
 		}
 
 		//TODO
-		void WritePNG(vk::Device device);
+		void WritePNG(const std::string& filepath,const std::string& filename,vk::Device device);
 		uint32_t GetWidth() { return width; }
 		uint32_t GetHeight() { return height; }
 

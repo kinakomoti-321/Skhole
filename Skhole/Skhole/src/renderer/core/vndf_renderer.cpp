@@ -213,7 +213,8 @@ namespace Skhole {
 		}
 
 		if (renderInfo.isScreenShot) {
-			m_renderImages.WritePNG(*m_context.device);
+			std::string time = GethCurrentTimeString();
+			m_renderImages.WritePNG(renderInfo.filepath, renderInfo.filename + time, *m_context.device);
 		}
 
 		FrameEnd();

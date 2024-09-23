@@ -131,7 +131,8 @@ namespace Skhole
 			renderInfo.time = float(currentFrame) / float(fps);
 			renderInfo.spp = 100;
 			renderInfo.isScreenShot = useScreenShot;
-			renderInfo.filename = "output";
+			renderInfo.filename = "screenshot";
+			renderInfo.filepath = "./image/";
 
 			m_renderer->RealTimeRender(renderInfo);
 

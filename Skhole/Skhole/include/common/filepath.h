@@ -21,5 +21,17 @@ namespace Skhole {
 		filename = filepath.substr(dotIndex + 1);
 		return true;
 	}
+
+	inline std::string GethCurrentTimeString() {
+		std::time_t now = std::time(nullptr);
+		std::tm* localTime = std::localtime(&now);
+
+		// 時刻をフォーマットする（例: YYYYMMDD_HHMMSS）
+		std::ostringstream oss;
+		oss << std::put_time(localTime, "%Y%m%d_%H%M%S");
+
+		return oss.str();
+	}
+
 }
 
