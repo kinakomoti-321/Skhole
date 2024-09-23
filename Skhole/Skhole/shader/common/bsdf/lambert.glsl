@@ -87,7 +87,8 @@ vec3 SphericalVNDFSampling(vec2 uv, vec3 wo, vec2 alpha) {
 	vec3 strech_wo = normalize(vec3(wo.x * alpha.x, wo.y, wo.z * alpha.y));
 
 	float phi = 2.0 * PI * uv.x;
-	float z = fma((1.0 - uv.y), (1.0 + strech_wo.y), -strech_wo.y);
+	float zo = strech_wo.y;
+	float z = fma((1.0 - uv.y), (1.0 + zo), -zo);
 	float sinTheta = sqrt(clamp(1.0f - z * z, 0.0f, 1.0f));
 	float x = sinTheta * cos(phi);
 	float y = sinTheta * sin(phi);
@@ -126,23 +127,6 @@ vec3 BoundVNDFSampling(vec2 uv, vec3 wo, vec2 alpha){
 	return wm;
 }
 
-//float BoundVNDF_PDF(vec3 wo, vec3 wi, vec2 alpha)
-//{
-////	vec3 m = normalize( wo + wi ) ;
-////	float ndf = GGX_D(m, alpha.x, alpha.y) ;
-////	vec2 ai = alpha * wo.xz;
-////	float len2 = dot( ai , ai ) ;
-////	float t = sqrt( len2 + wo.y * wo.y ) ;
-////
-////	float a = min(alpha.x, alpha.y);
-////	float s = 1.0 + length(vec2(wo.x,wo.z));
-////	float a2 = a * a; float s2 = s * s;
-////	float k = (1.0 - a2) * a2 / (s2 + a2 * wo.y * wo.y);
-////
-//	return ndf / (2.0 * (k * wo.y + t));
-//}
-//
-
 float GGXReflectionPDF (vec3 i, vec3 o, vec2 alpha ) {
 	vec3 m = normalize ( i + o ) ;
 	float ndf = GGX_D(m , alpha.x, alpha.y) ;
@@ -151,10 +135,10 @@ float GGXReflectionPDF (vec3 i, vec3 o, vec2 alpha ) {
 	float t = sqrt ( len2 + i.y * i.y ) ;
 
 	if ( i.z >= 0.0) {
-		float a = min(alpha.x, alpha.y); // Eq. 6
-		float s = 1.0 + length (vec2(i.x, i.z)); // Omit sgn for a <=1
+		float a = min(alpha.x, alpha.y); 
+		float s = 1.0 + length (vec2(i.x, i.z)); 
 		float a2 = a * a; float s2 = s * s;
-		float k = (1.0 - a2) * s2 / (s2 + a2 * i.y * i.y); // Eq. 5
+		float k = (1.0 - a2) * s2 / (s2 + a2 * i.y * i.y); 
 		return ndf / (2.0 * (k * i.y + t ) ); 
 	}
 
