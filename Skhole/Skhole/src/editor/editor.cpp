@@ -151,8 +151,8 @@ namespace Skhole
 	void Editor::ShowGUI() {
 		ShowSceneGUI();
 		ShowRendererGUI();
-
 		useGUI = ImGui::IsAnyItemActive();
+
 	}
 
 	void Editor::ShowSceneGUI() {

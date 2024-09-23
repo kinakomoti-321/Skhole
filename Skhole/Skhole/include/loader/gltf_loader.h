@@ -80,7 +80,7 @@ namespace Skhole {
 	using v2d = v2<double>;
 	using v3d = v3<double>;
 	using v4d = v4<double>;
-	
+
 	struct FloatArray {
 		UnqPtr<ArrayAdapter<float>> adapter;
 		FloatArray(const unsigned char* dataPtr, const size_t count, const size_t byteStride) {
@@ -157,5 +157,13 @@ namespace Skhole {
 		std::vector<ShrPtr<Geometry>>& inGeometies,
 		std::vector<ShrPtr<BasicMaterial>>& inBasicMaterials,
 		std::vector<ShrPtr<Texture>>& inTextures
+	);
+
+	bool OutputPNG(
+		const std::string& filename,
+		const uint8_t* data,
+		const uint32_t width,
+		const uint32_t height,
+		const uint32_t channel
 	);
 }

@@ -582,4 +582,22 @@ namespace Skhole {
 
 		return true;
 	}
+
+	bool OutputPNG(
+		const std::string& filename,
+		const uint8_t* data,
+		const uint32_t width,
+		const uint32_t height,
+		const uint32_t channel
+	)
+	{
+		if (stbi_write_png(filename.c_str(), width, height, channel, data, channel * width)) {
+			SKHOLE_LOG("Write PNG file: " + filename);
+			return true;
+		}
+		else {
+			SKHOLE_ERROR("Failed to write PNG file: " + filename);
+			return false;
+		}
+	}
 }

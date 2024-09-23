@@ -8,8 +8,8 @@ namespace Skhole {
 		memcpy(pixels.data(), data, copyBuffer.GetBufferSize());
 		copyBuffer.Unmap(device);
 
-		//if (!stbi_write_png("output.png", width, height, 4, pixels.data(), width * 4)) {
-		//	std::cerr << "Failed to write PNG" << std::endl;
-		//}
+
+		std::string path = "output.png";
+		OutputPNG(path, pixels.data(), width, height, 4);
 	}
 }
