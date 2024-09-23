@@ -117,14 +117,12 @@ namespace Skhole
 
 			m_renderer->InitFrameGUI();
 
+			ShowGUI();
+
 			if (!useGUI)
 			{
 				ControlCamera();
 			}
-			//else {
-			//	ControlCamera();
-			//}
-			ShowGUI();
 
 			m_renderer->UpdateScene(m_updateInfo);
 
@@ -152,7 +150,8 @@ namespace Skhole
 		ShowSceneGUI();
 		ShowRendererGUI();
 		useGUI = ImGui::IsAnyItemActive();
-
+		useGUI |= ImGui::IsItemClicked();
+		useGUI |= ImGui::IsMouseClicked(0);
 	}
 
 	void Editor::ShowSceneGUI() {
