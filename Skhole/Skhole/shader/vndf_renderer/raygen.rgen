@@ -148,7 +148,6 @@ void main()
 			bsdf = LambertBSDF_Sample(localwo,basecolor,xi,localwi,pdf);
         }
 
-
         vec3 wi = localToWorld(localwi,t,normal,b);
 
         float cosine = abs(localwi.y);

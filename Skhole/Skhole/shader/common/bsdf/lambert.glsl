@@ -83,7 +83,7 @@ struct GGX_Params
 };
 
 
-vec3 sampleVisibleNormal(vec2 uv, vec3 wo, vec2 alpha) {
+vec3 SphericalVNDFSampling(vec2 uv, vec3 wo, vec2 alpha) {
 	vec3 strech_wo = normalize(vec3(wo.x * alpha.x, wo.y, wo.z * alpha.y));
 
 	float phi = 2.0 * PI * uv.x;
@@ -100,6 +100,67 @@ vec3 sampleVisibleNormal(vec2 uv, vec3 wo, vec2 alpha) {
 
 	return wm;
 }
+
+vec3 BoundVNDFSampling(vec2 uv, vec3 wo, vec2 alpha){
+	vec3 stretch_wo = normalize(vec3(wo.x * alpha.x, wo.y, wo.z * alpha.y));
+
+	float phi = 2.0 * PI * uv.x;
+
+	float a = min(alpha.x, alpha.y);
+	float s = 1.0 + length(vec2(stretch_wo.x,stretch_wo.z));
+	float a2 = a * a; float s2 = s * s;
+	float k = (1.0 - a2) * a2 / (s2 + a2 * stretch_wo.y * stretch_wo.y);
+	float oz = k * stretch_wo.y;
+
+	float z = fma((1.0 - uv.y), (1.0 + oz), -oz);
+	float sinTheta = sqrt(clamp(1.0f - z * z, 0.0f, 1.0f));
+	float x = sinTheta * cos(phi);
+	float y = sinTheta * sin(phi);
+
+	vec3 c = vec3(x, z, y);
+
+	vec3 h = c + stretch_wo;
+
+	vec3 wm = normalize(vec3(h.x * alpha.x, h.y, h.z * alpha.y));
+
+	return wm;
+}
+
+//float BoundVNDF_PDF(vec3 wo, vec3 wi, vec2 alpha)
+//{
+////	vec3 m = normalize( wo + wi ) ;
+////	float ndf = GGX_D(m, alpha.x, alpha.y) ;
+////	vec2 ai = alpha * wo.xz;
+////	float len2 = dot( ai , ai ) ;
+////	float t = sqrt( len2 + wo.y * wo.y ) ;
+////
+////	float a = min(alpha.x, alpha.y);
+////	float s = 1.0 + length(vec2(wo.x,wo.z));
+////	float a2 = a * a; float s2 = s * s;
+////	float k = (1.0 - a2) * a2 / (s2 + a2 * wo.y * wo.y);
+////
+//	return ndf / (2.0 * (k * wo.y + t));
+//}
+//
+
+float GGXReflectionPDF (vec3 i, vec3 o, vec2 alpha ) {
+	vec3 m = normalize ( i + o ) ;
+	float ndf = GGX_D(m , alpha.x, alpha.y) ;
+	vec2 ai = alpha * i.xz;
+	float len2 = dot( ai , ai ) ;
+	float t = sqrt ( len2 + i.y * i.y ) ;
+
+	if ( i.z >= 0.0) {
+		float a = min(alpha.x, alpha.y); // Eq. 6
+		float s = 1.0 + length (vec2(i.x, i.z)); // Omit sgn for a <=1
+		float a2 = a * a; float s2 = s * s;
+		float k = (1.0 - a2) * s2 / (s2 + a2 * i.y * i.y); // Eq. 5
+		return ndf / (2.0 * (k * i.y + t ) ); 
+	}
+
+	return ndf * ( t - i.z ) / (2.0 * len2 ); 
+}
+
 
 vec2 RoughnessToAlpha(float roughness, float anistropic){
 	float r2 = clamp(roughness * roughness,0.0001,1.0);
@@ -118,7 +179,8 @@ vec3 GGX_Sample(vec3 wo, vec2 xi,GGX_Params param, inout vec3 wi, inout float pd
 
 	vec2 alpha = RoughnessToAlpha(param.roughness, param.anisotropic);
 
-	vec3 wm = sampleVisibleNormal(xi,wo,alpha);
+	vec3 wm = SphericalVNDFSampling(xi,wo,alpha);
+//	vec3 wm = BoundVNDFSampling(xi,wo,alpha);
 	wi = reflect(-wo, wm);
 
 	if(wi.y <= 0.0){
@@ -134,6 +196,7 @@ vec3 GGX_Sample(vec3 wo, vec2 xi,GGX_Params param, inout vec3 wi, inout float pd
 	float jacobian = 0.25 / dot(wo, wm);
 
 	pdf = ggx_D * ggx_G1 * dot(wo,wm) * jacobian / abs(wo.y);
+//	pdf = GGXReflectionPDF(wo,wi,alpha); 
 
 	bsdf = ggx_D * ggx_G * ggx_F / (4.0 * wo.y * wi.y);
 	return bsdf;
