@@ -60,7 +60,7 @@ namespace Skhole {
 			return device.mapMemory(*memory, offset, size);
 		}
 
-		void Ummap(vk::Device device) {
+		void Unmap(vk::Device device) {
 			device.unmapMemory(*memory);
 		}
 
@@ -104,7 +104,7 @@ namespace Skhole {
 		}
 
 		void Unmap(vk::Device device) {
-			hostBuffer.Ummap(device);
+			hostBuffer.Unmap(device);
 		}
 
 		void UploadToDevice(vk::Device device, vk::CommandPool commandPool, vk::Queue queue) {
@@ -305,6 +305,6 @@ namespace Skhole {
 	inline void CopyBuffer(vk::Device device, Buffer& buffer, void* src, size_t size, size_t offset = 0) {
 		void* data = buffer.Map(device, offset, size);
 		memcpy(data, src, size);
-		buffer.Ummap(device);
+		buffer.Unmap(device);
 	}
 }

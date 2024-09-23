@@ -132,6 +132,8 @@ namespace Skhole
 			renderInfo.frame = currentFrame;
 			renderInfo.time = float(currentFrame) / float(fps);
 			renderInfo.spp = 100;
+			renderInfo.isScreenShot = useScreenShot;
+			renderInfo.filename = "output";
 
 			m_renderer->RealTimeRender(renderInfo);
 
@@ -246,6 +248,8 @@ namespace Skhole
 				ImGui::Text("Frame : %u", rendererData->frame);
 				ImGui::Text("sample : %u", rendererData->sample);
 				ImGui::InputScalar("SPP", ImGuiDataType_U32, &rendererData->spp);
+
+				useScreenShot = ImGui::Button("ScreenShot");
 
 				bool updateRenderer = false;
 				if (ImGui::TreeNode("Renderer Parameter")) {

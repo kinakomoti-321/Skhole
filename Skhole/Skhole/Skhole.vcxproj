@@ -159,6 +159,7 @@
     <ClCompile Include="src\post_process\example.cpp" />
     <ClCompile Include="src\post_process\layer.cpp" />
     <ClCompile Include="src\renderer\common\raytracing_pipeline.cpp" />
+    <ClCompile Include="src\renderer\common\render_image.cpp" />
     <ClCompile Include="src\renderer\core\simple_raytracer.cpp" />
     <ClCompile Include="src\renderer\core\vndf_renderer.cpp" />
     <ClCompile Include="src\renderer\renderer.cpp" />

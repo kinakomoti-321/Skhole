@@ -189,6 +189,10 @@ namespace Skhole {
 		CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
 		RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
 
+		if (renderInfo.isScreenShot) {
+			m_renderImages.ReadBack(*m_commandBuffer, *m_context.device);
+		}
+
 		m_commandBuffer->end();
 
 		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
@@ -206,6 +210,10 @@ namespace Skhole {
 		if (m_context.queue.presentKHR(presentInfo) != vk::Result::eSuccess) {
 			std::cerr << "Failed to present.\n";
 			std::abort();
+		}
+
+		if (renderInfo.isScreenShot) {
+			m_renderImages.WritePNG(*m_context.device);
 		}
 
 		FrameEnd();

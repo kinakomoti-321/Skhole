@@ -29,11 +29,39 @@ namespace Skhole {
 			accumImage.Release(device);
 			renderImage.Release(device);
 			postProcessedImage.Release(device);
+			copyBuffer.Release(device);
+		}
+
+		void ReadBack(vk::CommandBuffer commandBuffer, vk::Device device)
+		{
+
+			vkutils::setImageLayout(commandBuffer, postProcessedImage.GetImage(), vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal);
+
+			vk::BufferImageCopy copyRegion;
+			copyRegion.bufferOffset = 0;
+			copyRegion.bufferRowLength = 0;
+			copyRegion.bufferImageHeight = 0;
+			copyRegion.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+			copyRegion.imageSubresource.mipLevel = 0;
+			copyRegion.imageSubresource.baseArrayLayer = 0;
+			copyRegion.imageSubresource.layerCount = 1;
+			copyRegion.imageOffset = vk::Offset3D{ 0, 0, 0 };
+			copyRegion.imageExtent = vk::Extent3D{ width, height, 1 };
+
+			commandBuffer.copyImageToBuffer(
+				postProcessedImage.GetImage(),
+				vk::ImageLayout::eTransferSrcOptimal,
+				copyBuffer.GetBuffer(),
+				1,
+				&copyRegion
+			);
+
+			vkutils::setImageLayout(commandBuffer, postProcessedImage.GetImage(), vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
+
 		}
 
 		//TODO
-		void WritePNG();
-
+		void WritePNG(vk::Device device);
 		uint32_t GetWidth() { return width; }
 		uint32_t GetHeight() { return height; }
 
@@ -91,6 +119,16 @@ namespace Skhole {
 					);
 				}
 			);
+
+			//uchar4
+			copyBuffer.Init(
+				physicalDevice, device,
+				width * height * 4 * sizeof(uint8_t),
+				vk::BufferUsageFlagBits::eTransferDst,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+			);
+
+			pixels.resize(width * height * 4 * sizeof(uint8_t));
 		}
 
 		// Image
@@ -99,5 +137,8 @@ namespace Skhole {
 		Image postProcessedImage;
 
 		uint32_t width, height;
+
+		Buffer copyBuffer;
+		std::vector<uint8_t> pixels;
 	};
 }

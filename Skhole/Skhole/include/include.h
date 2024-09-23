@@ -40,3 +40,6 @@
 #define MakeShr std::make_shared
 #define MakeUnq std::make_unique
 
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION

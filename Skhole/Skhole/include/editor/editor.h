@@ -173,7 +173,7 @@ namespace Skhole {
 		bool useLoopMode = false;
 
 		int cameraIndex = 0;
-
+		bool useScreenShot = true;
 	};
 }
 

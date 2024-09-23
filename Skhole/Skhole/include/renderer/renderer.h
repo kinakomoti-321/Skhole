@@ -117,6 +117,9 @@ namespace Skhole
 		uint32_t spp;
 		uint32_t frame;
 		float time;
+
+		bool isScreenShot = false;
+		std::string filename = "output";
 	};
 
 	struct OfflineRenderingInfo {

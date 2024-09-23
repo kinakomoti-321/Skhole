@@ -398,7 +398,7 @@ namespace Skhole {
 		void Update(vk::Device device) {
 			void* map = buffer.Map(device, 0, sizeof(T));
 			memcpy(map, &data, sizeof(T));
-			buffer.Ummap(device);
+			buffer.Unmap(device);
 		}
 
 		void Release(vk::Device device) {
