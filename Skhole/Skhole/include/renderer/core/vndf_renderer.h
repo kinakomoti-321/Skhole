@@ -130,7 +130,7 @@ namespace Skhole
 			uint32_t spp;
 			uint32_t frame;
 			uint32_t sample;
-			//uint32_t samplePerFrame = 1;
+			uint32_t samplePerFrame = 1;
 			uint32_t mode;
 
 			uint32_t width;

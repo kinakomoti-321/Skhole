@@ -21,7 +21,7 @@ layout(binding = 3, scalar) uniform UBO {
     uint spp;
     uint frame;
     uint numSample;
-//    uint samplePerFrame;
+    uint samplePerFrame;
     uint mode;
 
     uint width;
@@ -44,44 +44,13 @@ vec3 GetPinholeCameraDir(vec3 cameraDir,vec3 cameraUp,vec3 cameraRight,vec2 uv, 
     return normalize(uv.y * cameraUp + uv.x * cameraRight + f * cameraDir);
 }
 
-void main()
+vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
 {
-    seed = ((gl_LaunchIDEXT.x + gl_LaunchIDEXT.y * ubo.width) + 1) * ubo.numSample;
-
-    vec2 uv = (vec2(gl_LaunchIDEXT.xy + rnd2()) * 2.0 - gl_LaunchSizeEXT.xy) / vec2(gl_LaunchSizeEXT.y);
-    uv.y  = -uv.y;
-
-    vec3 origin = ubo.cameraPos;
-
-    Ray ray;
-    ray.origin = ubo.cameraPos;
-        
-    float fov = ubo.cameraParam.x;
-    float f = 1.0 / (atan(fov * 0.5 * PI / 180.0f));
-
-    ray.direction = GetPinholeCameraDir(
-        ubo.cameraDir,
-        ubo.cameraUp,
-        ubo.cameraRight,
-        uv,
-        f
-    );
-
-    payload.basecolor = vec3(0);
-    payload.normal = vec3(0);
-    payload.isMiss = false;
-    payload.isLight = false;
-    payload.emission = vec3(0);
-
-    vec3 fBaseColor = vec3(0);
-    vec3 fNormal = vec3(0);
-
     vec3 LTE = vec3(0.0);
     vec3 throughput = vec3(1.0);
     float p0 = 1.0;
 
     for(int depth = 0; depth < 5; depth++){
-        
         p0 = min(max(max(throughput.x,throughput.y),throughput.z),1.0); 
         if(p0 < rnd1()){
             break;
@@ -159,13 +128,64 @@ void main()
         ray.direction = wi;
 
     }
+    
+    return LTE;
+}
 
-    vec3 col = LTE;
+void main()
+{
+    seed = ((gl_LaunchIDEXT.x + gl_LaunchIDEXT.y * ubo.width) + 1) * ubo.numSample;
+
+    vec2 uv = (vec2(gl_LaunchIDEXT.xy + rnd2()) * 2.0 - gl_LaunchSizeEXT.xy) / vec2(gl_LaunchSizeEXT.y);
+    uv.y  = -uv.y;
+
+    vec3 origin = ubo.cameraPos;
+
+    Ray ray;
+    ray.origin = ubo.cameraPos;
+        
+    float fov = ubo.cameraParam.x;
+    float f = 1.0 / (atan(fov * 0.5 * PI / 180.0f));
+
+    ray.direction = GetPinholeCameraDir(
+        ubo.cameraDir,
+        ubo.cameraUp,
+        ubo.cameraRight,
+        uv,
+        f
+    );
+
+    payload.basecolor = vec3(0);
+    payload.normal = vec3(0);
+    payload.isMiss = false;
+    payload.isLight = false;
+    payload.emission = vec3(0);
+
+    vec3 sumLTE = vec3(0);
+    vec3 sumBaseColor = vec3(0);
+    vec3 sumNormal = vec3(0);
+
+    int spf = int(ubo.samplePerFrame);
+
+    for(int s = 0; s < spf; s++){
+		vec3 fBaseColor = vec3(0.0);
+		vec3 fNormal = vec3(0.0);
+		vec3 LTE = Pathtrace(ray,fBaseColor,fNormal);
+
+		sumLTE += LTE;
+		sumBaseColor += fBaseColor;
+		sumNormal += fNormal;
+	}
+
+    vec3 col = sumLTE;
+
     if(ubo.mode == 1){
-		col = fBaseColor;
+        vec3 aveBaseColor = sumBaseColor / float(spf);
+		col = sumBaseColor;
     }
     else if(ubo.mode == 2){
-        col = (fNormal + 1.0) * 0.5;
+        vec3 aveNormal = sumNormal / float(spf);
+        col = (sumNormal + 1.0) * 0.5;
 	}
 
     if(ubo.numSample != 1){

@@ -138,7 +138,7 @@ namespace Skhole {
 		uniformBufferObject.spp = raytracerParam->spp;
 		uniformBufferObject.frame = raytracerParam->frame;
 		uniformBufferObject.sample = raytracerParam->sample;
-		//uniformBufferObject.samplePerFrame = 1;
+		uniformBufferObject.samplePerFrame = 1;
 		auto param = std::dynamic_pointer_cast<ParamUint>(raytracerParam->rendererParameters[0]);
 		uniformBufferObject.mode = param->value;
 
