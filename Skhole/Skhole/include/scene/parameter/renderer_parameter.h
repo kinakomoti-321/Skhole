@@ -5,12 +5,13 @@
 
 namespace Skhole {
 	struct RendererParameter {
-		RendererParameter(){}
-		~RendererParameter(){}
+		RendererParameter() {}
+		~RendererParameter() {}
 
 		std::string rendererName;
-		uint32_t spp;
-		uint32_t sample;
+		uint32_t maxSPP;
+		uint32_t numSPP;
+		uint32_t sppPerFrame = 1;
 		uint32_t frame;
 
 		std::vector<ShrPtr<Parameter>> rendererParameters;

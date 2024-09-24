@@ -296,8 +296,9 @@ namespace Skhole
 
 				ImGui::Text("Renderer Name : %s", rendererData->rendererName.c_str());
 				ImGui::Text("Frame : %u", rendererData->frame);
-				ImGui::Text("sample : %u", rendererData->sample);
-				ImGui::InputScalar("SPP", ImGuiDataType_U32, &rendererData->spp);
+				ImGui::Text("sample : %u", rendererData->numSPP);
+				ImGui::InputScalar("Max SPP", ImGuiDataType_U32, &rendererData->maxSPP);
+				InputUint("Sample Per Frame", &rendererData->sppPerFrame);
 
 				useScreenShot = ImGui::Button("ScreenShot");
 

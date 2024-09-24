@@ -138,9 +138,9 @@ namespace Skhole {
 		auto& uniformBufferObject = m_uniformBuffer.data;
 
 		auto& camera = m_scene->m_camera;
-		uniformBufferObject.spp = raytracerParam->spp;
+		uniformBufferObject.spp = raytracerParam->maxSPP;
 		uniformBufferObject.frame = raytracerParam->frame;
-		uniformBufferObject.sample = raytracerParam->sample;
+		uniformBufferObject.sample = raytracerParam->numSPP;
 		auto param = std::dynamic_pointer_cast<ParamUint>(raytracerParam->rendererParameters[0]);
 		uniformBufferObject.mode = param->value;
 
@@ -165,9 +165,9 @@ namespace Skhole {
 		m_asManager.ReleaseTLAS(*m_context.device);
 
 		auto& raytracerParam = m_scene->m_rendererParameter;
-		raytracerParam->sample++;
-		if (raytracerParam->sample >= raytracerParam->spp) {
-			raytracerParam->sample = raytracerParam->spp;
+		raytracerParam->numSPP++;
+		if (raytracerParam->numSPP >= raytracerParam->maxSPP) {
+			raytracerParam->numSPP = raytracerParam->maxSPP;
 		}
 	}
 

@@ -116,8 +116,8 @@ namespace Skhole
 			ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
 			rendererParameter->rendererName = "Simple Raytracer";
 			rendererParameter->frame = 0;
-			rendererParameter->spp = 100;
-			rendererParameter->sample = 1;
+			rendererParameter->maxSPP = 100;
+			rendererParameter->numSPP = 1;
 
 			CopyParameter(m_rendererExtensionParams, rendererParameter->rendererParameters);
 			rendererParameter->posproParameters = m_postProcessor->GetParamter();
@@ -127,10 +127,11 @@ namespace Skhole
 
 	private:
 		struct Uniform {
-			uint32_t spp;
-			uint32_t frame;
-			uint32_t sample;
+			uint32_t maxSPP;
+			uint32_t numSPP;
 			uint32_t samplePerFrame = 1;
+			uint32_t frame;
+			uint32_t resetFrag = 0;
 			uint32_t mode;
 
 			uint32_t width;

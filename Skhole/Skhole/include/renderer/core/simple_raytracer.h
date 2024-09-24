@@ -121,8 +121,8 @@ namespace Skhole
 			ShrPtr<RendererParameter> rendererParameter = MakeShr<RendererParameter>();
 			rendererParameter->rendererName = "Simple Raytracer";
 			rendererParameter->frame = 0;
-			rendererParameter->spp = 100;
-			rendererParameter->sample = 1;
+			rendererParameter->maxSPP = 100;
+			rendererParameter->numSPP = 1;
 
 			CopyParameter(m_rendererExtensionParams, rendererParameter->rendererParameters);
 			rendererParameter->posproParameters = m_postProcessor->GetParamter();

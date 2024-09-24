@@ -24,7 +24,7 @@ namespace Skhole {
 
 		auto& uniformBufferObject = m_uniformBuffer.data;
 		uniformBufferObject.frame = 0;
-		uniformBufferObject.spp = 100;
+		uniformBufferObject.maxSPP = 100;
 		uniformBufferObject.width = desc.Width;
 		uniformBufferObject.height = desc.Height;
 		uniformBufferObject.cameraDir = vec3(0.0f, 0.0f, -1.0f);
@@ -133,18 +133,17 @@ namespace Skhole {
 		uint32_t height = m_renderImages.GetHeight();
 
 		auto& uniformBufferObject = m_uniformBuffer.data;
+		uniformBufferObject.maxSPP = raytracerParam->maxSPP;
+		uniformBufferObject.frame = raytracerParam->frame;
+		uniformBufferObject.numSPP = raytracerParam->numSPP;
+		uniformBufferObject.samplePerFrame = raytracerParam->sppPerFrame;
+		uniformBufferObject.mode = GetParamUintValue(raytracerParam->rendererParameters[0]);
 
 		auto& camera = m_scene->m_camera;
-		uniformBufferObject.spp = raytracerParam->spp;
-		uniformBufferObject.frame = raytracerParam->frame;
-		uniformBufferObject.sample = raytracerParam->sample;
-		uniformBufferObject.samplePerFrame = 1;
-		auto param = std::dynamic_pointer_cast<ParamUint>(raytracerParam->rendererParameters[0]);
-		uniformBufferObject.mode = param->value;
-
-		uniformBufferObject.cameraPos = camera->GetCameraPosition(time);
 		vec3 cameraDir, cameraUp, cameraRight;
 		camera->GetCameraDirections(time, cameraDir, cameraUp, cameraRight);
+
+		uniformBufferObject.cameraPos = camera->GetCameraPosition(time);
 		uniformBufferObject.cameraDir = cameraDir;
 		uniformBufferObject.cameraUp = cameraUp;
 		uniformBufferObject.cameraRight = cameraRight;
@@ -163,9 +162,9 @@ namespace Skhole {
 		m_asManager.ReleaseTLAS(*m_context.device);
 
 		auto& raytracerParam = m_scene->m_rendererParameter;
-		raytracerParam->sample++;
-		if (raytracerParam->sample >= raytracerParam->spp) {
-			raytracerParam->sample = raytracerParam->spp;
+		raytracerParam->numSPP += m_scene->m_rendererParameter->sppPerFrame;
+		if (raytracerParam->numSPP >= raytracerParam->maxSPP) {
+			raytracerParam->numSPP = raytracerParam->maxSPP;
 		}
 	}
 
@@ -236,20 +235,45 @@ namespace Skhole {
 			uint32_t currentFrame = renderInfo.startFrame + i;
 			float time = static_cast<float>(currentFrame) / static_cast<float>(fps);
 
-			FrameStart(time);
+			//FrameStart(time);
+			{
+				auto& raytracerParam = m_scene->m_rendererParameter;
 
-			//vk::SemaphoreCreateInfo semaphoreInfo{};
-			//semaphoreInfo.flags = vk::SemaphoreCreateFlagBits::eSignaled;
-			vk::UniqueSemaphore imageAvailableSemaphore =
-				m_context.device->createSemaphoreUnique({});
-			vk::UniqueSemaphore renderFinishedSemaphore =
-				m_context.device->createSemaphoreUnique({});
+				uint32_t width = m_renderImages.GetWidth();
+				uint32_t height = m_renderImages.GetHeight();
+
+				auto& uniformBufferObject = m_uniformBuffer.data;
+				uniformBufferObject.maxSPP = renderInfo.spp;
+				uniformBufferObject.frame = raytracerParam->frame;
+				uniformBufferObject.numSPP = raytracerParam->numSPP;
+				uniformBufferObject.samplePerFrame = renderInfo.spp;
+				uniformBufferObject.resetFrag = 1;
+				uniformBufferObject.mode = GetParamUintValue(raytracerParam->rendererParameters[0]);
+
+				auto& camera = m_scene->m_camera;
+				vec3 cameraDir, cameraUp, cameraRight;
+				camera->GetCameraDirections(time, cameraDir, cameraUp, cameraRight);
+
+				uniformBufferObject.cameraPos = camera->GetCameraPosition(time);
+				uniformBufferObject.cameraDir = cameraDir;
+				uniformBufferObject.cameraUp = cameraUp;
+				uniformBufferObject.cameraRight = cameraRight;
+				uniformBufferObject.cameraParam.v[0] = camera->GetYFov();
+				uniformBufferObject.cameraParam.v[1] = static_cast<float>(width) / static_cast<float>(height);
+
+				m_uniformBuffer.Update(*m_context.device);
+
+				m_scene->SetTransformMatrix(time);
+				m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
+				m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+			}
 
 			UpdateDescriptorSet();
 
 			m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
 			RecordCommandBuffer(width, height);
+			m_renderImages.ReadBack(*m_commandBuffer, *m_context.device);
 
 			m_commandBuffer->end();
 
@@ -257,9 +281,8 @@ namespace Skhole {
 			vk::SubmitInfo submitInfo{};
 			submitInfo.setWaitDstStageMask(waitStage);
 			submitInfo.setCommandBuffers(*m_commandBuffer);
-			submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
-			//submitInfo.setSignalSemaphores(*renderFinishedSemaphore);
 			submitInfo.setWaitSemaphoreCount(0);
+
 			m_context.queue.submit(submitInfo);
 
 			m_context.queue.waitIdle();
