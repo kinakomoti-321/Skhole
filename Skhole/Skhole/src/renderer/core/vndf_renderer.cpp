@@ -244,8 +244,8 @@ namespace Skhole {
 
 				auto& uniformBufferObject = m_uniformBuffer.data;
 				uniformBufferObject.maxSPP = renderInfo.spp;
-				uniformBufferObject.frame = raytracerParam->frame;
-				uniformBufferObject.numSPP = raytracerParam->numSPP;
+				uniformBufferObject.frame = currentFrame;
+				uniformBufferObject.numSPP = 0;
 				uniformBufferObject.samplePerFrame = renderInfo.spp;
 				uniformBufferObject.resetFrag = 1;
 				uniformBufferObject.mode = GetParamUintValue(raytracerParam->rendererParameters[0]);
