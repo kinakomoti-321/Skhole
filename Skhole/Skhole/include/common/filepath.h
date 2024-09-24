@@ -33,5 +33,11 @@ namespace Skhole {
 		return oss.str();
 	}
 
+	inline std::string NumbertToSerial(int number, int paddingDigit) {
+		std::ostringstream os;
+		os << std::setw(paddingDigit) << std::setfill('0') << number;
+		return os.str();
+	}
+
 }
 

@@ -285,4 +285,38 @@ namespace Skhole {
 	inline float RadianToDegree(float radian) {
 		return radian * 360.0f / TAU;
 	}
+
+	//For MemoryLayout
+	struct vec2_layout {
+		vec2_layout() {};
+		vec2_layout(const vec2& v2) {
+			v[0] = v2.x;
+			v[1] = v2.y;
+		}
+		float v[2];
+	};
+
+	struct vec3_layout {
+		vec3_layout() {};
+		vec3_layout(const vec3& v3) {
+			v[0] = v3.x;
+			v[1] = v3.y;
+			v[2] = v3.z;
+		}
+
+		float v[3];
+
+	};
+
+	struct vec4_layout {
+		vec4_layout() {};
+		vec4_layout(const vec4& v4) {
+			v[0] = v4.x;
+			v[1] = v4.y;
+			v[2] = v4.z;
+			v[3] = v4.w;
+		}
+		float v[4];
+	};
+
 }

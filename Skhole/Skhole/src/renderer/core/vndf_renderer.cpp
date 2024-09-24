@@ -138,6 +138,7 @@ namespace Skhole {
 		uniformBufferObject.spp = raytracerParam->spp;
 		uniformBufferObject.frame = raytracerParam->frame;
 		uniformBufferObject.sample = raytracerParam->sample;
+		//uniformBufferObject.samplePerFrame = 1;
 		auto param = std::dynamic_pointer_cast<ParamUint>(raytracerParam->rendererParameters[0]);
 		uniformBufferObject.mode = param->value;
 
@@ -147,8 +148,8 @@ namespace Skhole {
 		uniformBufferObject.cameraDir = cameraDir;
 		uniformBufferObject.cameraUp = cameraUp;
 		uniformBufferObject.cameraRight = cameraRight;
-		uniformBufferObject.cameraParam.x = camera->GetYFov();
-		uniformBufferObject.cameraParam.y = static_cast<float>(width) / static_cast<float>(height);
+		uniformBufferObject.cameraParam.v[0] = camera->GetYFov();
+		uniformBufferObject.cameraParam.v[1] = static_cast<float>(width) / static_cast<float>(height);
 
 		m_uniformBuffer.Update(*m_context.device);
 
@@ -174,7 +175,6 @@ namespace Skhole {
 
 		vk::UniqueSemaphore imageAvailableSemaphore =
 			m_context.device->createSemaphoreUnique({});
-
 
 		uint32_t imageIndex = m_screenContext.GetFrameIndex(*m_context.device, *imageAvailableSemaphore);
 
@@ -222,7 +222,55 @@ namespace Skhole {
 
 	void VNDF_Renderer::OfflineRender(const OfflineRenderingInfo& renderInfo)
 	{
-		SKHOLE_UNIMPL("Offline Render");
+		uint32_t width = renderInfo.width;
+		uint32_t height = renderInfo.height;
+		uint32_t numFrame = renderInfo.endFrame - renderInfo.startFrame + 1;
+
+		auto& fps = renderInfo.fps;
+
+		Resize(width, height);
+
+		//TODO: Implement limit time
+		for (int i = 0; i < numFrame; i++)
+		{
+			uint32_t currentFrame = renderInfo.startFrame + i;
+			float time = static_cast<float>(currentFrame) / static_cast<float>(fps);
+
+			FrameStart(time);
+
+			//vk::SemaphoreCreateInfo semaphoreInfo{};
+			//semaphoreInfo.flags = vk::SemaphoreCreateFlagBits::eSignaled;
+			vk::UniqueSemaphore imageAvailableSemaphore =
+				m_context.device->createSemaphoreUnique({});
+			vk::UniqueSemaphore renderFinishedSemaphore =
+				m_context.device->createSemaphoreUnique({});
+
+			UpdateDescriptorSet();
+
+			m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
+
+			RecordCommandBuffer(width, height);
+
+			m_commandBuffer->end();
+
+			vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
+			vk::SubmitInfo submitInfo{};
+			submitInfo.setWaitDstStageMask(waitStage);
+			submitInfo.setCommandBuffers(*m_commandBuffer);
+			submitInfo.setWaitSemaphores(*imageAvailableSemaphore);
+			//submitInfo.setSignalSemaphores(*renderFinishedSemaphore);
+			submitInfo.setWaitSemaphoreCount(0);
+			m_context.queue.submit(submitInfo);
+
+			m_context.queue.waitIdle();
+
+			//std::string frameNumber = GethCurrentTimeString();
+			std::string frameNumber = NumbertToSerial(currentFrame, 3);
+			m_renderImages.WritePNG(renderInfo.filepath, renderInfo.filename + frameNumber, *m_context.device);
+
+			FrameEnd();
+		}
+
 	}
 
 }

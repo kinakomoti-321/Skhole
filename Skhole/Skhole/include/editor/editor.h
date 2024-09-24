@@ -126,6 +126,7 @@ namespace Skhole {
 		void ShowGUI();
 
 		void ShowSceneGUI();
+		void ShowSettingGUI();
 		void ShowRendererGUI();
 		void ShowObjectGUI();
 		void ShowMaterialGUI();
@@ -174,6 +175,8 @@ namespace Skhole {
 
 		int cameraIndex = 0;
 		bool useScreenShot = true;
+
+		OfflineRenderingInfo offlineRenderingInfo;
 	};
 }
 

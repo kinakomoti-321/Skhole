@@ -148,11 +148,61 @@ namespace Skhole
 	}
 
 	void Editor::ShowGUI() {
+		ShowSettingGUI();
 		ShowSceneGUI();
 		ShowRendererGUI();
 		useGUI = ImGui::IsAnyItemActive();
 		useGUI |= ImGui::IsItemClicked();
 		useGUI |= ImGui::IsMouseClicked(0);
+	}
+
+	void Editor::ShowSettingGUI() {
+		ImGui::Begin("Setting");
+
+		ImGui::Text("Animation Information");
+
+		bool updateAnimation = false;
+
+		updateAnimation |= ImGui::SliderInt("Frame", &currentFrame, startFrame, endFrame);
+		updateAnimation |= ImGui::InputInt("Start Frame", &startFrame);
+		updateAnimation |= ImGui::InputInt("End Frame", &endFrame);
+
+		updateAnimation |= ImGui::InputInt("FPS", &fps);
+
+		updateAnimation |= ImGui::Checkbox("Loop Mode", &useLoopMode);
+		updateAnimation |= ImGui::Checkbox("Runtime", &Runtime);
+
+		if (updateAnimation) {
+			m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
+		}
+
+		ImGui::Text("Rendering Resolution");
+		InputUint("Width", &offlineRenderingInfo.width);
+		InputUint("Height", &offlineRenderingInfo.height);
+
+		InputUint("SPP", &offlineRenderingInfo.spp);
+
+		ImGui::Checkbox("Use TimeLimit", &offlineRenderingInfo.useLimitTime);
+		if (offlineRenderingInfo.useLimitTime) {
+			ImGui::InputFloat("Limit Time (second)", &offlineRenderingInfo.limitTime);
+		}
+
+		if (ImGui::Button("Rendering")) {
+			offlineRenderingInfo.startFrame = startFrame;
+			offlineRenderingInfo.endFrame = endFrame;
+			offlineRenderingInfo.fps = fps;
+
+			offlineRenderingInfo.filepath = "./image/";
+			offlineRenderingInfo.filename = "output";
+
+			m_renderer->OfflineRender(offlineRenderingInfo);
+
+			m_resizeInfo.resizeFrag = true;
+		}
+
+		ImGui::Button("Save Setting");
+
+		ImGui::End();
 	}
 
 	void Editor::ShowSceneGUI() {
@@ -325,27 +375,6 @@ namespace Skhole
 				ImGui::EndTabItem();
 			}
 
-			if (ImGui::BeginTabItem("Animation"))
-			{
-				ImGui::Text("Animation Information");
-
-				bool updateAnimation = false;
-
-				updateAnimation |= ImGui::SliderInt("Frame", &currentFrame, startFrame, endFrame);
-				updateAnimation |= ImGui::InputInt("Start Frame", &startFrame);
-				updateAnimation |= ImGui::InputInt("End Frame", &endFrame);
-
-				updateAnimation |= ImGui::InputInt("FPS", &fps);
-
-				updateAnimation |= ImGui::Checkbox("Loop Mode", &useLoopMode);
-				updateAnimation |= ImGui::Checkbox("Runtime", &Runtime);
-
-				if (updateAnimation) {
-					m_updateInfo.commands.push_back(std::make_shared<UpdateRendererCommand>());
-				}
-
-				ImGui::EndTabItem();
-			}
 
 			ImGui::EndTabBar();
 		}

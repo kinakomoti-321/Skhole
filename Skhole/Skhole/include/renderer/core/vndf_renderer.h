@@ -130,18 +130,19 @@ namespace Skhole
 			uint32_t spp;
 			uint32_t frame;
 			uint32_t sample;
+			//uint32_t samplePerFrame = 1;
 			uint32_t mode;
 
 			uint32_t width;
 			uint32_t height;
 
-			uint32_t padding[2];
+			//uint32_t padding[2];
 
-			vec3 cameraPos;
-			vec3 cameraDir;
-			vec3 cameraUp;
-			vec3 cameraRight;
-			vec4 cameraParam;
+			vec3_layout cameraPos;
+			vec3_layout cameraDir;
+			vec3_layout cameraUp;
+			vec3_layout cameraRight;
+			vec4_layout cameraParam;
 		};
 
 	private:

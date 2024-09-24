@@ -124,8 +124,19 @@ namespace Skhole
 	};
 
 	struct OfflineRenderingInfo {
-		uint32_t spp;
-		uint32_t frame;
+		uint32_t spp = 1000;
+		uint32_t startFrame;
+		uint32_t endFrame;
+		uint32_t fps;
+
+		uint32_t width = 1024;
+		uint32_t height = 720;
+
+		bool useLimitTime = false;
+		float limitTime = 10000.0f;
+
+		std::string filename = "output";
+		std::string filepath = "./image/";
 	};
 
 	// Renderer Data
