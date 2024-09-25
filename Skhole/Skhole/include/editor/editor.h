@@ -155,8 +155,8 @@ namespace Skhole {
 		static void MouseResizeCallback(GLFWwindow* window, int width, int height);
 		struct ResizeInfo {
 			bool resizeFrag = false;
-			uint32_t width;
-			uint32_t height;
+			int width;
+			int height;
 		};
 		static ResizeInfo m_resizeInfo;
 

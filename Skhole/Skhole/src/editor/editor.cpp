@@ -109,6 +109,8 @@ namespace Skhole
 			glfwPollEvents();
 
 			if (m_resizeInfo.resizeFrag) {
+				glfwGetWindowSize(m_window, &m_resizeInfo.width, &m_resizeInfo.height);
+				if (m_resizeInfo.width == 0 || m_resizeInfo.height == 0) continue;
 				m_renderer->Resize(m_resizeInfo.width, m_resizeInfo.height);
 				m_resizeInfo.resizeFrag = false;
 			}
@@ -126,32 +128,15 @@ namespace Skhole
 
 			m_renderer->UpdateScene(m_updateInfo);
 
-			if (useOfflineRendering) {
+			RealTimeRenderingInfo renderInfo;
+			renderInfo.frame = currentFrame;
+			renderInfo.time = float(currentFrame) / float(fps);
+			renderInfo.spp = 100;
+			renderInfo.isScreenShot = useScreenShot;
+			renderInfo.filename = "screenshot";
+			renderInfo.filepath = "./image/";
 
-				offlineRenderingInfo.startFrame = startFrame;
-				offlineRenderingInfo.endFrame = endFrame;
-				offlineRenderingInfo.fps = fps;
-
-				offlineRenderingInfo.filepath = "./image/";
-				offlineRenderingInfo.filename = "output";
-
-				m_renderer->OfflineRender(offlineRenderingInfo);
-
-				m_resizeInfo.resizeFrag = true;
-			}
-
-			{
-				RealTimeRenderingInfo renderInfo;
-				renderInfo.frame = currentFrame;
-				renderInfo.time = float(currentFrame) / float(fps);
-				renderInfo.spp = 100;
-				renderInfo.isScreenShot = useScreenShot;
-				renderInfo.filename = "screenshot";
-				renderInfo.filepath = "./image/";
-
-				m_renderer->RealTimeRender(renderInfo);
-			}
-
+			m_renderer->RealTimeRender(renderInfo);
 
 		}
 
@@ -204,20 +189,18 @@ namespace Skhole
 			ImGui::InputFloat("Limit Time (second)", &offlineRenderingInfo.limitTime);
 		}
 
+		if (ImGui::Button("Rendering")) {
+			offlineRenderingInfo.startFrame = startFrame;
+			offlineRenderingInfo.endFrame = endFrame;
+			offlineRenderingInfo.fps = fps;
 
-		useOfflineRendering = ImGui::Button("Rendering");
-		//if (ImGui::Button("Rendering")) {
-		//	//offlineRenderingInfo.startFrame = startFrame;
-		//	//offlineRenderingInfo.endFrame = endFrame;
-		//	//offlineRenderingInfo.fps = fps;
+			offlineRenderingInfo.filepath = "./image/";
+			offlineRenderingInfo.filename = "output";
 
-		//	//offlineRenderingInfo.filepath = "./image/";
-		//	//offlineRenderingInfo.filename = "output";
+			m_renderer->OfflineRender(offlineRenderingInfo);
 
-		//	//m_renderer->OfflineRender(offlineRenderingInfo);
-
-		//	//m_resizeInfo.resizeFrag = true;
-		//}
+			m_resizeInfo.resizeFrag = true;
+		}
 
 		ImGui::Button("Save Setting");
 

@@ -227,13 +227,13 @@ namespace Skhole {
 
 		auto& fps = renderInfo.fps;
 
-		Resize(width, height);
+
+		RenderImages offlineRenderImages;
+		offlineRenderImages.Initialize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
 		//TODO: Implement limit time
 		for (int i = 0; i < numFrame; i++)
 		{
-			RenderImages offlineRenderImages;
-			offlineRenderImages.Initialize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
 			m_commandBuffer->reset({});
 
@@ -280,13 +280,10 @@ namespace Skhole {
 
 			m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
-			RecordCommandBuffer(width, height);
+			//RecordCommandBuffer(width, height);
 			RaytracingCommand(*m_commandBuffer, width, height);
 
-
 			m_commandBuffer->end();
-
-			//m_context.queue.submit(drawInfo, fence.get());
 
 			postEffectBuffer->begin(vk::CommandBufferBeginInfo{});
 
@@ -308,9 +305,11 @@ namespace Skhole {
 
 			m_context.queue.submit(drawInfo);
 
+			vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eNone;
 			vk::SubmitInfo postInfo{};
 			postInfo.setCommandBuffers(*postEffectBuffer);
 			postInfo.setWaitSemaphores(*drawSemaphore);
+			postInfo.setWaitDstStageMask(waitStages);
 
 			m_context.queue.submit(postInfo, fence.get());
 
