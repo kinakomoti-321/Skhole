@@ -177,6 +177,7 @@ namespace Skhole {
 		bool useScreenShot = true;
 
 		OfflineRenderingInfo offlineRenderingInfo;
+		bool useOfflineRendering = false;
 	};
 }
 

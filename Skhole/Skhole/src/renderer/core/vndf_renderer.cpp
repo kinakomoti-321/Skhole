@@ -240,10 +240,14 @@ namespace Skhole {
 			auto postEffectBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
 			auto drawSemaphore = m_context.device->createSemaphoreUnique({});
 
-			uint32_t nowFrame = renderInfo.startFrame + i + 1;
+			uint32_t nowFrame = renderInfo.startFrame + i;
 			float time = static_cast<float>(nowFrame) / static_cast<float>(fps);
 
 			{
+				m_scene->SetTransformMatrix(time);
+				m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
+				m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+
 				auto& raytracerParam = m_scene->m_rendererParameter;
 
 				uint32_t width = m_renderImages.GetWidth();
@@ -270,9 +274,6 @@ namespace Skhole {
 
 				m_uniformBuffer.Update(*m_context.device);
 
-				m_scene->SetTransformMatrix(time);
-				m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
-				m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 			}
 
 			UpdateDescriptorSet(offlineRenderImages);

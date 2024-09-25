@@ -126,15 +126,32 @@ namespace Skhole
 
 			m_renderer->UpdateScene(m_updateInfo);
 
-			RealTimeRenderingInfo renderInfo;
-			renderInfo.frame = currentFrame;
-			renderInfo.time = float(currentFrame) / float(fps);
-			renderInfo.spp = 100;
-			renderInfo.isScreenShot = useScreenShot;
-			renderInfo.filename = "screenshot";
-			renderInfo.filepath = "./image/";
+			if (useOfflineRendering) {
 
-			m_renderer->RealTimeRender(renderInfo);
+				offlineRenderingInfo.startFrame = startFrame;
+				offlineRenderingInfo.endFrame = endFrame;
+				offlineRenderingInfo.fps = fps;
+
+				offlineRenderingInfo.filepath = "./image/";
+				offlineRenderingInfo.filename = "output";
+
+				m_renderer->OfflineRender(offlineRenderingInfo);
+
+				m_resizeInfo.resizeFrag = true;
+			}
+
+			{
+				RealTimeRenderingInfo renderInfo;
+				renderInfo.frame = currentFrame;
+				renderInfo.time = float(currentFrame) / float(fps);
+				renderInfo.spp = 100;
+				renderInfo.isScreenShot = useScreenShot;
+				renderInfo.filename = "screenshot";
+				renderInfo.filepath = "./image/";
+
+				m_renderer->RealTimeRender(renderInfo);
+			}
+
 
 		}
 
@@ -187,18 +204,20 @@ namespace Skhole
 			ImGui::InputFloat("Limit Time (second)", &offlineRenderingInfo.limitTime);
 		}
 
-		if (ImGui::Button("Rendering")) {
-			offlineRenderingInfo.startFrame = startFrame;
-			offlineRenderingInfo.endFrame = endFrame;
-			offlineRenderingInfo.fps = fps;
 
-			offlineRenderingInfo.filepath = "./image/";
-			offlineRenderingInfo.filename = "output";
+		useOfflineRendering = ImGui::Button("Rendering");
+		//if (ImGui::Button("Rendering")) {
+		//	//offlineRenderingInfo.startFrame = startFrame;
+		//	//offlineRenderingInfo.endFrame = endFrame;
+		//	//offlineRenderingInfo.fps = fps;
 
-			m_renderer->OfflineRender(offlineRenderingInfo);
+		//	//offlineRenderingInfo.filepath = "./image/";
+		//	//offlineRenderingInfo.filename = "output";
 
-			m_resizeInfo.resizeFrag = true;
-		}
+		//	//m_renderer->OfflineRender(offlineRenderingInfo);
+
+		//	//m_resizeInfo.resizeFrag = true;
+		//}
 
 		ImGui::Button("Save Setting");
 
