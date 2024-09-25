@@ -180,7 +180,7 @@ namespace Skhole {
 		uint32_t width = m_renderImages.GetWidth();
 		uint32_t height = m_renderImages.GetHeight();
 
-		UpdateDescriptorSet();
+		UpdateDescriptorSet(m_renderImages);
 
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
@@ -213,7 +213,7 @@ namespace Skhole {
 
 		if (renderInfo.isScreenShot) {
 			std::string time = GethCurrentTimeString();
-			m_renderImages.WritePNG(renderInfo.filepath, renderInfo.filename + time, *m_context.device);
+			m_renderImages.WritePNG(renderInfo.filepath, renderInfo.filename + time, *m_context.device, *m_commandPool, m_context.queue);
 		}
 
 		FrameEnd();
@@ -232,10 +232,17 @@ namespace Skhole {
 		//TODO: Implement limit time
 		for (int i = 0; i < numFrame; i++)
 		{
-			uint32_t currentFrame = renderInfo.startFrame + i;
-			float time = static_cast<float>(currentFrame) / static_cast<float>(fps);
+			RenderImages offlineRenderImages;
+			offlineRenderImages.Initialize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
-			//FrameStart(time);
+			m_commandBuffer->reset({});
+
+			auto postEffectBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
+			auto drawSemaphore = m_context.device->createSemaphoreUnique({});
+
+			uint32_t nowFrame = renderInfo.startFrame + i + 1;
+			float time = static_cast<float>(nowFrame) / static_cast<float>(fps);
+
 			{
 				auto& raytracerParam = m_scene->m_rendererParameter;
 
@@ -244,7 +251,7 @@ namespace Skhole {
 
 				auto& uniformBufferObject = m_uniformBuffer.data;
 				uniformBufferObject.maxSPP = renderInfo.spp;
-				uniformBufferObject.frame = currentFrame;
+				uniformBufferObject.frame = nowFrame;
 				uniformBufferObject.numSPP = 0;
 				uniformBufferObject.samplePerFrame = renderInfo.spp;
 				uniformBufferObject.resetFrag = 1;
@@ -268,28 +275,52 @@ namespace Skhole {
 				m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
 			}
 
-			UpdateDescriptorSet();
+			UpdateDescriptorSet(offlineRenderImages);
 
 			m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
 
 			RecordCommandBuffer(width, height);
-			m_renderImages.ReadBack(*m_commandBuffer, *m_context.device);
+			RaytracingCommand(*m_commandBuffer, width, height);
+
 
 			m_commandBuffer->end();
 
-			vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
-			vk::SubmitInfo submitInfo{};
-			submitInfo.setWaitDstStageMask(waitStage);
-			submitInfo.setCommandBuffers(*m_commandBuffer);
-			submitInfo.setWaitSemaphoreCount(0);
+			//m_context.queue.submit(drawInfo, fence.get());
 
-			m_context.queue.submit(submitInfo);
+			postEffectBuffer->begin(vk::CommandBufferBeginInfo{});
 
-			m_context.queue.waitIdle();
+			PostProcessor::ExecuteDesc desc{};
+			desc.device = *m_context.device;
+			desc.inputImage = offlineRenderImages.GetRenderImage().GetImageView();
+			desc.outputImage = offlineRenderImages.GetPostProcessedImage().GetImageView();
+			desc.param = m_scene->m_rendererParameter->posproParameters;
 
-			//std::string frameNumber = GethCurrentTimeString();
-			std::string frameNumber = NumbertToSerial(currentFrame, 3);
-			m_renderImages.WritePNG(renderInfo.filepath, renderInfo.filename + frameNumber, *m_context.device);
+			m_postProcessor->Execute(*postEffectBuffer, desc);
+
+			postEffectBuffer->end();
+
+			vk::UniqueFence fence = m_context.device->createFenceUnique({});
+			vk::SubmitInfo drawInfo{};
+			drawInfo.setCommandBuffers(*m_commandBuffer);
+			drawInfo.setSignalSemaphoreCount(1);
+			drawInfo.setSignalSemaphores(*drawSemaphore);
+
+			m_context.queue.submit(drawInfo);
+
+			vk::SubmitInfo postInfo{};
+			postInfo.setCommandBuffers(*postEffectBuffer);
+			postInfo.setWaitSemaphores(*drawSemaphore);
+
+			m_context.queue.submit(postInfo, fence.get());
+
+			if (m_context.device->waitForFences(fence.get(), true,
+				std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
+				std::cerr << "Failed to wait fence.\n";
+				std::abort();
+			}
+
+			std::string frameNumber = NumbertToSerial(nowFrame, 3);
+			offlineRenderImages.WritePNG(renderInfo.filepath, renderInfo.filename + frameNumber, *m_context.device, *m_commandPool, m_context.queue);
 
 			FrameEnd();
 		}

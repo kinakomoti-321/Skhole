@@ -175,10 +175,10 @@ namespace Skhole
 			m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
 		}
 
-		void UpdateDescriptorSet() {
-			auto& accumImage = m_renderImages.GetAccumImage();
-			auto& renderImage = m_renderImages.GetRenderImage();
-			auto& posproIamge = m_renderImages.GetPostProcessedImage();
+		void UpdateDescriptorSet(RenderImages& renderImages) {
+			auto& accumImage = renderImages.GetAccumImage();
+			auto& renderImage = renderImages.GetRenderImage();
+			auto& posproIamge = renderImages.GetPostProcessedImage();
 
 			m_bindingManager.StartWriting();
 

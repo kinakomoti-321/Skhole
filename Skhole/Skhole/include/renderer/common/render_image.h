@@ -57,11 +57,10 @@ namespace Skhole {
 			);
 
 			vkutils::setImageLayout(commandBuffer, postProcessedImage.GetImage(), vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral);
-
 		}
 
 		//TODO
-		void WritePNG(const std::string& filepath,const std::string& filename,vk::Device device);
+		void WritePNG(const std::string& filepath, const std::string& filename, vk::Device device, vk::CommandPool commandPool, vk::Queue queue);
 		uint32_t GetWidth() { return width; }
 		uint32_t GetHeight() { return height; }
 
