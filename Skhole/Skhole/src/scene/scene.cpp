@@ -157,7 +157,7 @@ namespace Skhole {
 		SKHOLE_UNIMPL();
 	}
 	void Scene::SaveScene(std::string path) {
-		SKHOLE_UNIMPL();
+
 	}
 
 }

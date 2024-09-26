@@ -194,15 +194,39 @@ namespace Skhole
 			offlineRenderingInfo.endFrame = endFrame;
 			offlineRenderingInfo.fps = fps;
 
+			std::string path;
+			if (File::CallFolderDialog(path)) {
+				std::filesystem::path folderPath = path;
+				offlineRenderingInfo.filepath = folderPath.parent_path().string() + "/";
+				offlineRenderingInfo.filename = folderPath.filename().string();
+				m_renderer->OfflineRender(offlineRenderingInfo);
+
+				m_resizeInfo.resizeFrag = true;
+			}
+		}
+
+		if (ImGui::Button("Save Setting")) {
+
+			offlineRenderingInfo.startFrame = startFrame;
+			offlineRenderingInfo.endFrame = endFrame;
+			offlineRenderingInfo.fps = fps;
+
 			offlineRenderingInfo.filepath = "./image/";
 			offlineRenderingInfo.filename = "output";
 
-			m_renderer->OfflineRender(offlineRenderingInfo);
+			std::string path;
+			if (File::CallFolderDialog(path)) {
+				std::filesystem::path folderPath = path;
 
-			m_resizeInfo.resizeFrag = true;
+				ExportSettingDesc desc;
+				desc.filepath = folderPath.parent_path().string() + "/";
+				desc.filename = folderPath.filename().string();
+				desc.scene = m_scene;
+				desc.offlineRenderingInfo = offlineRenderingInfo;
+
+				ExportSetting(desc);
+			}
 		}
-
-		ImGui::Button("Save Setting");
 
 		ImGui::End();
 	}

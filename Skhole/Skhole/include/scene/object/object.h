@@ -14,6 +14,50 @@ namespace Skhole {
 		CAMERA,
 	};
 
+	static std::string ObjectType2Name(ObjectType objectType) {
+		std::string name;
+		switch (objectType) {
+		case ObjectType::INSTANCE:
+			name = "INSTANCE";
+			break;
+		case ObjectType::LIGHT:
+			name = "LIGHT";
+			break;
+		case ObjectType::VOLUME:
+			name = "VOLUME";
+			break;
+		case ObjectType::CAMERA:
+			name = "CAMERA";
+			break;
+		default:
+			SKHOLE_UNIMPL();
+			break;
+		}
+		return name;
+	}
+
+	static ObjectType ObjectName2Type(const std::string& name) {
+		ObjectType objectType;
+		if (name == "INSTANCE") {
+			objectType = ObjectType::INSTANCE;
+		}
+		else if (name == "LIGHT") {
+			objectType = ObjectType::LIGHT;
+		}
+		else if (name == "VOLUME") {
+			objectType = ObjectType::VOLUME;
+		}
+		else if (name == "CAMERA") {
+			objectType = ObjectType::CAMERA;
+		}
+		else {
+			SKHOLE_UNIMPL();
+		}
+		return objectType;
+	}
+
+
+
 	class Object {
 
 	public:

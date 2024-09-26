@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinygltf;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\imgui;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\VectorLikeGLSL\VectorLikeGLSL\VectorLikeGLSL\include;C:\VulkanSDK\1.3.290.0\Include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\GLFW\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinyobjloader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinygltf;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\imgui;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\VectorLikeGLSL\VectorLikeGLSL\VectorLikeGLSL\include;C:\VulkanSDK\1.3.290.0\Include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\GLFW\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinyobjloader;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\json\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -129,7 +129,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinygltf;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\imgui;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\VectorLikeGLSL\VectorLikeGLSL\VectorLikeGLSL\include;C:\VulkanSDK\1.3.290.0\Include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\GLFW\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinyobjloader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinygltf;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\imgui;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\VectorLikeGLSL\VectorLikeGLSL\VectorLikeGLSL\include;C:\VulkanSDK\1.3.290.0\Include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\GLFW\include;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\tinyobjloader;C:\Users\youka\Desktop\Program\Skhole\Skhole\Skhole\extern\json\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -215,6 +215,7 @@
     <ClInclude Include="include\scene\parameter\parameter.h" />
     <ClInclude Include="include\scene\parameter\renderer_parameter.h" />
     <ClInclude Include="include\scene\scene.h" />
+    <ClInclude Include="include\scene\scene_exporter.h" />
     <ClInclude Include="include\vulkan_helpler\vkutils.hpp" />
     <ClInclude Include="include\vulkan_helpler\vk_buffer.h" />
     <ClInclude Include="include\vulkan_helpler\vk_hepler.h" />

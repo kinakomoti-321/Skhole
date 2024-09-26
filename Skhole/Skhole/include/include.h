@@ -14,6 +14,7 @@
 #include <set>
 #include <variant>
 #include <optional>
+#include <fstream>
 
 #define NOMINMAX // avoid conflict with std::min, std::max and min, max macro in windows.h
 

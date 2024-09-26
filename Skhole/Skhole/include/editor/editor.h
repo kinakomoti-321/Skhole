@@ -9,6 +9,7 @@
 #include <scene/material/texture.h>
 #include <scene/camera/camera.h>
 #include <scene/object/cameraObject.h>
+#include <scene/scene_exporter.h>
 #include <renderer/core/simple_raytracer.h>
 #include <editor/file.h>
 #include <loader/loader.h>
