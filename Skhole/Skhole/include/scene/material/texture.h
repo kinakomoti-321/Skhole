@@ -13,5 +13,6 @@ namespace Skhole {
 		void Export(std::string& filepath) {
 			SKHOLE_UNIMPL("Texture Export");
 		}
+		std::string name;
 	};
 }

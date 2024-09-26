@@ -19,24 +19,24 @@ namespace Skhole {
 		std::string materialName = "DefaultMaterial";
 
 		vec4 basecolor;
-		Texture BaseColorMap;
+		int BaseColorMap;
 
 		float anisotropic = 0.0f;
 		float metallic;
-		Texture MetallicMap;
+		int MetallicMap;
 
 		float roughness;
-		Texture RoughnessMap;
+		int RoughnessMap;
 
 		float sheen;
 		float clearcoat;
 
-		Texture NormalMap;
-		Texture HeightMap;
+		int NormalMap;
+		int HeightMap;
 
 		vec4 emissionColor;
 		float emissionIntensity;
-		Texture EmissiveMap;
+		int EmissiveMap;
 
 		float ior;
 		float transmission;
