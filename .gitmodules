@@ -13,3 +13,6 @@
 [submodule "experiment/caustics/CasticsTest/CasticsTest/extern/imgui"]
 	path = experiment/caustics/CasticsTest/CasticsTest/extern/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "Skhole/Skhole/extern/json"]
+	path = Skhole/Skhole/extern/json
+	url = git@github.com:nlohmann/json.git
