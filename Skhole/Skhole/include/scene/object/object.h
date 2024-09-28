@@ -104,5 +104,7 @@ namespace Skhole {
 		Animation<vec3> translationAnimation;
 		Animation<Quaternion> rotationAnimation;
 		Animation<vec3> scaleAnimation;
+
+		int objectIndex;
 	};
 };

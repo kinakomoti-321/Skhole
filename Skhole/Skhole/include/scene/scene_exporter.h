@@ -15,22 +15,61 @@ namespace Skhole
 		file << objects.size() << std::endl;
 		file << std::endl;
 
+		for (int i = 0; i < objects.size(); i++) {
+			auto& obj = objects[i];
+			obj->objectIndex = i;
+		}
+
 		for (auto& obj : objects)
 		{
 			file << "#Object" << std::endl;
 			file << "Name " << obj->objectName << std::endl;
+
+			file << "#Features" << std::endl;
 			file << "Type " << ObjectType2Name(obj->GetObjectType()) << std::endl;
+			if (obj->GetObjectType() == ObjectType::INSTANCE) {
+				auto instance = std::dynamic_pointer_cast<Instance>(obj);
+				file << "GeometryIndex " << instance->geometryIndex.value() << std::endl;
+			}
+			else if (obj->GetObjectType() == ObjectType::CAMERA) {
+				auto camera = std::dynamic_pointer_cast<CameraObject>(obj);
+				file << "Fov " << camera->yFov << std::endl;
+			}
+			else {
+				SKHOLE_UNIMPL();
+			}
+
+			file << "#Transform" << std::endl;
 			file << "LocalTranslation " << obj->localTranslation.x << " " << obj->localTranslation.y << " " << obj->localTranslation.z << std::endl;
 			file << "LocalRotation " << obj->localQuaternion.x << " " << obj->localQuaternion.y << " " << obj->localQuaternion.z << " " << obj->localQuaternion.w << std::endl;
 			file << "LocalScale " << obj->localScale.x << " " << obj->localScale.y << " " << obj->localScale.z << std::endl;
+
+			file << "#Parent_Child" << std::endl;
+			if (obj->haveParent()) {
+				file << "Parent " << obj->parentObject->objectIndex << std::endl;
+			}
+			else {
+				file << "Parent -1" << std::endl;
+			}
+			if (obj->haveChild())
+			{
+				file << "Child " << obj->childObject->objectIndex << std::endl;
+			}
+			else {
+				file << "Child -1" << std::endl;
+			}
 
 			file << "#Animation " << obj->useAnimation << std::endl;
 			if (obj->useAnimation)
 			{
 				auto& animT = obj->translationAnimation;
+				bool haveTransform = animT.keyFrames.size() > 0;
 				auto& animR = obj->rotationAnimation;
+				bool haveRotation = animR.keyFrames.size() > 0;
 				auto& animS = obj->scaleAnimation;
+				bool haveScale = animS.keyFrames.size() > 0;
 
+				file << "NumAnimation " << (int)haveTransform + (int)haveRotation + (int)haveScale << std::endl;
 				file << "Translation " << animT.keyFrames.size() << std::endl;
 				for (auto& key : animT.keyFrames)
 				{
@@ -50,18 +89,6 @@ namespace Skhole
 				}
 			}
 
-			file << "#Features" << std::endl;
-			if (obj->GetObjectType() == ObjectType::INSTANCE) {
-				auto instance = std::dynamic_pointer_cast<Instance>(obj);
-				file << "GeometryIndex " << instance->geometryIndex.value() << std::endl;
-			}
-			else if (obj->GetObjectType() == ObjectType::CAMERA) {
-				auto camera = std::dynamic_pointer_cast<CameraObject>(obj);
-				file << "Fov " << camera->yFov << std::endl;
-			}
-			else {
-				SKHOLE_UNIMPL();
-			}
 
 			file << std::endl;
 		}
@@ -410,6 +437,148 @@ namespace Skhole
 		OfflineRenderingInfo offlineRenderingInfo;
 	};
 
+	inline bool ImportObjects(const std::string& path, std::vector<ShrPtr<Object>>& objects) {
+		std::ifstream read_file(path);
+
+		if (!read_file.is_open()) {
+			SKHOLE_LOG("Failed to open file : " + path);
+			return false;
+		}
+
+		std::string prefix;
+		read_file >> prefix;
+
+		if (prefix != "Object") return false;
+
+		int numObj;
+		read_file >> numObj;
+		objects.reserve(numObj);
+		std::vector<std::pair<int, int>> parentChildIndex;
+		parentChildIndex.reserve(numObj);
+
+		for (int i = 0; i < numObj; i++) {
+			read_file >> prefix;
+
+			std::string objName;
+			std::string objType;
+
+			read_file >> prefix;
+			read_file >> objName;
+			read_file >> prefix;
+			read_file >> prefix;
+			read_file >> objType;
+
+			ShrPtr<Object> object;
+			if (objType == ObjectType2Name(ObjectType::INSTANCE)) {
+				std::shared_ptr<Instance> instance = MakeShr<Instance>();
+				uint32_t index;
+				read_file >> prefix;
+				read_file >> index;
+				instance->geometryIndex = index;
+				object = instance;
+			}
+			else if (objType == ObjectType2Name(ObjectType::CAMERA)) {
+				std::shared_ptr<CameraObject> camera = MakeShr<CameraObject>();
+				read_file >> prefix;
+				read_file >> camera->yFov;
+
+				object = camera;
+			}
+			else {
+				SKHOLE_UNIMPL();
+			}
+
+			object->objectName = objName;
+
+			//Transform
+			read_file >> prefix;
+			read_file >> prefix;
+			read_file >> object->localTranslation.v[0] >> object->localTranslation.v[1] >> object->localTranslation.v[2];
+			read_file >> prefix;
+			read_file >> object->localQuaternion.x >> object->localQuaternion.y >> object->localQuaternion.y >> object->localQuaternion.z;
+			read_file >> prefix;
+			read_file >> object->localScale.v[0] >> object->localScale.v[1] >> object->localScale.v[2];
+
+			read_file >> prefix;
+			read_file >> prefix;
+			int parentIndex;
+			read_file >> parentIndex;
+			read_file >> prefix;
+			int childIndex;
+			read_file >> childIndex;
+
+			parentChildIndex.push_back({ parentIndex, childIndex });
+
+			//Animation
+			read_file >> prefix;
+			bool useAnimation;
+			read_file >> useAnimation;
+			object->useAnimation = useAnimation;
+
+			if (useAnimation) {
+				read_file >> prefix;
+				int numAnim;
+				read_file >> numAnim;
+
+				for (int j = 0; j < numAnim; j++) {
+					std::string animType;
+					read_file >> animType;
+
+					int numKey;
+					read_file >> numKey;
+
+					if (animType == "Translation") {
+						for (int i = 0; i < numKey; i++)
+						{
+							float frame;
+							vec3 value;
+							read_file >> frame >> value.v[0] >> value.v[1] >> value.v[2];
+							object->translationAnimation.AppendKey(KeyFrame<vec3>(value, frame));
+						}
+					}
+					else if (animType == "Rotation") {
+						for (int i = 0; i < numKey; i++)
+						{
+							float frame;
+							Quaternion value;
+							read_file >> frame >> value.x >> value.y >> value.z >> value.w;
+							object->rotationAnimation.AppendKey(KeyFrame<Quaternion>(value, frame));
+						}
+					}
+					else if (animType == "Scale") {
+						for (int i = 0; i < numKey; i++)
+						{
+							float frame;
+							vec3 value;
+							read_file >> frame >> value.v[0] >> value.v[1] >> value.v[2];
+							object->scaleAnimation.AppendKey(KeyFrame<vec3>(value, frame));
+						}
+					}
+					else {
+						SKHOLE_UNIMPL();
+					}
+				}
+			}
+
+			objects.push_back(object);
+		} // object roop
+
+		// Set Parent Child
+		for (int i = 0; i < objects.size(); i++)
+		{
+			auto& obj = objects[i];
+			auto& pcindex = parentChildIndex[i];
+			if (pcindex.first != -1) {
+				obj->parentObject = objects[pcindex.first];
+			}
+			if (pcindex.second != -1) {
+				obj->childObject = objects[pcindex.second];
+			}
+		}
+
+		read_file.close();
+
+	}
 
 	inline bool ImportGeometry(const std::string& path, std::vector<ShrPtr<Geometry>>& geometry) {
 		std::ifstream read_file(path);
@@ -488,7 +657,7 @@ namespace Skhole
 
 			geometry.push_back(geom);
 		}
-		
+
 		read_file.close();
 	}
 
@@ -535,6 +704,10 @@ namespace Skhole
 		// Geometry
 		std::string geomPath = path + filename + geomExt;
 		ImportGeometry(geomPath, scene->m_geometies);
+
+		// Instance
+		std::string objPath = path + filename + objExt;
+		ImportObjects(objPath, scene->m_objects);
 
 		return { true, scene, offlineRenderingInfo };
 	}

@@ -18,7 +18,7 @@ namespace Skhole {
 	class KeyFrame {
 	public:
 		KeyFrame() {};
-		KeyFrame(T value, int frame) :value(value), frame(frame) {};
+		KeyFrame(T value, float frame) :value(value), frame(frame) {};
 		~KeyFrame() {};
 
 		T value;
