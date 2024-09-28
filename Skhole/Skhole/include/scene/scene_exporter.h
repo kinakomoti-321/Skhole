@@ -8,6 +8,157 @@
 namespace Skhole
 {
 
+	inline std::initializer_list<float> toInitializerList(const vec3& v) {
+		return { v.x, v.y, v.z };
+	}
+
+	inline std::initializer_list<float> toInitializerList(const vec4& v) {
+		return { v.x, v.y, v.z ,v.w };
+	}
+
+	inline vec3 jsToVec3(const nlohmann::json& js) {
+		float x = js[0];
+		float y = js[1];
+		float z = js[2];
+		return vec3(x, y, z);
+	}
+
+	inline vec4 jsToVec4(const nlohmann::json& js) {
+		float x = js[0];
+		float y = js[1];
+		float z = js[2];
+		float w = js[3];
+		return vec4(x, y, z, w);
+	}
+
+
+	inline std::string ParameterTypeToName(ParameterType type) {
+		switch (type)
+		{
+		case ParameterType::FLOAT:
+			return "FLOAT";
+		case ParameterType::UINT:
+			return "UINT";
+		case ParameterType::BOOL:
+			return "BOOL";
+		case ParameterType::VECTOR:
+			return "VECTOR";
+		case ParameterType::COLOR:
+			return "COLOR";
+		default:
+			SKHOLE_UNIMPL();
+			break;
+		}
+	}
+
+	inline ParameterType ParameterNameToType(const std::string& name) {
+		if (name == "FLOAT") {
+			return ParameterType::FLOAT;
+		}
+		else if (name == "UINT") {
+			return ParameterType::UINT;
+		}
+		else if (name == "BOOL") {
+			return ParameterType::BOOL;
+		}
+		else if (name == "VECTOR") {
+			return ParameterType::VECTOR;
+		}
+		else if (name == "COLOR") {
+			return ParameterType::COLOR;
+		}
+		else {
+			SKHOLE_UNIMPL();
+		}
+	}
+
+	inline nlohmann::json ParameterToJson(const ShrPtr<Parameter>& param) {
+		nlohmann::json pJs;
+		ParameterType type = param->getParamType();
+		pJs["Name"] = param->getParamName();
+		pJs["Type"] = ParameterTypeToName(param->getParamType());
+
+		switch (type)
+		{
+		case ParameterType::FLOAT:
+			pJs["Value"] = GetParamFloatValue(param);
+			break;
+		case ParameterType::UINT:
+			pJs["Value"] = GetParamUintValue(param);
+			break;
+		case ParameterType::BOOL:
+			pJs["Value"] = GetParamBoolValue(param);
+			break;
+		case ParameterType::VECTOR:
+			pJs["Value"] = toInitializerList(GetParamVecValue(param));
+			break;
+		case ParameterType::COLOR:
+			pJs["Value"] = toInitializerList(GetParamColValue(param));
+			break;
+		default:
+			SKHOLE_UNIMPL();
+			break;
+		}
+
+		return pJs;
+	}
+
+	inline nlohmann::json ParamtersToJson(const std::vector<ShrPtr<Parameter>>& params) {
+		nlohmann::json pJs;
+		pJs["NumParameters"] = params.size();
+		for (int i = 0; i < params.size(); i++) {
+			pJs["Parameter"][i] = ParameterToJson(params[i]);
+		}
+
+		return pJs;
+	}
+
+
+	inline ShrPtr<Parameter> JsonToParameter(const nlohmann::json& js) {
+		std::string name = js["Name"];
+		ParameterType type = ParameterNameToType(js["Type"]);
+		ShrPtr<Parameter> param;
+
+		if (type == ParameterType::FLOAT) {
+			float value = js["Value"];
+			param = MakeShr<ParameterFloat>(name, value);
+		}
+		else if (type == ParameterType::UINT) {
+			uint32_t value = js["Value"];
+			param = MakeShr<ParameterUint>(name, value);
+		}
+		else if (type == ParameterType::BOOL) {
+			bool value = js["Value"];
+			param = MakeShr<ParameterBool>(name, value);
+		}
+		else if (type == ParameterType::VECTOR) {
+			vec3 value = jsToVec3(js["Value"]);
+			param = MakeShr<ParameterVector>(name, value);
+		}
+		else if (type == ParameterType::COLOR) {
+			vec4 value = jsToVec4(js["Value"]);
+			param = MakeShr<ParameterColor>(name, value);
+		}
+		else {
+			SKHOLE_UNIMPL();
+		}
+
+		return param;
+	}
+
+	inline std::vector<ShrPtr<Parameter>> JsonToParameters(const nlohmann::json& js) {
+		int numParam = js["NumParameters"];
+		std::vector<ShrPtr<Parameter>> params;
+		params.reserve(numParam);
+
+		for (int i = 0; i < numParam; i++) {
+			params.push_back(JsonToParameter(js["Parameter"][i]));
+		}
+
+		return params;
+	}
+
+
 	inline bool ExportObjects(const std::string& filepath, const std::string& filename, const std::vector<ShrPtr<Object>>& objects)
 	{
 		std::ofstream file(filepath + filename);
@@ -137,84 +288,6 @@ namespace Skhole
 		return true;
 	}
 
-	inline std::initializer_list<float> toInitializerList(const vec3& v) {
-		return { v.x, v.y, v.z };
-	}
-
-	inline std::initializer_list<float> toInitializerList(const vec4& v) {
-		return { v.x, v.y, v.z ,v.w };
-	}
-
-	inline std::string ParameterTypeToName(ParameterType type) {
-		switch (type)
-		{
-		case ParameterType::FLOAT:
-			return "FLOAT";
-		case ParameterType::UINT:
-			return "UINT";
-		case ParameterType::BOOL:
-			return "BOOL";
-		case ParameterType::VECTOR:
-			return "VECTOR";
-		case ParameterType::COLOR:
-			return "COLOR";
-		default:
-			SKHOLE_UNIMPL();
-			break;
-		}
-	}
-
-	inline ParameterType ParameterNameToType(const std::string& name) {
-		if (name == "FLOAT") {
-			return ParameterType::FLOAT;
-		}
-		else if (name == "UINT") {
-			return ParameterType::UINT;
-		}
-		else if (name == "BOOL") {
-			return ParameterType::BOOL;
-		}
-		else if (name == "VECTOR") {
-			return ParameterType::VECTOR;
-		}
-		else if (name == "COLOR") {
-			return ParameterType::COLOR;
-		}
-		else {
-			SKHOLE_UNIMPL();
-		}
-	}
-
-	inline nlohmann::json ParameterToJson(const ShrPtr<Parameter>& param) {
-		nlohmann::json pJs;
-		ParameterType type = param->getParamType();
-		pJs["Name"] = param->getParamName();
-		pJs["Type"] = ParameterTypeToName(param->getParamType());
-
-		switch (type)
-		{
-		case ParameterType::FLOAT:
-			pJs["Value"] = GetParamFloatValue(param);
-			break;
-		case ParameterType::UINT:
-			pJs["Value"] = GetParamUintValue(param);
-			break;
-		case ParameterType::BOOL:
-			pJs["Value"] = GetParamBoolValue(param);
-			break;
-		case ParameterType::VECTOR:
-			pJs["Value"] = toInitializerList(GetParamVecValue(param));
-			break;
-		case ParameterType::COLOR:
-			pJs["Value"] = toInitializerList(GetParamColValue(param));
-			break;
-		default:
-			SKHOLE_UNIMPL();
-			break;
-		}
-
-		return pJs;
-	}
 
 	inline bool ExportMaterials(const std::vector<ShrPtr<BasicMaterial>>& bMat, const std::vector<ShrPtr<RendererDefinisionMaterial>>& rMat, nlohmann::json& matJs)
 	{
@@ -264,12 +337,7 @@ namespace Skhole
 				auto& mat = rMat[i];
 				nlohmann::json rMatJs;
 				rMatJs["Name"] = mat->materialName;
-				rMatJs["numParameter"] = mat->materialParameters.size();
-
-				for (int j = 0; j < mat->materialParameters.size(); j++) {
-					rMatJs["Parameter"][j] = ParameterToJson(mat->materialParameters[j]);
-				}
-
+				rMatJs["Parameters"] = ParamtersToJson(mat->materialParameters);
 				rSumMatJs[i] = rMatJs;
 			}
 			matJs["RendererMaterials"] = rSumMatJs;
@@ -301,14 +369,7 @@ namespace Skhole
 		rParamJs["frame"] = param->frame;
 		rParamJs["numSPP"] = param->numSPP;
 		rParamJs["maxSPP"] = param->maxSPP;
-
-		nlohmann::json rParamExtJs;
-		for (int i = 0; i < param->rendererParameters.size(); i++) {
-			rParamExtJs["Parameter"][i] = ParameterToJson(param->rendererParameters[i]);
-		}
-
-		rParamJs["NumParameters"] = param->rendererParameters.size();
-		rParamJs["Parameters"] = rParamExtJs;
+		rParamJs["Parameters"] = ParamtersToJson(param->rendererParameters);
 
 		nlohmann::json posproJs;
 		auto& posproParam = param->posproParameters;
@@ -367,19 +428,22 @@ namespace Skhole
 		{
 			nlohmann::json camJs;
 			camJs["Name"] = camera->cameraName;
-			camJs["CameraOjbect"]["Use"] = camera->camera != nullptr;
-			camJs["CameraOjbect"]["Index"] = scene->m_cameraObjectIndices;
+			camJs["CameraObject"]["Use"] = camera->camera != nullptr;
+			if (camera->camera != nullptr) {
+				camJs["CameraObject"]["Index"] = camera->camera->objectIndex;
+			}
+			else {
+				camJs["CameraObject"]["TargetCameraIndex"] = -1;
+			}
+			camJs["CameraObject"]["NumIndices"] = scene->m_cameraObjectIndices.size();
+			camJs["CameraObject"]["Indices"] = scene->m_cameraObjectIndices;
 
 			camJs["Position"] = toInitializerList(camera->position);
 			camJs["LookAt"] = toInitializerList(camera->foward);
 			camJs["Up"] = toInitializerList(camera->up);
 			camJs["Fov"] = camera->fov;
 
-			camJs["Parameters"]["NumParameter"] = camera->extensionParameters.size();
-			for (int i = 0; i < camera->extensionParameters.size(); i++) {
-				camJs["Parameter"][i] = ParameterToJson(camera->extensionParameters[i]);
-			}
-
+			camJs["Parameters"] = ParamtersToJson(camera->extensionParameters);
 			sJs["Camera"] = camJs;
 		}
 
@@ -661,6 +725,54 @@ namespace Skhole
 		read_file.close();
 	}
 
+
+	inline bool ImportMaterials(const nlohmann::json& materialJs, std::vector<ShrPtr<BasicMaterial>>& bMat, std::vector<ShrPtr<RendererDefinisionMaterial>>& rMat) {
+		int numBMat = materialJs["NumBasicMaterials"];
+		int numDefMat = materialJs["NumRendererMaterials"];
+
+		auto& bMatJs = materialJs["BasicMaterials"];
+		for (int i = 0; i < numBMat; i++) {
+			auto& matJs = bMatJs[i];
+			auto mat = MakeShr<BasicMaterial>();
+			mat->materialName = matJs["Name"];
+			mat->basecolor = jsToVec4(matJs["BaseColor"]);
+			mat->BaseColorMap = matJs["BaseColorTexture"];
+
+			mat->roughness = matJs["Roughness"];
+			mat->RoughnessMap = matJs["RoughnessTexture"];
+
+			mat->metallic = matJs["Metallic"];
+			mat->MetallicMap = matJs["MetallicTexture"];
+
+			mat->sheen = matJs["Sheen"];
+			mat->clearcoat = matJs["Clearcoat"];
+
+			mat->NormalMap = matJs["NormalTexture"];
+			mat->HeightMap = matJs["HeightTexture"];
+
+			mat->emissionIntensity = matJs["EmissionIntensity"];
+			mat->emissionColor = jsToVec4(matJs["EmissionColor"]);
+			mat->EmissiveMap = matJs["EmissiveTexture"];
+
+			mat->ior = matJs["IOR"];
+			mat->transmission = matJs["Transmission"];
+
+			bMat.push_back(mat);
+		}
+
+		auto& rMatJs = materialJs["RendererMaterials"];
+
+		for (int i = 0; i < numDefMat; i++) {
+			auto& matJs = rMatJs[i];
+			auto mat = MakeShr<RendererDefinisionMaterial>();
+			mat->materialName = matJs["Name"];
+			mat->materialParameters = JsonToParameters(matJs["Parameters"]);
+			rMat.push_back(mat);
+		}
+
+		return true;
+	}
+
 	inline ImportSettingOutput ImportSetting(std::string& path, std::string& file) {
 
 		nlohmann::json loadJs;
@@ -700,6 +812,17 @@ namespace Skhole
 		scene->m_scenenName = sceneJs["SceneName"];
 
 		// Renderer Parameter
+		auto& rParamJs = sceneJs["RendererParameter"];
+		auto& rParam = scene->m_rendererParameter;
+
+		rParam->rendererName = rParamJs["RendererName"];
+		rParam->sppPerFrame = rParamJs["sppPerFrame"];
+		rParam->frame = rParamJs["frame"];
+		rParam->numSPP = rParamJs["numSPP"];
+		rParam->maxSPP = rParamJs["maxSPP"];
+		rParam->rendererParameters = JsonToParameters(rParamJs["Parameters"]);
+		rParam->posproParameters.name = rParamJs["PostProcess"]["PosproName"];
+		rParam->posproParameters.param = JsonToParameters(rParamJs["PostProcess"]["Parameter"]);
 
 		// Geometry
 		std::string geomPath = path + filename + geomExt;
@@ -708,6 +831,33 @@ namespace Skhole
 		// Instance
 		std::string objPath = path + filename + objExt;
 		ImportObjects(objPath, scene->m_objects);
+
+		// Materials
+		ImportMaterials(sceneJs["Materials"], scene->m_basicMaterials, scene->m_materials);
+
+		// Camera
+		auto& camJs = sceneJs["Camera"];
+		auto& camera = scene->m_camera;
+		camera->cameraName = camJs["Name"];
+		camera->foward = jsToVec3(camJs["LookAt"]);
+		camera->position = jsToVec3(camJs["Position"]);
+		camera->up = jsToVec3(camJs["Up"]);
+		camera->fov = camJs["Fov"];
+
+		camera->extensionParameters = JsonToParameters(camJs["Parameters"]);
+
+		bool useCamera = camJs["CameraOjbect"]["Use"];
+		if (useCamera) {
+			int index = camJs["CameraOjbect"]["TargetCameraIndex"];
+			camera->camera = std::static_pointer_cast<CameraObject>(scene->m_objects[index]);
+		}
+		else {
+			camera->camera = nullptr;
+		}
+
+		for (int i = 0; i < camJs["CameraOjbect"]["NumIndices"]; i++) {
+			scene->m_cameraObjectIndices.push_back(camJs["CameraOjbect"]["Indices"][i]);
+		}
 
 		return { true, scene, offlineRenderingInfo };
 	}

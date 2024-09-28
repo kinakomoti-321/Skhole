@@ -16,7 +16,7 @@ namespace Skhole {
 
 	}
 
-	void VNDF_Renderer::InitializeCore(RendererDesc& desc)
+	void VNDF_Renderer::InitializeCore(const RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
 

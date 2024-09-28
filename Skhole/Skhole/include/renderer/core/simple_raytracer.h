@@ -27,7 +27,7 @@ namespace Skhole
 		SimpleRaytracer();
 		~SimpleRaytracer();
 
-		void InitializeCore(RendererDesc& desc) override;
+		void InitializeCore(const RendererDesc& desc) override;
 		void ResizeCore(unsigned int width, unsigned int height) override;
 		void DestroyCore() override;
 

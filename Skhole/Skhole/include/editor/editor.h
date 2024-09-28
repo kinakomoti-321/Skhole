@@ -137,14 +137,14 @@ namespace Skhole {
 
 		void SaveScene();
 
+		void InitializeRendererScene(const RendererDesc& rendererDesc, ShrPtr<Renderer>& renderer, ShrPtr<Scene>& scene);
+
 		GLFWwindow* m_window;
 		ImGuiContext* m_imguiContext;
 		std::shared_ptr<Renderer> m_renderer;
 
 		std::shared_ptr<Scene> m_scene;
 
-		unsigned int m_windowWidth;
-		unsigned int m_windowHeight;
 		std::string m_applicationName;
 
 		static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -179,6 +179,8 @@ namespace Skhole {
 
 		OfflineRenderingInfo offlineRenderingInfo;
 		bool useOfflineRendering = false;
+
+		bool recreateFrag = false;
 	};
 }
 

@@ -2,7 +2,7 @@
 
 namespace Skhole {
 
-	void Renderer::Initialize(RendererDesc& desc)
+	void Renderer::Initialize(const RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Renderer Initialize");
 		VkHelper::Context::VulkanInitialzeInfo initInfo{};

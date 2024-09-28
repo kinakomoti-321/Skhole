@@ -146,7 +146,7 @@ namespace Skhole
 		Renderer() {};
 		~Renderer() {};
 
-		void Initialize(RendererDesc& desc);
+		void Initialize(const RendererDesc& desc);
 		void Resize(unsigned int width, unsigned int height);
 		void Destroy();
 
@@ -170,7 +170,7 @@ namespace Skhole
 
 	protected:
 		// Internal Methods
-		virtual void InitializeCore(RendererDesc& desc) = 0;
+		virtual void InitializeCore(const RendererDesc& desc) = 0;
 		virtual void ResizeCore(unsigned int width, unsigned int height) = 0;
 		virtual void DestroyCore() = 0;
 

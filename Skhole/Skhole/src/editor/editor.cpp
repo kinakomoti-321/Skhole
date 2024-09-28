@@ -17,8 +17,8 @@ namespace Skhole
 	void Editor::Init(const EditorInitializationDesc& editorDesc) {
 
 		// Editor Initialization
-		m_windowWidth = editorDesc.windowWidth;
-		m_windowHeight = editorDesc.windowHeight;
+		auto windowWidth = editorDesc.windowWidth;
+		auto windowHeight = editorDesc.windowHeight;
 		m_applicationName = editorDesc.applicationName;
 
 		glfwInit();
@@ -26,7 +26,7 @@ namespace Skhole
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		glfwWindowHint(GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-		m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, m_applicationName.c_str(), nullptr, nullptr);
+		m_window = glfwCreateWindow(windowWidth, windowHeight, m_applicationName.c_str(), nullptr, nullptr);
 
 		if (!m_window) {
 			SKHOLE_ERROR("Failed to create window");
@@ -41,23 +41,23 @@ namespace Skhole
 
 		// ImGui Initialization
 
+		m_renderer = std::make_shared<VNDF_Renderer>();
+		m_scene = std::make_shared<Scene>();
+		m_scene->Initialize();
+
 		RendererDesc rendererDesc;
 		rendererDesc.Name = "Skhole";
-		rendererDesc.Width = m_windowWidth;
-		rendererDesc.Height = m_windowHeight;
+		glfwGetWindowSize(m_window, &rendererDesc.Width, &rendererDesc.Height);
 		rendererDesc.useWindow = true;
 		rendererDesc.window = m_window;
 
-		//m_renderer = std::make_shared<SimpleRaytracer>();
-		m_renderer = std::make_shared<VNDF_Renderer>();
-		m_renderer->Initialize(rendererDesc);
+		//m_renderer->Initialize(rendererDesc);
 
-		// Scene Initialization
-		m_scene = std::make_shared<Scene>();
-		m_scene->Initialize();
-		m_scene->RendererSet(m_renderer);
+		//// Scene Initialization
+		//m_scene->RendererSet(m_renderer);
+		//m_renderer->SetScene(m_scene);
 
-		m_renderer->SetScene(m_scene);
+		InitializeRendererScene(rendererDesc, m_renderer, m_scene);
 	}
 
 	void Editor::ControlCamera() {
@@ -205,6 +205,20 @@ namespace Skhole
 			}
 		}
 
+		if (ImGui::Button("RendererChange")) {
+			m_renderer->Destroy();
+			m_renderer = std::make_shared<VNDF_Renderer>();
+
+			RendererDesc desc;
+			desc.Name = "Skhole";
+			desc.Width = 1024;
+			desc.Height = 720;
+			desc.useWindow = true;
+			desc.window = m_window;
+
+			InitializeRendererScene(desc, m_renderer, m_scene);
+		}
+
 		if (ImGui::Button("Save Setting")) {
 
 			offlineRenderingInfo.startFrame = startFrame;
@@ -257,6 +271,11 @@ namespace Skhole
 							std::cout << path << std::endl;
 							m_renderer->DestroyScene();
 							path = path + filename;
+
+							std::string extension;
+							if (!GetFileExtension(path, extension)) {
+								SKHOLE_ERROR("Invalid File Path");
+							}
 							auto newScene = Loader::LoadFile(path);
 
 							m_scene = newScene;
@@ -635,5 +654,14 @@ namespace Skhole
 		m_resizeInfo.resizeFrag = true;
 		m_resizeInfo.width = width;
 		m_resizeInfo.height = height;
+	}
+
+	void Editor::InitializeRendererScene(const RendererDesc& rendererDesc, ShrPtr<Renderer>& renderer, ShrPtr<Scene>& scene) {
+
+		renderer->Initialize(rendererDesc);
+
+		// Scene Initialization
+		scene->RendererSet(renderer);
+		renderer->SetScene(scene);
 	}
 }

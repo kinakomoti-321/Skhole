@@ -19,7 +19,7 @@ namespace Skhole {
 
 	}
 
-	void SimpleRaytracer::InitializeCore(RendererDesc& desc)
+	void SimpleRaytracer::InitializeCore(const RendererDesc& desc)
 	{
 		SKHOLE_LOG_SECTION("Initialze Renderer");
 

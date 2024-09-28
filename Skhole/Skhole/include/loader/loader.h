@@ -5,6 +5,7 @@
 #include <scene/scene.h>
 #include <loader/obj_loader.h>
 #include <loader/gltf_loader.h>
+#include <scene/scene_exporter.h>
 
 namespace Skhole {
 
@@ -39,7 +40,6 @@ namespace Skhole {
 					loadScene->m_basicMaterials,
 					loadScene->m_textures
 				);
-
 			}
 			else {
 				SKHOLE_UNIMPL();

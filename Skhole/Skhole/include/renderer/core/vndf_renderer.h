@@ -20,7 +20,7 @@ namespace Skhole
 		VNDF_Renderer();
 		~VNDF_Renderer();
 
-		void InitializeCore(RendererDesc& desc) override;
+		void InitializeCore(const RendererDesc& desc) override;
 		void ResizeCore(unsigned int width, unsigned int height) override;
 		void DestroyCore() override;
 
