@@ -12,6 +12,14 @@ namespace Skhole {
 		return true;
 	}
 
+	inline std::string DeleteFileExtension(const std::string file) {
+		size_t dotIndex = file.find_last_of(".");
+		if (dotIndex == std::string::npos) {
+			return file;
+		}
+		return file.substr(0, dotIndex);
+	}
+
 	inline bool GetFileName(const std::string& filepath, std::string& filename) {
 		size_t dotIndex = filepath.find_last_of("/");
 		if (dotIndex == std::string::npos) {

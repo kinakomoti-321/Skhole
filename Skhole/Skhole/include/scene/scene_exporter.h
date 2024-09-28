@@ -280,8 +280,8 @@ namespace Skhole
 			rParamExtJs["Parameter"][i] = ParameterToJson(param->rendererParameters[i]);
 		}
 
-		rParamJs["NumExtensionParameters"] = param->rendererParameters.size();
-		rParamJs["ExtensionParameters"] = rParamExtJs;
+		rParamJs["NumParameters"] = param->rendererParameters.size();
+		rParamJs["Parameters"] = rParamExtJs;
 
 		nlohmann::json posproJs;
 		auto& posproParam = param->posproParameters;
@@ -404,6 +404,140 @@ namespace Skhole
 		return true;
 	}
 
+	struct ImportSettingOutput {
+		bool success;
+		ShrPtr<Scene> scene;
+		OfflineRenderingInfo offlineRenderingInfo;
+	};
+
+
+	inline bool ImportGeometry(const std::string& path, std::vector<ShrPtr<Geometry>>& geometry) {
+		std::ifstream read_file(path);
+		if (!read_file.is_open()) {
+			SKHOLE_LOG("Failed to open file : " + path);
+			return false;
+		}
+
+		std::string prefix;
+		read_file >> prefix;
+
+		if (prefix != "Geometries") return false;
+
+		int numGeom;
+		read_file >> numGeom;
+
+		geometry.reserve(numGeom);
+
+		for (int i = 0; i < numGeom; i++) {
+			ShrPtr<Geometry> geom = MakeShr<Geometry>();
+			read_file >> prefix;
+
+			// Vertices
+			read_file >> prefix;
+			if (prefix != "#Vertices") return false;
+			int numVert;
+			read_file >> numVert;
+			geom->m_vertices.reserve(numVert);
+
+			for (int j = 0; j < numVert; j++) {
+				VertexData vert;
+				read_file >> prefix;
+
+				read_file >> vert.position.v[0] >> vert.position.v[1] >> vert.position.v[2] >> vert.position.v[3];
+
+				read_file >> prefix;
+				read_file >> vert.normal.v[0] >> vert.normal.v[1] >> vert.normal.v[3] >> vert.normal.v[4];
+
+				read_file >> prefix;
+				read_file >> vert.texcoord0[0] >> vert.texcoord0[1];
+
+				read_file >> prefix;
+				read_file >> vert.texcoord1[0] >> vert.texcoord1[1];
+
+				read_file >> prefix;
+				read_file >> vert.color.v[0] >> vert.color.v[1] >> vert.color.v[2] >> vert.color.v[3];
+
+				geom->m_vertices.push_back(vert);
+			}
+
+			//Indices
+			read_file >> prefix;
+			if (prefix != "#Indices") return false;
+			int numIndex;
+			read_file >> numIndex;
+			geom->m_indices.reserve(numIndex);
+
+			for (int j = 0; j < numIndex; j++) {
+				uint32_t index;
+				read_file >> index;
+				geom->m_indices.push_back(index);
+			}
+
+			//MaterialIndices
+			read_file >> prefix;
+			if (prefix != "#MaterialIndices") return false;
+			int numMatIndex;
+			read_file >> numMatIndex;
+			geom->m_materialIndices.reserve(numMatIndex);
+
+			for (int j = 0; j < numMatIndex; j++) {
+				uint32_t index;
+				read_file >> index;
+				geom->m_materialIndices.push_back(index);
+			}
+
+			geometry.push_back(geom);
+		}
+		
+		read_file.close();
+	}
+
+	inline ImportSettingOutput ImportSetting(std::string& path, std::string& file) {
+
+		nlohmann::json loadJs;
+		std::ifstream read_file(path + file);
+		if (!read_file.is_open()) {
+			SKHOLE_LOG("Failed to open file : " + path);
+			return { false, nullptr, {} };
+		}
+
+		std::string filename;
+		filename = DeleteFileExtension(file);
+
+		std::string geomExt = ".skgeom";
+		std::string objExt = ".skobj";
+
+		read_file >> loadJs;
+
+		read_file.close();
+
+		// Offline Rendering Info
+		auto& offlineInfo = loadJs["OfflineRenderingInfo"];
+		OfflineRenderingInfo offlineRenderingInfo;
+		offlineRenderingInfo.width = offlineInfo["Width"];
+		offlineRenderingInfo.height = offlineInfo["Height"];
+		offlineRenderingInfo.spp = offlineInfo["SPP"];
+		offlineRenderingInfo.startFrame = offlineInfo["StartFrame"];
+		offlineRenderingInfo.endFrame = offlineInfo["EndFrame"];
+		offlineRenderingInfo.fps = offlineInfo["fps"];
+		offlineRenderingInfo.useLimitTime = offlineInfo["Use LimitTime"];
+		offlineRenderingInfo.limitTime = offlineInfo["Limit Time"];
+		offlineRenderingInfo.filename = offlineInfo["Filename"];
+		offlineRenderingInfo.filepath = offlineInfo["Filepath"];
+
+		// Scene
+		auto& sceneJs = loadJs["Scene"];
+		auto scene = MakeShr<Scene>();
+		scene->m_scenenName = sceneJs["SceneName"];
+
+		// Renderer Parameter
+
+		// Geometry
+		std::string geomPath = path + filename + geomExt;
+		ImportGeometry(geomPath, scene->m_geometies);
+
+		return { true, scene, offlineRenderingInfo };
+	}
 }
 
 

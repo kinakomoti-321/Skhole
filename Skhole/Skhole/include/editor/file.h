@@ -13,7 +13,7 @@ namespace Skhole {
 
 		static std::string ReadFile(const std::string& path) {}
 
-		static bool CallFileDialog(std::string& filepath) {
+		static bool CallFileDialog(std::string& filepath, std::string& filename) {
 			OPENFILENAME ofn;
 			TCHAR szPath[MAX_PATH];
 			TCHAR szFile[MAX_PATH] = TEXT("");
@@ -32,7 +32,9 @@ namespace Skhole {
 			if (GetOpenFileName(&ofn)) {
 				std::wstring ws(szFile);
 				std::string fullPath(ws.begin(), ws.end());
-				filepath = fullPath;
+				std::filesystem::path path(fullPath);
+				filepath = path.parent_path().string() + "\\";
+				filename = path.filename().string();
 				return true;
 			}
 			else {

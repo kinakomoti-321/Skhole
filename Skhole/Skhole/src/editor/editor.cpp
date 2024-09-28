@@ -228,6 +228,14 @@ namespace Skhole
 			}
 		}
 
+		if (ImGui::Button("Test Load")) {
+			std::string path;
+			std::string file;
+			if (File::CallFileDialog(path, file)) {
+				ImportSettingOutput info = ImportSetting(path, file);
+			}
+		}
+
 		ImGui::End();
 	}
 
@@ -244,9 +252,11 @@ namespace Skhole
 				if (ImGui::TreeNode("Load Scene")) {
 					if (ImGui::Button("Load Scene")) {
 						std::string path;
-						if (File::CallFileDialog(path)) {
+						std::string filename;
+						if (File::CallFileDialog(path, filename)) {
 							std::cout << path << std::endl;
 							m_renderer->DestroyScene();
+							path = path + filename;
 							auto newScene = Loader::LoadFile(path);
 
 							m_scene = newScene;
