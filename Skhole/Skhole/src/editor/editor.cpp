@@ -51,12 +51,6 @@ namespace Skhole
 		rendererDesc.useWindow = true;
 		rendererDesc.window = m_window;
 
-		//m_renderer->Initialize(rendererDesc);
-
-		//// Scene Initialization
-		//m_scene->RendererSet(m_renderer);
-		//m_renderer->SetScene(m_scene);
-
 		InitializeRendererScene(rendererDesc, m_renderer, m_scene);
 	}
 
@@ -139,8 +133,28 @@ namespace Skhole
 			m_renderer->RealTimeRender(renderInfo);
 
 			if (recreateFrag) {
-				m_renderer->Destroy();
-				m_renderer = std::make_shared<SimpleRaytracer>();
+				//m_renderer->Destroy();
+				m_renderer->DestroyScene();
+
+				if (sceneLoadFrag) {
+					std::string path;
+					std::string filename;
+
+					SeparatePathAndFile(settingJsonPath, path, filename);
+
+					path += "\\";
+
+					ImportSettingOutput importSetting = ImportSetting(path, filename);
+					if (!importSetting.success) {
+						SKHOLE_ERROR("Failed to Load Scene");
+					}
+
+					m_scene = importSetting.scene;
+
+					sceneLoadFrag = false;
+				}
+
+				//m_renderer = std::make_shared<VNDF_Renderer>();
 
 				RendererDesc desc;
 				desc.Name = "Skhole";
@@ -148,7 +162,10 @@ namespace Skhole
 				desc.useWindow = true;
 				desc.window = m_window;
 
-				InitializeRendererScene(desc, m_renderer, m_scene);
+				//InitializeRendererScene(desc, m_renderer, m_scene);
+
+				//m_renderer->Initialize(desc);
+				m_renderer->SetScene(m_scene);
 
 				recreateFrag = false;
 			}
@@ -274,22 +291,32 @@ namespace Skhole
 						std::string filename;
 						if (File::CallFileDialog(path, filename)) {
 							std::cout << path << std::endl;
-							m_renderer->DestroyScene();
 							path = path + filename;
 
 							std::string extension;
 							if (!GetFileExtension(path, extension)) {
 								SKHOLE_ERROR("Invalid File Path");
 							}
-							auto newScene = Loader::LoadFile(path);
 
-							m_scene = newScene;
-							m_scene->RendererSet(m_renderer);
+							if (extension == "json")
+							{
+								settingJsonPath = path;
+								sceneLoadFrag = true;
+								recreateFrag = true;
+							}
+							else {
+								m_renderer->DestroyScene();
+								auto newScene = Loader::LoadFile(path);
 
-							m_renderer->SetScene(m_scene);
+								m_scene = newScene;
+								m_scene->RendererSet(m_renderer);
 
-							cameraIndex = 0;
+								m_renderer->SetScene(m_scene);
+
+								cameraIndex = 0;
+							}
 						}
+
 					}
 					ImGui::TreePop();
 				}

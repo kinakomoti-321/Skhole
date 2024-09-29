@@ -20,6 +20,12 @@ namespace Skhole {
 		return file.substr(0, dotIndex);
 	}
 
+	inline void SeparatePathAndFile(const std::string& filepath, std::string& path, std::string& filename) {
+		std::filesystem::path pathSystem(filepath);
+		path = pathSystem.parent_path().string();
+		filename = pathSystem.filename().string();
+	}
+
 	inline bool GetFileName(const std::string& filepath, std::string& filename) {
 		size_t dotIndex = filepath.find_last_of("/");
 		if (dotIndex == std::string::npos) {

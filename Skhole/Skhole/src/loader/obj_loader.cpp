@@ -154,7 +154,9 @@ namespace Skhole {
 				float emissionNormalizeFactior = length(emission);
 
 				basicMaterial->emissionIntensity = emissionNormalizeFactior;
-				basicMaterial->emissionColor = vec4(emission / emissionNormalizeFactior, 1.0f);
+				if (emissionNormalizeFactior > 0.0f) {
+					basicMaterial->emissionColor = vec4(emission / emissionNormalizeFactior, 1.0f);
+				}
 
 				basicMaterial->transmission = material.transmittance[0]; // ?
 				basicMaterial->ior = material.ior;

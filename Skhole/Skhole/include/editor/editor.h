@@ -181,6 +181,8 @@ namespace Skhole {
 		bool useOfflineRendering = false;
 
 		bool recreateFrag = false;
+		bool sceneLoadFrag = false;
+		std::string settingJsonPath = "";
 	};
 }
 

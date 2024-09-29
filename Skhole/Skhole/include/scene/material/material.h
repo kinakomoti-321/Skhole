@@ -18,28 +18,28 @@ namespace Skhole {
 	struct BasicMaterial {
 		std::string materialName = "DefaultMaterial";
 
-		vec4 basecolor;
-		int BaseColorMap;
+		vec4 basecolor = vec4(1.0);
+		int BaseColorMap = -1;
 
 		float anisotropic = 0.0f;
-		float metallic;
-		int MetallicMap;
+		float metallic = 0;
+		int MetallicMap = -1;
 
-		float roughness;
-		int RoughnessMap;
+		float roughness = 0;
+		int RoughnessMap = -1;
 
-		float sheen;
-		float clearcoat;
+		float sheen = 0;
+		float clearcoat = 0;
 
-		int NormalMap;
-		int HeightMap;
+		int NormalMap = -1;
+		int HeightMap = -1;
 
-		vec4 emissionColor;
-		float emissionIntensity;
-		int EmissiveMap;
+		vec4 emissionColor = vec4(0.0);
+		float emissionIntensity = 0.0;
+		int EmissiveMap = -1;
 
-		float ior;
-		float transmission;
+		float ior = 1.0;
+		float transmission = 0.0;
 	};
 
 };

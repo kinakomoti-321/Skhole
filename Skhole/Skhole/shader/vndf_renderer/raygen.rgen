@@ -184,6 +184,7 @@ void main()
 		}
 
 		sumLTE += LTE;
+//        sumLTE += vec3(uv,0.0);
 		sumBaseColor += fBaseColor;
 		sumNormal += fNormal;
         spp++;

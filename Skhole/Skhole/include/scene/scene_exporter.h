@@ -374,10 +374,7 @@ namespace Skhole
 		nlohmann::json posproJs;
 		auto& posproParam = param->posproParameters;
 		posproJs["PosproName"] = posproParam.name;
-		posproJs["NumParameters"] = posproParam.param.size();
-		for (int i = 0; i < posproParam.param.size(); i++) {
-			posproJs["Parameter"][i] = ParameterToJson(posproParam.param[i]);
-		}
+		posproJs["Parameters"] = ParamtersToJson(posproParam.param);
 
 		rParamJs["PostProcess"] = posproJs;
 
@@ -430,7 +427,7 @@ namespace Skhole
 			camJs["Name"] = camera->cameraName;
 			camJs["CameraObject"]["Use"] = camera->camera != nullptr;
 			if (camera->camera != nullptr) {
-				camJs["CameraObject"]["Index"] = camera->camera->objectIndex;
+				camJs["CameraObject"]["TargetCameraIndex"] = camera->camera->objectIndex;
 			}
 			else {
 				camJs["CameraObject"]["TargetCameraIndex"] = -1;
@@ -441,6 +438,7 @@ namespace Skhole
 			camJs["Position"] = toInitializerList(camera->position);
 			camJs["LookAt"] = toInitializerList(camera->foward);
 			camJs["Up"] = toInitializerList(camera->up);
+			camJs["Right"] = toInitializerList(camera->right);
 			camJs["Fov"] = camera->fov;
 
 			camJs["Parameters"] = ParamtersToJson(camera->extensionParameters);
@@ -559,7 +557,7 @@ namespace Skhole
 			read_file >> prefix;
 			read_file >> object->localTranslation.v[0] >> object->localTranslation.v[1] >> object->localTranslation.v[2];
 			read_file >> prefix;
-			read_file >> object->localQuaternion.x >> object->localQuaternion.y >> object->localQuaternion.y >> object->localQuaternion.z;
+			read_file >> object->localQuaternion.x >> object->localQuaternion.y >> object->localQuaternion.z >> object->localQuaternion.w;
 			read_file >> prefix;
 			read_file >> object->localScale.v[0] >> object->localScale.v[1] >> object->localScale.v[2];
 
@@ -679,7 +677,7 @@ namespace Skhole
 				read_file >> vert.position.v[0] >> vert.position.v[1] >> vert.position.v[2] >> vert.position.v[3];
 
 				read_file >> prefix;
-				read_file >> vert.normal.v[0] >> vert.normal.v[1] >> vert.normal.v[3] >> vert.normal.v[4];
+				read_file >> vert.normal.v[0] >> vert.normal.v[1] >> vert.normal.v[2] >> vert.normal.v[3];
 
 				read_file >> prefix;
 				read_file >> vert.texcoord0[0] >> vert.texcoord0[1];
@@ -813,51 +811,66 @@ namespace Skhole
 
 		// Renderer Parameter
 		auto& rParamJs = sceneJs["RendererParameter"];
-		auto& rParam = scene->m_rendererParameter;
+		auto rParam = MakeShr<RendererParameter>();
 
-		rParam->rendererName = rParamJs["RendererName"];
+		std::string rendererName = rParamJs["RendererName"];
+		rParam->rendererName = rendererName;
 		rParam->sppPerFrame = rParamJs["sppPerFrame"];
 		rParam->frame = rParamJs["frame"];
 		rParam->numSPP = rParamJs["numSPP"];
 		rParam->maxSPP = rParamJs["maxSPP"];
 		rParam->rendererParameters = JsonToParameters(rParamJs["Parameters"]);
 		rParam->posproParameters.name = rParamJs["PostProcess"]["PosproName"];
-		rParam->posproParameters.param = JsonToParameters(rParamJs["PostProcess"]["Parameter"]);
+		rParam->posproParameters.param = JsonToParameters(rParamJs["PostProcess"]["Parameters"]);
+
+		scene->m_rendererParameter = rParam;
+
+		SKHOLE_LOG("Renderer Parameter Loaded");
 
 		// Geometry
 		std::string geomPath = path + filename + geomExt;
 		ImportGeometry(geomPath, scene->m_geometies);
 
+		SKHOLE_LOG("Geometry Loaded");
+
 		// Instance
 		std::string objPath = path + filename + objExt;
 		ImportObjects(objPath, scene->m_objects);
 
+		SKHOLE_LOG("Object Loaded");
+
 		// Materials
 		ImportMaterials(sceneJs["Materials"], scene->m_basicMaterials, scene->m_materials);
 
+		SKHOLE_LOG("Materials Loaded");
+
 		// Camera
 		auto& camJs = sceneJs["Camera"];
-		auto& camera = scene->m_camera;
+		auto camera = MakeShr<RendererDefinisionCamera>();
 		camera->cameraName = camJs["Name"];
 		camera->foward = jsToVec3(camJs["LookAt"]);
 		camera->position = jsToVec3(camJs["Position"]);
 		camera->up = jsToVec3(camJs["Up"]);
+		camera->right = jsToVec3(camJs["Right"]);
 		camera->fov = camJs["Fov"];
 
 		camera->extensionParameters = JsonToParameters(camJs["Parameters"]);
 
-		bool useCamera = camJs["CameraOjbect"]["Use"];
+		auto& cameraObject = camJs["CameraObject"];
+		bool useCamera = cameraObject["Use"];
 		if (useCamera) {
-			int index = camJs["CameraOjbect"]["TargetCameraIndex"];
+			int index = cameraObject["TargetCameraIndex"];
 			camera->camera = std::static_pointer_cast<CameraObject>(scene->m_objects[index]);
 		}
 		else {
 			camera->camera = nullptr;
 		}
 
-		for (int i = 0; i < camJs["CameraOjbect"]["NumIndices"]; i++) {
-			scene->m_cameraObjectIndices.push_back(camJs["CameraOjbect"]["Indices"][i]);
+		for (int i = 0; i < cameraObject["NumIndices"]; i++) {
+			scene->m_cameraObjectIndices.push_back(cameraObject["Indices"][i]);
 		}
+
+		scene->m_camera = camera;
 
 		return { true, scene, offlineRenderingInfo };
 	}
