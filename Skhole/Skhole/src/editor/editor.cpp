@@ -138,6 +138,20 @@ namespace Skhole
 
 			m_renderer->RealTimeRender(renderInfo);
 
+			if (recreateFrag) {
+				m_renderer->Destroy();
+				m_renderer = std::make_shared<SimpleRaytracer>();
+
+				RendererDesc desc;
+				desc.Name = "Skhole";
+				glfwGetWindowSize(m_window, &desc.Width, &desc.Height);
+				desc.useWindow = true;
+				desc.window = m_window;
+
+				InitializeRendererScene(desc, m_renderer, m_scene);
+
+				recreateFrag = false;
+			}
 		}
 
 		m_renderer->Destroy();
@@ -206,17 +220,8 @@ namespace Skhole
 		}
 
 		if (ImGui::Button("RendererChange")) {
-			m_renderer->Destroy();
-			m_renderer = std::make_shared<VNDF_Renderer>();
 
-			RendererDesc desc;
-			desc.Name = "Skhole";
-			desc.Width = 1024;
-			desc.Height = 720;
-			desc.useWindow = true;
-			desc.window = m_window;
-
-			InitializeRendererScene(desc, m_renderer, m_scene);
+			recreateFrag = true;
 		}
 
 		if (ImGui::Button("Save Setting")) {

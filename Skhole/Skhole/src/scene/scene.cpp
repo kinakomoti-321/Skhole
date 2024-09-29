@@ -123,6 +123,7 @@ namespace Skhole {
 
 	void Scene::RendererSet(const std::shared_ptr<Renderer>& renderer) {
 		SKHOLE_LOG_SECTION("Scene : RendererSet");
+		m_materials.clear();
 		for (auto& mat : m_basicMaterials)
 		{
 			m_materials.push_back(renderer->GetMaterial(mat));
@@ -153,11 +154,8 @@ namespace Skhole {
 		SKHOLE_UNIMPL();
 	}
 
-	void Scene::LoadScene(std::string path) {
-		SKHOLE_UNIMPL();
+	void Scene::ResetRendererParameter() {
 	}
-	void Scene::SaveScene(std::string path) {
 
-	}
 
 }

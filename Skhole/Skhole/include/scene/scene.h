@@ -26,9 +26,10 @@ namespace Skhole {
 		void Initialize();
 		void LoadModelFile();
 		void RendererSet(const std::shared_ptr<Renderer>& renderer);
+		void ResetRendererParameter();
 
-		void LoadScene(std::string path);
-		void SaveScene(std::string path);
+		//void LoadScene(std::string path);
+		//void SaveScene(std::string path);
 
 		void SetTransformMatrix(float frame);
 
