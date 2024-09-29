@@ -4,6 +4,8 @@
 #include <scene/scene.h>
 #include <scene/animation/animation.h>
 #include <nlohmann/json.hpp>
+#include <renderer/renderer.h>
+#include <renderer/core/vndf_renderer.h>
 
 namespace Skhole
 {
@@ -496,6 +498,7 @@ namespace Skhole
 	struct ImportSettingOutput {
 		bool success;
 		ShrPtr<Scene> scene;
+		ShrPtr<Renderer> renderer;
 		OfflineRenderingInfo offlineRenderingInfo;
 	};
 
@@ -771,7 +774,7 @@ namespace Skhole
 		return true;
 	}
 
-	inline ImportSettingOutput ImportSetting(std::string& path, std::string& file) {
+	inline ImportSettingOutput ImportSetting(const std::string& path, const std::string& file) {
 
 		nlohmann::json loadJs;
 		std::ifstream read_file(path + file);
@@ -872,7 +875,10 @@ namespace Skhole
 
 		scene->m_camera = camera;
 
-		return { true, scene, offlineRenderingInfo };
+		ShrPtr<Renderer> renderer = MakeShr<VNDF_Renderer>();
+
+
+		return { true, scene, renderer,offlineRenderingInfo };
 	}
 }
 

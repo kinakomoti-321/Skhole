@@ -1,0 +1,420 @@
+{
+  "OfflineRenderingInfo": {
+    "EndFrame": 1,
+    "Filename": "output",
+    "Filepath": "./image/",
+    "Height": 720,
+    "Limit Time": 10000.0,
+    "SPP": 1000,
+    "StartFrame": 0,
+    "Use LimitTime": false,
+    "Width": 1024,
+    "fps": 24
+  },
+  "Scene": {
+    "Camera": {
+      "CameraObject": {
+        "Indices": [],
+        "NumIndices": 0,
+        "TargetCameraIndex": -1,
+        "Use": false
+      },
+      "Fov": 45.0,
+      "LookAt": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "Name": "Camera",
+      "Parameters": {
+        "NumParameters": 1,
+        "Parameter": [
+          {
+            "Name": "LookPoint",
+            "Type": "VECTOR",
+            "Value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "Position": [
+        0.0,
+        0.0,
+        10.0
+      ],
+      "Right": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "Up": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    },
+    "Geometries": {
+      "Filename": "test.skgeom"
+    },
+    "Materials": {
+      "BasicMaterials": [
+        {
+          "BaseColor": [
+            1.0,
+            0.20000000298023224,
+            0.20000000298023224,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "DefaultMaterial",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.20000000298023224,
+            1.0,
+            0.20000000298023224,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "DefaultMaterial",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "DefaultMaterial",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "EmissionIntensity": 4.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "DefaultMaterial",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        }
+      ],
+      "NumBasicMaterials": 4,
+      "NumRendererMaterials": 4,
+      "RendererMaterials": [
+        {
+          "Name": "DefaultMaterial",
+          "Parameters": {
+            "NumParameters": 6,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  1.0,
+                  0.20000000298023224,
+                  0.20000000298023224,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "Name": "DefaultMaterial",
+          "Parameters": {
+            "NumParameters": 6,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.20000000298023224,
+                  1.0,
+                  0.20000000298023224,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "Name": "DefaultMaterial",
+          "Parameters": {
+            "NumParameters": 6,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "Name": "DefaultMaterial",
+          "Parameters": {
+            "NumParameters": 6,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 4.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  1.0,
+                  1.0,
+                  1.0,
+                  1.0
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Objects": {
+      "Filename": "test.skobj"
+    },
+    "RendererParameter": {
+      "Parameters": {
+        "NumParameters": 1,
+        "Parameter": [
+          {
+            "Name": "Ckeck Mode",
+            "Type": "UINT",
+            "Value": 0
+          }
+        ]
+      },
+      "PostProcess": {
+        "Parameters": {
+          "NumParameters": 2,
+          "Parameter": [
+            {
+              "Name": "color",
+              "Type": "COLOR",
+              "Value": [
+                1.0,
+                1.0,
+                1.0,
+                0.0
+              ]
+            },
+            {
+              "Name": "intensity",
+              "Type": "FLOAT",
+              "Value": 1.0
+            }
+          ]
+        },
+        "PosproName": "Example Post Process"
+      },
+      "RendererName": "Simple Raytracer",
+      "frame": 0,
+      "maxSPP": 100,
+      "numSPP": 100,
+      "sppPerFrame": 1
+    },
+    "SceneName": "",
+    "Textures": null
+  }
+}

@@ -53,5 +53,34 @@ namespace Skhole {
 		return os.str();
 	}
 
+	struct FilePath {
+		FilePath() {}
+		FilePath(const std::string& path) : path(path) {}
+		void SetPath(const std::string& path) {
+			this->path = path;
+		}
+
+		std::string GetFullPath()const {
+			return path.string();
+		}
+
+		std::string GetFileName()const {
+			std::filesystem::path pathSystem(path);
+			return pathSystem.filename().string();
+		}
+
+		std::string GetPath() const {
+			std::filesystem::path pathSystem(path);
+			return pathSystem.parent_path().string() + "\\";
+		}
+
+		std::string GetExtension() const {
+			std::filesystem::path pathSystem(path);
+			return pathSystem.extension().string();
+		}
+
+		std::filesystem::path path;
+	};
+
 }
 

@@ -1,0 +1,87 @@
+Object
+6
+
+#Object
+Name Instance
+#Features
+Type INSTANCE
+GeometryIndex 0
+#Transform
+LocalTranslation 0 0 0
+LocalRotation 0 0 0 1
+LocalScale 1 1 1
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Instance2
+#Features
+Type INSTANCE
+GeometryIndex 1
+#Transform
+LocalTranslation 0 0 0
+LocalRotation 0 0 0 1
+LocalScale 1 1 1
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Instance3
+#Features
+Type INSTANCE
+GeometryIndex 2
+#Transform
+LocalTranslation 0 0 0
+LocalRotation 0 0 0 1
+LocalScale 1 1 1
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Instance4
+#Features
+Type INSTANCE
+GeometryIndex 3
+#Transform
+LocalTranslation 0 0 0
+LocalRotation 0 0 0 1
+LocalScale 1 1 1
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Instance4
+#Features
+Type INSTANCE
+GeometryIndex 4
+#Transform
+LocalTranslation 0 0 0
+LocalRotation 0 0 0 1
+LocalScale 1 1 1
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Instance4
+#Features
+Type INSTANCE
+GeometryIndex 5
+#Transform
+LocalTranslation 0 0 0
+LocalRotation 0 0 0 1
+LocalScale 1 1 1
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+

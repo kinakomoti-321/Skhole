@@ -16,3 +16,6 @@
 [submodule "Skhole/Skhole/extern/json"]
 	path = Skhole/Skhole/extern/json
 	url = git@github.com:nlohmann/json.git
+[submodule "Skhole/Skhole/extern/cxxopts"]
+	path = Skhole/Skhole/extern/cxxopts
+	url = git@github.com:jarro2783/cxxopts.git

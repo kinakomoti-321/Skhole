@@ -26,21 +26,23 @@ namespace Skhole {
 
 		m_renderImages.Initialize(desc.Width, desc.Height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
-		VkHelper::SwapChainInfo swapchainInfo{};
-		swapchainInfo.physicalDevice = m_context.physicalDevice;
-		swapchainInfo.device = *m_context.device;
-		swapchainInfo.surface = *m_context.surface;
-		swapchainInfo.queueIndex = m_context.queueIndex;
-		swapchainInfo.queue = m_context.queue;
-		swapchainInfo.commandPool = *m_commandPool;
-		swapchainInfo.renderPass = m_imGuiRenderPass.get();
+		if (desc.useWindow) {
+			VkHelper::SwapChainInfo swapchainInfo{};
+			swapchainInfo.physicalDevice = m_context.physicalDevice;
+			swapchainInfo.device = *m_context.device;
+			swapchainInfo.surface = *m_context.surface;
+			swapchainInfo.queueIndex = m_context.queueIndex;
+			swapchainInfo.queue = m_context.queue;
+			swapchainInfo.commandPool = *m_commandPool;
+			swapchainInfo.renderPass = m_imGuiRenderPass.get();
 
-		swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
+			swapchainInfo.swapcahinImageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
 
-		swapchainInfo.width = desc.Width;
-		swapchainInfo.height = desc.Height;
+			swapchainInfo.width = desc.Width;
+			swapchainInfo.height = desc.Height;
 
-		m_screenContext.Init(swapchainInfo);
+			m_screenContext.Init(swapchainInfo);
+		}
 
 		InitializeBiniding();
 
@@ -60,17 +62,20 @@ namespace Skhole {
 
 		m_raytracingPipeline.InitPipeline(pipelineDesc);
 
-		m_imGuiManager.Init(
-			desc.window,
-			*m_context.instance,
-			m_context.physicalDevice,
-			*m_context.device,
-			m_context.queueIndex,
-			m_context.queue,
-			*m_imGuiRenderPass,
-			2,
-			m_screenContext.swapchainImages.size()
-		);
+
+		if (desc.useWindow) {
+			m_imGuiManager.Init(
+				desc.window,
+				*m_context.instance,
+				m_context.physicalDevice,
+				*m_context.device,
+				m_context.queueIndex,
+				m_context.queue,
+				*m_imGuiRenderPass,
+				2,
+				m_screenContext.swapchainImages.size()
+			);
+		}
 
 		//--------------------------------------
 		// PostProcessor
