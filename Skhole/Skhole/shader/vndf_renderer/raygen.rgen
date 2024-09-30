@@ -8,7 +8,7 @@
 #include "./payload.glsl"
 #include "../common/hash.glsl"
 #include "../common/math.glsl"
-#include "../common/bsdf/lambert.glsl"
+#include "../common/bsdf.glsl"
 
 layout(location = 0) rayPayloadEXT PayLoadStruct payload;
 
