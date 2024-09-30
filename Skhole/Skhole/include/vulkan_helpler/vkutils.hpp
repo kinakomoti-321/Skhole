@@ -146,9 +146,11 @@ namespace vkutils {
 		if (!checkDeviceExtensionSupport(physicalDevice, deviceExtensions)) {
 			return false;
 		}
-		if (physicalDevice.getSurfaceFormatsKHR(surface).empty() ||
-			physicalDevice.getSurfacePresentModesKHR(surface).empty()) {
-			return false;
+		if (surface != VK_NULL_HANDLE) {
+			if (physicalDevice.getSurfaceFormatsKHR(surface).empty() ||
+				physicalDevice.getSurfacePresentModesKHR(surface).empty()) {
+				return false;
+			}
 		}
 		return true;
 	}

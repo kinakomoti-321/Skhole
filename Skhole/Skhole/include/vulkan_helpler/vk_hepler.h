@@ -211,7 +211,9 @@ namespace VkHelper {
 			instance = vkutils::createInstance(VK_API_VERSION_1_2, info.layers);
 			debugMessage = vkutils::createDebugMessenger(*instance);
 
-			surface = vkutils::createSurface(*instance, info.window);
+			if (info.useWindow) {
+				surface = vkutils::createSurface(*instance, info.window);
+			}
 
 			physicalDevice = vkutils::pickPhysicalDevice(*instance, *surface, info.extensions);
 			queueIndex = vkutils::findGeneralQueueFamily(physicalDevice, *surface);

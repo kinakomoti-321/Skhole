@@ -58,6 +58,10 @@ namespace Skhole
 
 		// Render
 		renderer->OfflineRender(renderInfo);
+
+		renderer->Destroy();
+
+		SKHOLE_LOG("Render Completed.");
 	}
 
 }

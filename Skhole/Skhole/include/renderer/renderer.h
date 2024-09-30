@@ -214,5 +214,7 @@ namespace Skhole
 		VkHelper::BindingManager m_bindingManager;
 
 		RenderImages m_renderImages;
+
+		bool editorMode = false;
 	};
 }

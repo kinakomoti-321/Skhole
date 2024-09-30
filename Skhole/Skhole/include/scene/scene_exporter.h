@@ -779,7 +779,7 @@ namespace Skhole
 		nlohmann::json loadJs;
 		std::ifstream read_file(path + file);
 		if (!read_file.is_open()) {
-			SKHOLE_LOG("Failed to open file : " + path);
+			SKHOLE_LOG("Failed to open file : " + path + file);
 			return { false, nullptr, {} };
 		}
 

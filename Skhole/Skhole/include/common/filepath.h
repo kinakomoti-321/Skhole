@@ -60,6 +60,10 @@ namespace Skhole {
 			this->path = path;
 		}
 
+		std::string GetAbsolutePath()const {
+			return std::filesystem::absolute(path).string();
+		}
+		
 		std::string GetFullPath()const {
 			return path.string();
 		}

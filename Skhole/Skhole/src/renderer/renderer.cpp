@@ -17,16 +17,18 @@ namespace Skhole {
 		m_commandPool = vkutils::createCommandPool(*m_context.device, m_context.queueIndex);
 		m_commandBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
 
-		m_imGuiRenderPass = VkHelper::CreateRenderPass(
-			vk::Format::eR8G8B8A8Unorm,
-			vk::ImageLayout::eColorAttachmentOptimal,
-			vk::ImageLayout::ePresentSrcKHR,
-			*m_context.device
-		);
 
 		m_renderImages.Initialize(desc.Width, desc.Height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
 		if (desc.useWindow) {
+			editorMode = true;
+			m_imGuiRenderPass = VkHelper::CreateRenderPass(
+				vk::Format::eR8G8B8A8Unorm,
+				vk::ImageLayout::eColorAttachmentOptimal,
+				vk::ImageLayout::ePresentSrcKHR,
+				*m_context.device
+			);
+
 			VkHelper::SwapChainInfo swapchainInfo{};
 			swapchainInfo.physicalDevice = m_context.physicalDevice;
 			swapchainInfo.device = *m_context.device;
@@ -130,8 +132,11 @@ namespace Skhole {
 		m_postProcessor->Destroy(*m_context.device);
 		m_postProcessor = nullptr;
 		m_renderImages.Release(*m_context.device);
+
 		m_screenContext.Release(*m_context.device);
-		m_imGuiManager.Destroy(*m_context.device);
+		if (editorMode) {
+			m_imGuiManager.Destroy(*m_context.device);
+		}
 	}
 
 	void Renderer::RaytracingCommand(const vk::CommandBuffer& commandBuffer, uint32_t width, uint32_t height) {

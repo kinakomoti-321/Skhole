@@ -61,12 +61,12 @@ int main(int argc, char* argv[]) {
 					Skhole::FilePath outpath;
 
 					if (result.count("file")) {
-						//std::cout << "file: " << result["file"].as<std::string>() << std::endl;
+						std::cout << "file: " << result["file"].as<std::string>() << std::endl;
 						filepath.SetPath(result["file"].as<std::string>());
 					}
 
 					if (result.count("out")) {
-						//std::cout << "out: " << result["out"].as<std::string>() << std::endl;
+						std::cout << "out: " << result["out"].as<std::string>() << std::endl;
 						outpath.SetPath(result["out"].as<std::string>());
 					}
 
