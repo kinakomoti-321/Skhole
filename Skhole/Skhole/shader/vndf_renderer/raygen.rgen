@@ -45,6 +45,97 @@ vec3 GetPinholeCameraDir(vec3 cameraDir,vec3 cameraUp,vec3 cameraRight,vec2 uv, 
     return normalize(uv.y * cameraUp + uv.x * cameraRight + f * cameraDir);
 }
 
+struct BSDFParameter
+{
+vec3 basecolor;
+float metallic;
+float roughness;
+float anisotropic;
+
+bool isGlass;
+
+bool isSand;
+};
+
+vec3 BSDF_Evaluate(vec3 wo, vec3 wi, BSDFParameter param)
+{
+    GGX_Params ggxParam;
+    ggxParam.F0 = mix(vec3(0.04),param.basecolor, param.metallic);
+    ggxParam.roughness = param.roughness;
+    ggxParam.anisotropic = param.anisotropic;
+
+    vec3 diffuse = LambertBSDF_Evaluation(wo,wi,param.basecolor);
+    vec3 specular = GGX_Evaluation(wo,wi,ggxParam);
+
+    return (1.0f - param.metallic) * diffuse + specular;
+}
+
+float BSDF_PDF(vec3 wo, inout vec3 wi, BSDFParameter param)
+{
+    GGX_Params ggxParam;
+    ggxParam.F0 = param.basecolor;
+    ggxParam.roughness = param.roughness;
+    ggxParam.anisotropic = param.anisotropic;
+
+    float diffuseWeight = (1.0 - param.metallic);  
+    float specularWeight = 1.0;
+
+    float sumWeight = diffuseWeight + specularWeight;
+
+    float diffusePDF = diffuseWeight / sumWeight;
+    float specularPDF = specularWeight / sumWeight;
+
+    float dp = LambertBSDF_PDF(wo,wi);
+    float sp = GGX_PDF(wo,wi,ggxParam);
+    
+    float pdf = dp * diffusePDF + sp * specularPDF;
+
+    return pdf;
+}
+
+vec3 BSDF_Sample(vec3 wo, inout vec3 wi, BSDFParameter param, inout float pdf)
+{
+    float diffuseWeight = (1.0 - param.metallic);  
+    float specularWeight = 1.0;
+
+    float sumWeight = diffuseWeight + specularWeight;
+
+    float diffusePDF = diffuseWeight / sumWeight;
+    float specularPDF = specularWeight / sumWeight;
+
+    float sampleSelectP = rnd1();
+
+    float dp;
+    float sp;
+
+    GGX_Params ggxParam;
+    ggxParam.F0 = param.basecolor;
+    ggxParam.roughness = param.roughness;
+    ggxParam.anisotropic = param.anisotropic;
+
+    vec2 xi = rnd2();
+    if(sampleSelectP <= diffusePDF){
+        wi = LambertBSDF_Sample(wo, dp, xi);
+        sp = GGX_PDF(wo,wi,ggxParam);
+	}
+    else{
+        wi = GGX_Sample(wo, sp, ggxParam, xi); 
+        dp = LambertBSDF_PDF(wo,wi);
+    }
+
+    if(wi.y < 0.0){
+        pdf = 0.0;
+		return vec3(0.0);
+	}
+    
+    pdf = dp * diffusePDF + sp * specularPDF;
+
+    return BSDF_Evaluate(wo,wi,param);
+}
+
+
+
+
 vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
 {
     vec3 LTE = vec3(0.0);
@@ -73,7 +164,7 @@ vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
 
         if(payload.isMiss)
         {
-            LTE += throughput * vec3(1.0);
+            LTE += throughput * vec3(0.0);
             break;
         }
 
@@ -107,19 +198,16 @@ vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
         vec2 xi = rnd2();
         vec3 bsdf;
 
-        if(metallic > 0.5)
-        {
-			GGX_Params param;
-			param.F0 = basecolor;
-			param.roughness = roughness;
-			param.anisotropic = anisotropic;
+        BSDFParameter bsdfParam;
+        bsdfParam.basecolor = basecolor;
+        bsdfParam.metallic = metallic;
+        bsdfParam.roughness = roughness;
+        bsdfParam.anisotropic = anisotropic;
 
-			bsdf = GGX_Sample(localwo,xi,param,localwi,pdf);
-        }
-        else{
-			bsdf = LambertBSDF_Sample(localwo,basecolor,xi,localwi,pdf);
-        }
-
+        bsdf = BSDF_Sample(localwo,localwi,bsdfParam,pdf);
+//        localwi = LambertBSDF_Sample(localwo,pdf,xi);
+//        bsdf = LambertBSDF_Evaluation(localwo,localwi,basecolor);
+//
         vec3 wi = localToWorld(localwi,t,normal,b);
 
         float cosine = abs(localwi.y);
@@ -184,7 +272,6 @@ void main()
 		}
 
 		sumLTE += LTE;
-//        sumLTE += vec3(uv,0.0);
 		sumBaseColor += fBaseColor;
 		sumNormal += fNormal;
         spp++;

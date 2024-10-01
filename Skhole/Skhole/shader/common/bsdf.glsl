@@ -35,13 +35,25 @@ vec3 CosineSampling(vec2 uv,inout float pdf){
 }
 
 
-vec3 LambertBSDF_Sample(vec3 wo, vec3 basecolor,vec2 xi,inout vec3 wi, inout float pdf){
-//    wi = HemisphereSampling(xi,pdf);
-    wi = CosineSampling(xi,pdf);
-    vec3 bsdf = basecolor / PI;
-    return bsdf;
+//vec3 LambertBSDF_Sample(vec3 wo, vec3 basecolor,vec2 xi,inout vec3 wi, inout float pdf){
+//    wi = CosineSampling(xi,pdf);
+//    vec3 bsdf = basecolor / PI;
+//    return bsdf;
+//}
+//
+
+vec3 LambertBSDF_Sample(vec3 wo, inout float pdf, vec2 xi){
+    vec3 wi = CosineSampling(xi,pdf);
+	return wi;
 }
 
+vec3 LambertBSDF_Evaluation(vec3 wo, vec3 wi, vec3 basecolor){
+	return basecolor / PI;
+}
+
+float LambertBSDF_PDF(vec3 wo, vec3 wi){
+	return abs(wi.z) / PI;
+}
 
 float GGX_D(vec3 wm,float ax,float ay){
 	float term1 = wm.x * wm.x / (ax * ax) + wm.z * wm.z / (ay * ay) + wm.y * wm.y;
@@ -154,38 +166,58 @@ vec2 RoughnessToAlpha(float roughness, float anistropic){
 	return alpha;
 }
 
-vec3 GGX_Sample(vec3 wo, vec2 xi,GGX_Params param, inout vec3 wi, inout float pdf){
+//vec3 GGX_Sample(vec3 wo, vec2 xi,GGX_Params param, inout vec3 wi, inout float pdf){
+//
+//	vec3 bsdf = vec3(0.0);
+//
+//	vec2 alpha = RoughnessToAlpha(param.roughness, param.anisotropic);
+//
+//	vec3 wm = SphericalVNDFSampling(xi,wo,alpha);
+////	vec3 wm = BoundVNDFSampling(xi,wo,alpha);
+//	wi = reflect(-wo, wm);
+//
+//	if(wi.y <= 0.0){
+//		pdf = 1.0;
+//		return bsdf;
+//	}
+//
+//	float ggx_D = GGX_D(wm, alpha.x, alpha.y);
+//	float ggx_G = GGX_G2(wo, wi, alpha.x, alpha.y);
+//	vec3 ggx_F = Shlick_Fresnel(param.F0, wo, wm);
+//
+//	float ggx_G1 = GGX_G1(wo, alpha.x, alpha.y);
+//	float jacobian = 0.25 / dot(wo, wm);
+//
+////	pdf = ggx_D * ggx_G1 * dot(wo,wm) * jacobian / abs(wo.y);
+////	pdf = GGXReflectionPDF(wo,wi,alpha); 
+//	pdf = VNDF(wo,wm,alpha) * jacobian;
+//
+//	bsdf = ggx_D * ggx_G * ggx_F / (4.0 * wo.y * wi.y);
+//	return bsdf;
+//}
+//
 
-	vec3 bsdf = vec3(0.0);
-
+vec3 GGX_Sample(vec3 wo, inout float pdf, GGX_Params param, vec2 xi){
 	vec2 alpha = RoughnessToAlpha(param.roughness, param.anisotropic);
 
 	vec3 wm = SphericalVNDFSampling(xi,wo,alpha);
 //	vec3 wm = BoundVNDFSampling(xi,wo,alpha);
-	wi = reflect(-wo, wm);
+	vec3 wi = reflect(-wo, wm);
 
-	if(wi.y <= 0.0){
-		pdf = 1.0;
-		return bsdf;
-	}
-
-	float ggx_D = GGX_D(wm, alpha.x, alpha.y);
-	float ggx_G = GGX_G2(wo, wi, alpha.x, alpha.y);
-	vec3 ggx_F = Shlick_Fresnel(param.F0, wo, wm);
-
-	float ggx_G1 = GGX_G1(wo, alpha.x, alpha.y);
 	float jacobian = 0.25 / dot(wo, wm);
 
-//	pdf = ggx_D * ggx_G1 * dot(wo,wm) * jacobian / abs(wo.y);
 //	pdf = GGXReflectionPDF(wo,wi,alpha); 
 	pdf = VNDF(wo,wm,alpha) * jacobian;
 
-	bsdf = ggx_D * ggx_G * ggx_F / (4.0 * wo.y * wi.y);
-	return bsdf;
+	return wi;
 }
 
-vec3 GGX_Evaluate(vec3 wo, vec3 wi, GGX_Params param)
+vec3 GGX_Evaluation(vec3 wo, vec3 wi, GGX_Params param)
 {
+	if(wi.y < 0.0 || wo.y < 0.0){
+		return vec3(0.0);
+	}
+
 	vec2 alpha = RoughnessToAlpha(param.roughness, param.anisotropic);
 
 	vec3 wm = normalize(wo + wi);
@@ -196,3 +228,15 @@ vec3 GGX_Evaluate(vec3 wo, vec3 wi, GGX_Params param)
 
 	return  ggx_D * ggx_G * ggx_F / (4.0 * wo.y * wi.y);
 }
+
+float GGX_PDF(vec3 wo, vec3 wi,GGX_Params param){
+	vec2 alpha = RoughnessToAlpha(param.roughness, param.anisotropic);
+	vec3 wm = normalize(wo + wi);
+	float jacobian = 0.25 / dot(wo, wm);
+	return VNDF(wo,wm,alpha) * jacobian;
+}
+
+
+
+
+
