@@ -40,6 +40,9 @@ struct Material{
 
 	float emissionPower;
 	vec4 emissionColor;
+
+	int isGlass;
+	float ior;
 };
 
 layout(std430, binding = 4) buffer readonly vertexData{
@@ -114,6 +117,9 @@ void main()
 	
 	payload.isLight = mat.emissionPower > 0.0;
 	payload.emission = mat.emissionColor.xyz * mat.emissionPower;
+
+	payload.isGlass = mat.isGlass > 0;
+	payload.ior = mat.ior;
 
 	payload.instanceIndex = instanceID;
 	payload.primIndex = primID;

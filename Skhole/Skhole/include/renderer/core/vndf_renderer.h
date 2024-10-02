@@ -57,6 +57,9 @@ namespace Skhole
 
 			float emissionIntesity = 1.0;
 			vec4 emissionColor;
+
+			int transmission = 0;
+			float ior = 1.5;
 		};
 
 		const std::vector<ShrPtr<Parameter>> m_matParams =
@@ -66,8 +69,11 @@ namespace Skhole
 			MakeShr<ParamFloat>("Roughness", 0.0f),
 			MakeShr<ParamFloat>("Metallic", 0.0f),
 
-			MakeShr<ParamFloat>("EmissionIntensity", 0.0f),
+			MakeShr<ParamFloat>("EmissionIntensity", 0.0f, 0.0f, 10.0f),
 			MakeShr<ParamCol>("Emission", vec4(0.0)),
+
+			MakeShr<ParamBool>("IsGlass", false),
+			MakeShr<ParamFloat>("IOR", 1.5,0.0,2.0),
 		};
 
 		void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) override
@@ -80,6 +86,8 @@ namespace Skhole
 			materialDef->materialParameters[3]->setParamValue(material->metallic);
 			materialDef->materialParameters[4]->setParamValue(material->emissionIntensity);
 			materialDef->materialParameters[5]->setParamValue(material->emissionColor);
+			materialDef->materialParameters[6]->setParamValue(material->transmission > 0);
+			materialDef->materialParameters[7]->setParamValue(material->ior);
 		}
 
 		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
@@ -91,6 +99,8 @@ namespace Skhole
 			material.metallic = GetParamFloatValue(materialDef->materialParameters[3]);
 			material.emissionIntesity = GetParamFloatValue(materialDef->materialParameters[4]);
 			material.emissionColor = GetParamColValue(materialDef->materialParameters[5]);
+			material.transmission = GetParamBoolValue(materialDef->materialParameters[6]) ? 1 : 0;
+			material.ior = GetParamFloatValue(materialDef->materialParameters[7]);
 
 			return material;
 		}

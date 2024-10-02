@@ -166,37 +166,6 @@ vec2 RoughnessToAlpha(float roughness, float anistropic){
 	return alpha;
 }
 
-//vec3 GGX_Sample(vec3 wo, vec2 xi,GGX_Params param, inout vec3 wi, inout float pdf){
-//
-//	vec3 bsdf = vec3(0.0);
-//
-//	vec2 alpha = RoughnessToAlpha(param.roughness, param.anisotropic);
-//
-//	vec3 wm = SphericalVNDFSampling(xi,wo,alpha);
-////	vec3 wm = BoundVNDFSampling(xi,wo,alpha);
-//	wi = reflect(-wo, wm);
-//
-//	if(wi.y <= 0.0){
-//		pdf = 1.0;
-//		return bsdf;
-//	}
-//
-//	float ggx_D = GGX_D(wm, alpha.x, alpha.y);
-//	float ggx_G = GGX_G2(wo, wi, alpha.x, alpha.y);
-//	vec3 ggx_F = Shlick_Fresnel(param.F0, wo, wm);
-//
-//	float ggx_G1 = GGX_G1(wo, alpha.x, alpha.y);
-//	float jacobian = 0.25 / dot(wo, wm);
-//
-////	pdf = ggx_D * ggx_G1 * dot(wo,wm) * jacobian / abs(wo.y);
-////	pdf = GGXReflectionPDF(wo,wi,alpha); 
-//	pdf = VNDF(wo,wm,alpha) * jacobian;
-//
-//	bsdf = ggx_D * ggx_G * ggx_F / (4.0 * wo.y * wi.y);
-//	return bsdf;
-//}
-//
-
 vec3 GGX_Sample(vec3 wo, inout float pdf, GGX_Params param, vec2 xi){
 	vec2 alpha = RoughnessToAlpha(param.roughness, param.anisotropic);
 
@@ -236,7 +205,77 @@ float GGX_PDF(vec3 wo, vec3 wi,GGX_Params param){
 	return VNDF(wo,wm,alpha) * jacobian;
 }
 
+float norm2(vec3 v){
+	return v.x * v.x + v.y * v.y + v.z * v.z; 
+}
 
+bool Refract(vec3 v, vec3 n, float ior1, float ior2,inout vec3 r) {
+	vec3 t_h = -ior1 / ior2 * (v - dot(v, n) * n);
+
+	if (norm2(t_h) > 1.0) return false;
+
+	vec3 t_p = -sqrt(max(1.0 - norm2(t_h), 0.0)) * n;
+	r = t_h + t_p;
+
+	return true;
+}
+
+float ShlickFresnel(float no, float ni, vec3 w, vec3 n) {
+	float F0 = (no - ni) / (no + ni);
+	F0 = F0 * F0;
+
+	float term1 = 1.0 - dot(w, n);
+	return F0 + (1.0 - F0) * pow(term1, 5.0);
+}
+
+vec3 IdealRefractionBTDF_Sample(vec3 wo, inout vec3 wi, float ior, vec2 xi){
+		float ior_o, ior_i;
+		vec3 n;
+
+		vec3 lwo = wo;
+		vec3 lwi = vec3(0.0);
+
+		ior_o = 1.0;
+		ior_i = ior;
+
+		float _sign = 1.0;
+
+		n = vec3(0, 1, 0);
+
+		if (wo.y < 0.0) {
+			ior_o = ior;
+			ior_i = 1.0;
+			lwo.y = -lwo.y;
+			_sign = -1.0;
+		}
+
+		float fr = ShlickFresnel(ior_o, ior_i, lwo, n);
+
+		vec3 evalbsdf;
+
+		float p = xi.x;
+
+		if (p < fr) {
+			lwi = reflect(-lwo, n);
+			evalbsdf = vec3(1.0) / abs(lwi.y);
+		}
+		else {
+			vec3 t;
+			if (Refract(lwo, n, ior_o, ior_i, t)) {
+				lwi = t;
+				evalbsdf = vec3(1.0) / abs(lwi.y);
+			}
+			else {
+				lwi = reflect(-lwo, n);
+				evalbsdf = vec3(1.0) / abs(lwi.y);
+			}
+		}
+
+		wi = lwi;
+		wi.y = _sign * wi.y;
+
+		return evalbsdf;
+}
 
 
 

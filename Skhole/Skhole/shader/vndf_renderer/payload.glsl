@@ -14,6 +14,9 @@ struct PayLoadStruct{
     bool isLight;
     vec3 emission;
 
+    bool isGlass;
+    float ior;
+
     float t;
 
     uint instanceIndex;

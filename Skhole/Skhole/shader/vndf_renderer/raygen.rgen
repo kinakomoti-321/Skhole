@@ -58,25 +58,12 @@ float roughness;
 float anisotropic;
 
 bool isGlass;
+float ior;
 
 bool isSand;
 };
 
-vec3 BSDF_Evaluate(vec3 wo, vec3 wi, BSDFParameter param)
-{
-    GGX_Params ggxParam;
-    ggxParam.F0 = mix(vec3(0.04),param.basecolor, param.metallic);
-    ggxParam.roughness = param.roughness;
-    ggxParam.anisotropic = param.anisotropic;
-
-    vec3 diffuse = LambertBSDF_Evaluation(wo,wi,param.basecolor);
-    vec3 specular = GGX_Evaluation(wo,wi,ggxParam);
-
-    return (1.0f - param.metallic) * diffuse + specular;
-}
-
-float BSDF_PDF(vec3 wo, inout vec3 wi, BSDFParameter param)
-{
+float ComplexBSDF_PDF(vec3 wo, inout vec3 wi, BSDFParameter param){
     GGX_Params ggxParam;
     ggxParam.F0 = param.basecolor;
     ggxParam.roughness = param.roughness;
@@ -98,8 +85,19 @@ float BSDF_PDF(vec3 wo, inout vec3 wi, BSDFParameter param)
     return pdf;
 }
 
-vec3 BSDF_Sample(vec3 wo, inout vec3 wi, BSDFParameter param, inout float pdf)
-{
+vec3 ComplexBSDF_Evaluate(vec3 wo, vec3 wi, BSDFParameter param){
+    GGX_Params ggxParam;
+    ggxParam.F0 = mix(vec3(0.04),param.basecolor, param.metallic);
+    ggxParam.roughness = param.roughness;
+    ggxParam.anisotropic = param.anisotropic;
+
+    vec3 diffuse = LambertBSDF_Evaluation(wo,wi,param.basecolor);
+    vec3 specular = GGX_Evaluation(wo,wi,ggxParam);
+
+    return (1.0f - param.metallic) * diffuse + specular;
+}
+
+vec3 ComplexBSDF_Sample(vec3 wo, inout vec3 wi, BSDFParameter param, inout float pdf){
     float diffuseWeight = (1.0 - param.metallic);  
     float specularWeight = 1.0;
 
@@ -135,7 +133,41 @@ vec3 BSDF_Sample(vec3 wo, inout vec3 wi, BSDFParameter param, inout float pdf)
     
     pdf = dp * diffusePDF + sp * specularPDF;
 
-    return BSDF_Evaluate(wo,wi,param);
+    return ComplexBSDF_Evaluate(wo,wi,param);
+}
+
+vec3 BSDF_Evaluate(vec3 wo, vec3 wi, BSDFParameter param)
+{
+    if(param.isGlass){
+        return vec3(0.0);
+    }
+    else
+    {
+        return ComplexBSDF_Evaluate(wo,wi, param);
+    }
+}
+
+float BSDF_PDF(vec3 wo, inout vec3 wi, BSDFParameter param)
+{
+    if(param.isGlass){
+		return 0.0;
+	}
+	else
+	{
+        return ComplexBSDF_PDF(wo,wi,param);
+    }
+}
+
+vec3 BSDF_Sample(vec3 wo, inout vec3 wi, BSDFParameter param, inout float pdf)
+{
+    if(param.isGlass){
+        pdf = 1.0; 
+        return IdealRefractionBTDF_Sample(wo,wi,param.ior,rnd2());    
+	}
+	else
+	{
+        return ComplexBSDF_Sample(wo,wi,param,pdf);
+    }
 }
 
 void Raytrace(Ray ray, float minT, float maxT){
@@ -166,18 +198,6 @@ vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
         throughput /= p0;
 
         Raytrace(ray,0.001,10000.0);
-//		traceRayEXT(
-//			topLevelAS,
-//			gl_RayFlagsOpaqueEXT,
-//			0xff,       
-//			0, 0, 0,  
-//			ray.origin,
-//			0.001,     
-//			ray.direction,
-//			10000.0,   
-//			0       
-//		);
-//        
 
         if(payload.isMiss)
         {
@@ -220,6 +240,8 @@ vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
         bsdfParam.metallic = metallic;
         bsdfParam.roughness = roughness;
         bsdfParam.anisotropic = anisotropic;
+        bsdfParam.isGlass = payload.isGlass;
+        bsdfParam.ior = payload.ior;
 
         bsdf = BSDF_Sample(localwo,localwi,bsdfParam,pdf);
         {
@@ -247,8 +269,8 @@ vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
         float cosine = abs(localwi.y);
         throughput *= bsdf * cosine / pdf;
 
-        ray.origin = position;
         ray.direction = wi;
+        ray.origin = position + wi * 0.001;
 
     }
     
