@@ -127,6 +127,10 @@ namespace Skhole {
 
 	void VNDF_Renderer::FrameStart(float time)
 	{
+		m_scene->SetTransformMatrix(time);
+		m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
+		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+
 		auto& raytracerParam = m_scene->m_rendererParameter;
 
 		uint32_t width = m_renderImages.GetWidth();
@@ -150,11 +154,11 @@ namespace Skhole {
 		uniformBufferObject.cameraParam.v[0] = camera->GetYFov();
 		uniformBufferObject.cameraParam.v[1] = static_cast<float>(width) / static_cast<float>(height);
 
-		m_uniformBuffer.Update(*m_context.device);
+		uniformBufferObject.lightPosition = GetParamVecValue(raytracerParam->rendererParameters[1]);
+		uniformBufferObject.lightColor = GetParamColValue(raytracerParam->rendererParameters[2]);
+		uniformBufferObject.lightIntensity = GetParamFloatValue(raytracerParam->rendererParameters[3]);
 
-		m_scene->SetTransformMatrix(time);
-		m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
-		m_asManager.BuildTLAS(m_sceneBufferManager, m_context.physicalDevice, *m_context.device, *m_commandPool, m_context.queue);
+		m_uniformBuffer.Update(*m_context.device);
 	}
 
 	void VNDF_Renderer::FrameEnd()

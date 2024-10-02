@@ -73,7 +73,7 @@ namespace Skhole {
 		}
 
 		ShrPtr<Parameter> Copy() override {
-			return std::make_shared<ParameterFloat>(m_paramName, value);
+			return std::make_shared<ParameterFloat>(m_paramName, value,minValue,maxValue);
 		}
 
 		float value;

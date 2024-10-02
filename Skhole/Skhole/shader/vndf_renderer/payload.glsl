@@ -15,4 +15,7 @@ struct PayLoadStruct{
     vec3 emission;
 
     float t;
+
+    uint instanceIndex;
+    uint primIndex;
 };

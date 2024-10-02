@@ -110,6 +110,9 @@ namespace Skhole
 		const std::vector<ShrPtr<Parameter>> m_rendererExtensionParams =
 		{
 			MakeShr<ParamUint>("Ckeck Mode",0),
+			MakeShr<ParamVec>("PointLight",vec3(0.0,1.0,0.0)),
+			MakeShr<ParamCol>("PointLightColor",vec4(1.0,1.0,1.0,1.0)),
+			MakeShr<ParamFloat>("Intensity",1.0f,0.0,100.0),
 		};
 
 		ShrPtr<RendererParameter> GetRendererParameter() override {
@@ -144,6 +147,10 @@ namespace Skhole
 			vec3_layout cameraUp;
 			vec3_layout cameraRight;
 			vec4_layout cameraParam;
+
+			vec3_layout lightPosition;
+			vec4_layout lightColor;
+			float lightIntensity;
 		};
 
 	private:

@@ -114,4 +114,7 @@ void main()
 	
 	payload.isLight = mat.emissionPower > 0.0;
 	payload.emission = mat.emissionColor.xyz * mat.emissionPower;
+
+	payload.instanceIndex = instanceID;
+	payload.primIndex = primID;
 }
