@@ -54,6 +54,11 @@ namespace Skhole {
 				objIndex++;
 			}
 
+			// Connect Prim Id
+			for (auto& geometry : loadScene->m_geometies) {
+				CreateConnectPrimId(geometry);
+			}
+
 			return loadScene;
 		}
 

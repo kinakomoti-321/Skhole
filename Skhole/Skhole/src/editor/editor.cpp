@@ -661,6 +661,28 @@ namespace Skhole
 			ImGui::Text("Use Animation : %s", geometry->useAnimation ? "True" : "False");
 			ImGui::Unindent(20.0f);
 		}
+
+		if (ImGui::CollapsingHeader("Connect Prim ID")) {
+			ImGui::Indent(20.0f);
+			if (ImGui::Button("Create Connect Prim ID")) {
+				CreateConnectPrimId(geometry);
+			}
+			ImGui::Text("Use Connect Prim ID : %s", geometry->useConnectIndex ? "True" : "False");
+
+			if (ImGui::TreeNode("Connect Prim Id")) {
+				ImGui::Text("Connect Prim Id");
+				for (int i = 0; i < geometry->m_connectPrimId.size() / 3; i++)
+				{
+					int primIdx0 = geometry->m_connectPrimId[i * 3 + 0];
+					int primIdx1 = geometry->m_connectPrimId[i * 3 + 1];
+					int primIdx2 = geometry->m_connectPrimId[i * 3 + 2];
+
+					ImGui::Text("Prim Id %d : %d, %d, %d", i, primIdx0, primIdx1, primIdx2);
+				}
+				ImGui::TreePop();
+			}
+			ImGui::Unindent(20.0f);
+		}
 	}
 
 	void Editor::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {

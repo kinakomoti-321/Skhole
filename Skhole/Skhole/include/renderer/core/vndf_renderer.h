@@ -140,8 +140,6 @@ namespace Skhole
 			uint32_t width;
 			uint32_t height;
 
-			//uint32_t padding[2];
-
 			vec3_layout cameraPos;
 			vec3_layout cameraDir;
 			vec3_layout cameraUp;
