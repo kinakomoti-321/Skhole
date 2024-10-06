@@ -473,6 +473,8 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
     int solTypeIndex = GetSolTypeIndex(div_edge_index);
     vec2 divBary =  DivBaryCoord(solTypeIndex);
 
+    bool selectTest = false;
+
     for(int i = 0; i < iteration; i++){
         solTypeIndex = GetSolTypeIndex(div_edge_index);
         divBary =  DivBaryCoord(solTypeIndex);
@@ -491,6 +493,10 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
 
         SolveTriangle(prim1_v,prim1_n,L,P,div_sol_bary,div_sol_count,div_sol_sign,div_edge_index);
 
+        if(div_sol_count != 2){
+            break;  
+        }
+
         if(i == iteration - 1){
             vec2 end_bary = div_sol_bary[0];
             endP = (1.0 - end_bary.x - end_bary.y) * next_v[0] + end_bary.x * next_v[1] + end_bary.y * next_v[2];
@@ -500,15 +506,17 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
         if(div_sol_sign[0] * div_sol_sign[1] <= 0){
             next_v = prim1_v;
             next_n = prim1_n;
+            selectTest = true;
         }
         else{
             next_v = prim2_v;
             next_n = prim2_n;
+            selectTest = false;
         }
     }
 
 //    pos = endP;
-    pos = vec3(solTypeIndex,divBary.x, divBary.y);
+    pos = vec3(float(selectTest),0.0,0.0);
     norm = endN;
     //return true;
 
@@ -573,7 +581,7 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
     vec3 pos;
     vec3 norm;
 
-    bool check =  SearchCausticsPath(L,P,v,n,pos,norm,1);
+    bool check =  SearchCausticsPath(L,P,v,n,pos,norm,4);
 
 //    vec2 sol_bary[2];
 //    int sol_count;
@@ -596,10 +604,13 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
     ///DivideTest 
 //      testFrag = length(pos - vec3(2.10555,0.303932,-9.53674e-7)) < 0.01;
 //    testFrag = length(norm - vec3()) < 0.01;
+    
+    testFrag = pos.x > 0.0;
 
     if(testFrag){
 //       return (norm + 1.0) * 0.5;
 //        return vec3(pos.x == 1.0);
+        return vec3(1.0);
     }
     else{
         return vec3(0.0);
