@@ -158,6 +158,8 @@ namespace Skhole {
 		uniformBufferObject.lightColor = GetParamColValue(raytracerParam->rendererParameters[2]);
 		uniformBufferObject.lightIntensity = GetParamFloatValue(raytracerParam->rendererParameters[3]);
 
+		uniformBufferObject.debugValue = GetParamVecValue(raytracerParam->rendererParameters[4]);
+
 		m_uniformBuffer.Update(*m_context.device);
 	}
 

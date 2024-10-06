@@ -17,7 +17,6 @@ namespace Skhole {
 		m_commandPool = vkutils::createCommandPool(*m_context.device, m_context.queueIndex);
 		m_commandBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
 
-
 		m_renderImages.Initialize(desc.Width, desc.Height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
 		if (desc.useWindow) {
