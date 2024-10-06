@@ -317,6 +317,28 @@ void SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
     edge_index = edgeIndex;
 }
 
+int GetSolTypeIndex(int edgeIndex[2]){
+    int index_min = min(edgeIndex[0], edgeIndex[1]);
+    int index_max = max(edgeIndex[0], edgeIndex[1]);
+
+    return (index_min + index_max) - 1;
+}
+
+vec2 DivBaryCoord(int solTypeIndex){
+    vec2 bary;
+    if(solTypeIndex == 0){
+        bary = vec2(0.0,0.5);
+    }
+    else if(solTypeIndex == 1){
+        bary = vec2(0.5,0.5);
+    }
+    else if(solTypeIndex == 2){
+        bary = vec2(0.5,0.0);
+    }
+
+    return bary;
+}
+
 vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint intanceID,uint primID, float ior){
     
     return vec3(0.0);
