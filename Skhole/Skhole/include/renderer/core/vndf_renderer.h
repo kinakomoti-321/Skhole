@@ -174,17 +174,19 @@ namespace Skhole
 		}
 
 		void InitializeBiniding() override {
+			auto shaderFrag = vk::ShaderStageFlagBits::eClosestHitKHR | vk::ShaderStageFlagBits::eRaygenKHR;
+
 			std::vector<VkHelper::BindingLayoutElement> bindingLayout = {
 				{0, vk::DescriptorType::eAccelerationStructureKHR, 1, vk::ShaderStageFlagBits::eRaygenKHR},
 				{1, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
 				{2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eRaygenKHR},
 				{3, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eRaygenKHR },
-				{4, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-				{5, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-				{6, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-				{7, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-				{8, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
-				{9, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eClosestHitKHR},
+				{4, vk::DescriptorType::eStorageBuffer, 1, shaderFrag},
+				{5, vk::DescriptorType::eStorageBuffer, 1, shaderFrag},
+				{6, vk::DescriptorType::eStorageBuffer, 1, shaderFrag},
+				{7, vk::DescriptorType::eStorageBuffer, 1, shaderFrag},
+				{8, vk::DescriptorType::eStorageBuffer, 1, shaderFrag},
+				{9, vk::DescriptorType::eStorageBuffer, 1, shaderFrag},
 			};
 
 			m_bindingManager.SetBindingLayout(*m_context.device, bindingLayout, vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);

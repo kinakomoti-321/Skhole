@@ -42,7 +42,7 @@ namespace VkHelper {
 		uint32_t bindNunber;
 		vk::DescriptorType descriptorType;
 		uint32_t descriptorCount;
-		vk::ShaderStageFlagBits stageFlags;
+		vk::ShaderStageFlags stageFlags;
 	};
 
 	struct BindingManager {

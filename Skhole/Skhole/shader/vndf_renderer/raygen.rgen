@@ -41,6 +41,68 @@ layout(binding = 3, scalar) uniform UBO {
 
 } ubo;
 
+struct VertexData{
+	vec4 position;
+	vec4 normal;
+	vec2 texcoord0;
+	vec2 texcoord1;
+	vec4 color;
+};
+
+struct GeometryData{
+	int vertexOffset;
+	int indexOffset;
+};
+
+struct InstanceData{
+	uint geometryIndex;
+
+	vec4 transform0;
+	vec4 transform1;
+	vec4 transform2;
+
+	vec4 normalTransform0;
+	vec4 normalTransform1;
+	vec4 normalTransform2;
+};
+
+struct Material{
+	vec4 baseColor;
+	float anisotropic;
+	float roughness;
+	float metallic;
+
+	float emissionPower;
+	vec4 emissionColor;
+
+	int isGlass;
+	float ior;
+};
+
+layout(std430, binding = 4) buffer readonly vertexData{
+	VertexData vertex[];
+};
+
+layout(std430, binding = 5) buffer readonly indexData{
+	uint index[];
+};
+
+layout(scalar, binding = 6) buffer readonly geometryData{
+	GeometryData geometry[];
+};
+
+layout(scalar, binding = 7) buffer readonly instanceData{
+	InstanceData instance[];
+};
+
+layout(scalar,binding = 8) buffer readonly materialData{
+	Material materials[];
+};
+
+layout(std430, binding = 9) buffer readonly matIndexData{
+	uint matIndex[];
+};
+
 struct Ray{
     vec3 origin;
     vec3 direction;
@@ -339,8 +401,119 @@ vec2 DivBaryCoord(int solTypeIndex){
     return bary;
 }
 
+void DivideTriangle(vec3 v[3], vec3 n[3], vec2 bary, int solTypeIndex,inout vec3 prim1_v[3],inout vec3 prim1_n[3],inout vec3 prim2_v[3],inout vec3 prim2_n[3]){
+    vec3 div_v = (1.0 - bary.x - bary.y) * v[0] + bary.x * v[1] + bary.y * v[2];
+    vec3 div_n = (1.0 - bary.x - bary.y) * n[0] + bary.x * n[1] + bary.y * n[2];
+
+    int index[3];
+    if(solTypeIndex == 0){
+        index[0] = 1;
+        index[1] = 2;
+        index[2] = 0;
+    }
+    else if(solTypeIndex == 1){
+        index[0] = 0;
+        index[1] = 1;
+        index[2] = 2;
+    }
+    else if(solTypeIndex == 2){
+        index[0] = 2;
+        index[1] = 0;
+        index[2] = 1;
+    }
+
+    prim1_v[0] = v[index[0]];
+    prim1_v[1] = v[index[1]];
+    prim1_v[2] = div_v;
+    prim1_n[0] = n[index[0]];
+    prim1_n[1] = n[index[1]];
+    prim1_n[2] = div_n;
+
+    prim2_v[0] = v[index[0]];
+    prim2_v[1] = div_v;
+    prim2_v[2] = v[index[2]];
+    prim2_n[0] = n[index[0]];
+    prim2_n[1] = div_n;
+    prim2_n[2] = n[index[2]];
+}
+
+bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, inout vec3 norm){
+    vec2 sol_bary[2];
+    int sol_count;
+    float sol_sign[2];
+    int edge_index[2];
+
+    SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
+    if(sol_count != 2) return false;
+    if(sol_sign[0] * sol_sign[1] > 0) return false;
+
+    //Divide
+    int iteration = 10;
+
+    vec3 next_v[3];
+    next_v = v;
+    vec3 next_n[3];
+    next_n = n;
+
+    vec3 endP;
+    vec3 endN;
+
+    int div_edge_index[] = edge_index;
+
+    for(int i = 0; i < iteration; i++){
+        int solTypeIndex = GetSolTypeIndex(div_edge_index);
+        vec2 divBary =  DivBaryCoord(solTypeIndex);
+
+        vec3 prim1_v[3];
+        vec3 prim1_n[3];
+
+        vec3 prim2_v[3];
+        vec3 prim2_n[3];
+
+        DivideTriangle(next_v,next_n,divBary,solTypeIndex,prim1_v,prim1_n,prim2_v,prim2_n);
+
+        vec2 div_sol_bary[2];
+        int div_sol_count;
+        float div_sol_sign[2];
+
+        SolveTriangle(prim1_v,prim1_n,L,P,div_sol_bary,div_sol_count,div_sol_sign,div_edge_index);
+
+        if(i == iteration - 1){
+            vec2 end_bary = div_sol_bary[0];
+            endP = (1.0 - end_bary.x - end_bary.y) * next_v[0] + end_bary.x * next_v[1] + end_bary.y * next_v[2];
+            endN = (1.0 - end_bary.x - end_bary.y) * next_n[0] + end_bary.x * next_n[1] + end_bary.y * next_n[2];
+        }
+
+        if(div_sol_sign[0] * div_sol_sign[1] <= 0){
+            next_v = prim1_v;
+            next_n = prim1_n;
+        }
+        else{
+            next_v = prim2_v;
+            next_n = prim2_n;
+        }
+    }
+
+    pos = endP;
+    norm = endN;
+}
+
+
 vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint intanceID,uint primID, float ior){
-    
+
+//    vec3 v[3];
+//    vec3 n[3];
+//
+//    vec3 pos;
+//    vec3 norm;
+//
+//    vec3 L = LightPos;
+//    vec3 P = Point;
+//
+//    SearchCausticsPath(L,P,v,n,pos,norm);
+//    
+
+
     return vec3(0.0);
 }
 
