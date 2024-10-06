@@ -19,6 +19,6 @@ struct PayLoadStruct{
 
     float t;
 
-    uint instanceIndex;
-    uint primIndex;
+    uint instanceID;
+    uint primID;
 };

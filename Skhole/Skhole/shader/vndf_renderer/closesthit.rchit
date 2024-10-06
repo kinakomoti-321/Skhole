@@ -71,24 +71,42 @@ layout(std430, binding = 9) buffer readonly matIndexData{
 
 hitAttributeEXT vec3 attribs;
 
-void main()
+void GetTrianlge(uint instanceID, uint primID,inout VertexData v[3])
 {
-	uint instanceID = gl_InstanceID;
 	InstanceData inst = instance[instanceID];
 	GeometryData geom = geometry[inst.geometryIndex];
 
-	uint primID = gl_PrimitiveID;
 	uint index0 = index[geom.indexOffset + primID * 3 + 0];
 	uint index1 = index[geom.indexOffset + primID * 3 + 1];
 	uint index2 = index[geom.indexOffset + primID * 3 + 2];
 
-	VertexData v0 = vertex[geom.vertexOffset + index0];
-	VertexData v1 = vertex[geom.vertexOffset + index1];
-	VertexData v2 = vertex[geom.vertexOffset + index2];
-		
-	vec3 baryCoords = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
+	v[0] = vertex[geom.vertexOffset + index0];
+	v[1] = vertex[geom.vertexOffset + index1];
+	v[2] = vertex[geom.vertexOffset + index2];
+}
 
-	vec4 normal = (1.0 - attribs.x - attribs.y) * v0.normal + attribs.x * v1.normal + attribs.y * v2.normal;
+vec3 BarycetricInterpolation(vec2 bary,vec3 a, vec3 b, vec3 c)
+{
+	return (1.0 - bary.x - bary.y) * a + bary.x * b + bary.y * c;
+}
+
+void main()
+{
+	uint instanceID = gl_InstanceID;
+	uint primID = gl_PrimitiveID;
+
+	InstanceData inst = instance[instanceID];
+	GeometryData geom = geometry[inst.geometryIndex];
+
+	uint index0 = index[geom.indexOffset + primID * 3 + 0];
+	uint index1 = index[geom.indexOffset + primID * 3 + 1];
+	uint index2 = index[geom.indexOffset + primID * 3 + 2];
+
+	VertexData v[3];
+	GetTrianlge(instanceID, primID, v);
+		
+	vec4 normal;
+	normal.xyz = BarycetricInterpolation(attribs.xy, v[0].normal.xyz, v[1].normal.xyz, v[2].normal.xyz);
 	normal.w = 0.0;
 
 	mat4 normalTransform = mat4(
@@ -121,6 +139,6 @@ void main()
 	payload.isGlass = mat.isGlass > 0;
 	payload.ior = mat.ior;
 
-	payload.instanceIndex = instanceID;
-	payload.primIndex = primID;
+	payload.instanceID = instanceID;
+	payload.primID = primID;
 }
