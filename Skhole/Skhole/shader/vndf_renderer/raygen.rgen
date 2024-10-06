@@ -306,9 +306,10 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
     vec3 PV0 = v0 - P;
 
     mat3 mQ = mat3(cross(PL,V0V1), cross(PL,V0V2), cross(PL,PV0));
-//    mQ = transpose(mq);
+//    mQ = transpose(mQ);
 
     mat3 mCoplaner = mN * mQ;
+    mCoplaner = transpose(mCoplaner);
 
     // A a^2 + B b^2 + C ab + D a + E b + F = 0
     float A = mCoplaner[0][0];
@@ -318,11 +319,10 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
     float E = mCoplaner[1][2] + mCoplaner[2][1];
     float F = mCoplaner[2][2];
 
-   // if(Close(A,-8.8855,0.01)) return true;
-    if(Close(B,-4.97405,0.01)) return true;
-    //if(Close(A,-8.8855,0.01)) return true;
-    //if(Close(A,-8.8855,0.01)) return true;
-    else return false;
+//    if(Close(A,-8.8855,0.01)) return true;
+//    if(Close(B, ubo.debugValue.y,0.01)) return true;
+//    if(Close(C,-15.8589,0.01)) return true;
+//    else return false;
 
     int count = 0;
     vec2 sol[2];
@@ -386,6 +386,8 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
     sol_count = count;
     sol_sign = tanSign;
     edge_index = edgeIndex;
+
+    return true;
 }
 
 int GetSolTypeIndex(int edgeIndex[2]){
@@ -578,8 +580,15 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
 //    mat3 delta = mat3(vec3(1.0),vec3(0.0),vec3(0.0));
 //    testFrag = (delta[0].x + delta[0].y + delta[0].z) == 3;
 
+    testFrag = (length(sol_bary[0] - vec2(0.435406,0.0)) < 0.001) || length(sol_bary[1] - vec2(0.0,0.513896)) < 0.001;
+
     if(testFrag){
-        return vec3(1.0);    
+        if(sol_sign[1] > 0.0){
+            return vec3(1.0,0.0,0.0);
+        }
+        else{
+            return vec3(0.0,0.0,1.0);    
+        }
     }
     else{
         return vec3(0.0);
