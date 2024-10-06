@@ -2,6 +2,7 @@
 #extension GL_EXT_ray_tracing : enable
 #extension GL_ARB_shading_language_include : require
 #extension GL_EXT_scalar_block_layout : enable
+#extension GL_EXT_debug_printf : enable
 
 #define PI 3.14159265359
 
@@ -566,7 +567,7 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
 //    n[0] = (normalTransform * vert[0].normal).xyz;
 //    n[1] = (normalTransform * vert[1].normal).xyz;
 //    n[2] = (normalTransform * vert[2].normal).xyz;
-
+//
     v[0] = vec3(-2.10556, -0.124393, -2.10556);
     v[1] = vec3(2.10556, -0.0734614, -2.100556);
     v[2] = vec3(2.10556, 0.681325, 2.10555);
@@ -581,7 +582,7 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
     vec3 pos;
     vec3 norm;
 
-    bool check =  SearchCausticsPath(L,P,v,n,pos,norm,4);
+    bool check =  SearchCausticsPath(L,P,v,n,pos,norm,8);
 
 //    vec2 sol_bary[2];
 //    int sol_count;
@@ -605,12 +606,15 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
 //      testFrag = length(pos - vec3(2.10555,0.303932,-9.53674e-7)) < 0.01;
 //    testFrag = length(norm - vec3()) < 0.01;
     
-    testFrag = pos.x > 0.0;
+//    testFrag = pos.x > 0.0;
+
+    vec3 wo = normalize(P - pos);
+    vec3 wi = normalize(L - pos);
+    vec3 woRef = refract(-wo,norm, 1.33 / 1.0);
 
     if(testFrag){
-//       return (norm + 1.0) * 0.5;
-//        return vec3(pos.x == 1.0);
-        return vec3(1.0);
+        
+        return pos;
     }
     else{
         return vec3(0.0);
@@ -623,6 +627,7 @@ vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
     vec3 LTE = vec3(0.0);
     vec3 throughput = vec3(1.0);
     float p0 = 1.0;
+
 
     for(int depth = 0; depth < 5; depth++){
         p0 = min(max(max(throughput.x,throughput.y),throughput.z),1.0); 

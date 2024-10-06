@@ -264,7 +264,7 @@ namespace Skhole
 		std::vector<const char*> m_layer = {
 
 #ifdef _DEBUG
-			"VK_LAYER_KHRONOS_validation"
+			"VK_LAYER_KHRONOS_validation",
 #endif
 
 		};
