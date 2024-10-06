@@ -287,7 +287,6 @@ vec2 ConvertBarycetric(float a, int index){
     return barycentric;
 }
 
-#define Close(a,b,epsilon) (abs(a - b) < epsilon)
 bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],inout int sol_count,inout float sol_sign[2],inout int edge_index[2]){
     vec3 v0 = v[0];
     vec3 v1 = v[1];
@@ -448,7 +447,7 @@ void DivideTriangle(vec3 v[3], vec3 n[3], vec2 bary, int solTypeIndex,inout vec3
     prim2_n[2] = n[index[2]];
 }
 
-bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, inout vec3 norm){
+bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, inout vec3 norm, int iteration){
     vec2 sol_bary[2];
     int sol_count;
     float sol_sign[2];
@@ -456,11 +455,10 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
 
     SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
 
-    if(sol_count != 2) return false;
-    if(sol_sign[0] * sol_sign[1] > 0) return false;
-
+//    if(sol_count != 2) return false;
+//    if(sol_sign[0] * sol_sign[1] > 0) return false;
+//
     //Divide
-    int iteration = 10;
 
     vec3 next_v[3];
     next_v = v;
@@ -470,11 +468,14 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
     vec3 endP;
     vec3 endN;
 
-    int div_edge_index[] = edge_index;
+    int div_edge_index[2] = edge_index;
+
+    int solTypeIndex = GetSolTypeIndex(div_edge_index);
+    vec2 divBary =  DivBaryCoord(solTypeIndex);
 
     for(int i = 0; i < iteration; i++){
-        int solTypeIndex = GetSolTypeIndex(div_edge_index);
-        vec2 divBary =  DivBaryCoord(solTypeIndex);
+        solTypeIndex = GetSolTypeIndex(div_edge_index);
+        divBary =  DivBaryCoord(solTypeIndex);
 
         vec3 prim1_v[3];
         vec3 prim1_n[3];
@@ -506,8 +507,12 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
         }
     }
 
-    pos = endP;
+//    pos = endP;
+    pos = vec3(solTypeIndex,divBary.x, divBary.y);
     norm = endN;
+    //return true;
+
+    // Test
     return true;
 }
 
@@ -565,30 +570,36 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
     L = vec3(-0.3,2,-2);
     P = vec3(0,-1,0);
 
-//    vec3 pos;
-//    vec3 norm;
+    vec3 pos;
+    vec3 norm;
+
+    bool check =  SearchCausticsPath(L,P,v,n,pos,norm,1);
+
+//    vec2 sol_bary[2];
+//    int sol_count;
+//    float sol_sign[2];
+//    int edge_index[2];
 //
-//    bool check =  SearchCausticsPath(L,P,v,n,pos,norm);
-
-    vec2 sol_bary[2];
-    int sol_count;
-    float sol_sign[2];
-    int edge_index[2];
-
-    bool testFrag = SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
+//    bool testFrag = SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
+//
 
 //    mat3 delta = mat3(vec3(1.0),vec3(0.0),vec3(0.0));
 //    testFrag = (delta[0].x + delta[0].y + delta[0].z) == 3;
 
-    testFrag = (length(sol_bary[0] - vec2(0.435406,0.0)) < 0.001) || length(sol_bary[1] - vec2(0.0,0.513896)) < 0.001;
+//    testFrag = (length(sol_bary[0] - vec2(0.435406,0.0)) < 0.001) || length(sol_bary[1] - vec2(0.0,0.513896)) < 0.001;
+    
+    bool testFrag = check;
+//    testFrag = length(pos - vec3(-0.136121, 0.113884, -0.909278)) < 0.01;
+//    testFrag = length(pos - vec3(-0.332737,-0.102952,-2.10556)) < 0.01;  Iteration = 1;
+//    testFrag = length(pos - vec3(-0.165324,0.072954,-1.13544)) < 0.01; // Iteration = 2;
+
+    ///DivideTest 
+//      testFrag = length(pos - vec3(2.10555,0.303932,-9.53674e-7)) < 0.01;
+//    testFrag = length(norm - vec3()) < 0.01;
 
     if(testFrag){
-        if(sol_sign[1] > 0.0){
-            return vec3(1.0,0.0,0.0);
-        }
-        else{
-            return vec3(0.0,0.0,1.0);    
-        }
+//       return (norm + 1.0) * 0.5;
+//        return vec3(pos.x == 1.0);
     }
     else{
         return vec3(0.0);

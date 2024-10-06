@@ -25,3 +25,7 @@ vec3 localToWorld(const vec3 v, const vec3 lx, const vec3 ly,
                  v.x * lx.y + v.y * ly.y + v.z * lz.y,
                  v.x * lx.z + v.y * ly.z + v.z * lz.z);
 }
+
+bool Close(vec3 a, vec3 b, float epsilon){
+	return length(a - b) < epsilon; 
+}
