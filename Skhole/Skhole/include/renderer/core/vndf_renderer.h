@@ -120,9 +120,9 @@ namespace Skhole
 		const std::vector<ShrPtr<Parameter>> m_rendererExtensionParams =
 		{
 			MakeShr<ParamUint>("Ckeck Mode",0),
-			MakeShr<ParamVec>("PointLight",vec3(0.0,1.0,0.0)),
+			MakeShr<ParamVec>("PointLight",vec3(0.0,10.0,0.0)),
 			MakeShr<ParamCol>("PointLightColor",vec4(1.0,1.0,1.0,1.0)),
-			MakeShr<ParamFloat>("Intensity",1.0f,0.0,100.0),
+			MakeShr<ParamFloat>("Intensity",10.0f,0.0,100.0),
 		};
 
 		ShrPtr<RendererParameter> GetRendererParameter() override {

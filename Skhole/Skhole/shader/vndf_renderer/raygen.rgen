@@ -247,7 +247,7 @@ void Raytrace(Ray ray, float minT, float maxT){
 }
 
 // A x^2 + B x + C = 0
-int QuadricSolver(float A, float B, float C, float sol1, float sol2){
+int QuadricSolver(float A, float B, float C,inout float sol1,inout float sol2){
     int solCount = 0;
     float D = B * B - 4.0 * A * C;
     if(D < 0){
@@ -286,7 +286,7 @@ vec2 ConvertBarycetric(float a, int index){
     return barycentric;
 }
 
-void SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2], int sol_count, float sol_sign[2], int edge_index[2]){
+void SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],inout int sol_count,inout float sol_sign[2],inout int edge_index[2]){
     vec3 v0 = v[0];
     vec3 v1 = v[1];
     vec3 v2 = v[2];
@@ -444,11 +444,12 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
     int edge_index[2];
 
     SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
+
     if(sol_count != 2) return false;
     if(sol_sign[0] * sol_sign[1] > 0) return false;
 
     //Divide
-    int iteration = 10;
+    int iteration = 1;
 
     vec3 next_v[3];
     next_v = v;
@@ -496,25 +497,63 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
 
     pos = endP;
     norm = endN;
+    return true;
 }
 
 
-vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint intanceID,uint primID, float ior){
+vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID, float ior){
 
-//    vec3 v[3];
-//    vec3 n[3];
-//
-//    vec3 pos;
-//    vec3 norm;
-//
-//    vec3 L = LightPos;
-//    vec3 P = Point;
-//
-//    SearchCausticsPath(L,P,v,n,pos,norm);
-//    
+	InstanceData inst = instance[instanceID];
+	GeometryData geom = geometry[inst.geometryIndex];
 
+	uint index0 = index[geom.indexOffset + primID * 3 + 0];
+	uint index1 = index[geom.indexOffset + primID * 3 + 1];
+	uint index2 = index[geom.indexOffset + primID * 3 + 2];
 
-    return vec3(0.0);
+	VertexData vert[3];
+	vert[0] = vertex[geom.vertexOffset + index0];
+	vert[1] = vertex[geom.vertexOffset + index1];
+	vert[2] = vertex[geom.vertexOffset + index2];
+
+    mat4 transform = mat4(
+		inst.transform0.x, inst.transform1.x, inst.transform2.x, 0.0,
+		inst.transform0.y, inst.transform1.y, inst.transform2.y, 0.0,
+		inst.transform0.z, inst.transform1.z, inst.transform2.z, 0.0,
+		inst.transform0.w, inst.transform1.w, inst.transform2.w, 1.0
+	);
+
+	mat4 normalTransform = mat4(
+		inst.normalTransform0.x, inst.normalTransform1.x, inst.normalTransform2.x, 0.0,
+		inst.normalTransform0.y, inst.normalTransform1.y, inst.normalTransform2.y, 0.0,
+		inst.normalTransform0.z, inst.normalTransform1.z, inst.normalTransform2.z, 0.0,
+		inst.normalTransform0.w, inst.normalTransform1.w, inst.normalTransform2.w, 1.0
+	);
+
+    vec3 v[3];
+    vec3 n[3];
+
+    v[0] = (transform * vert[0].position).xyz;
+    v[1] = (transform * vert[1].position).xyz;
+    v[2] = (transform * vert[2].position).xyz;
+
+    n[0] = (normalTransform * vert[0].normal).xyz;
+    n[1] = (normalTransform * vert[1].normal).xyz;
+    n[2] = (normalTransform * vert[2].normal).xyz;
+
+    vec3 pos;
+    vec3 norm;
+
+    vec3 L = LightPos;
+    vec3 P = Point;
+
+    bool check =  SearchCausticsPath(L,P,v,n,pos,norm);
+
+    if(check){
+        return vec3(1.0);
+    }
+    else{
+		return vec3(0.0);
+	}
 }
 
 vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
