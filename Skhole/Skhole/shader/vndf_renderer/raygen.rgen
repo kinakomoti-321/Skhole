@@ -362,6 +362,7 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
                                 0.5 * C, B, 0.5 * E,
                                 0.5 * D, 0.5 * E, F);
 
+    vec3 wi_refs[2];                      
     for(int i = 0; i < 2; i++){
         vec3 solusionVector = vec3(sol[i].x,sol[i].y,1);
         vec3 curveBinormal = mConicMatrix * solusionVector;
@@ -370,14 +371,25 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
         vec3 nM = (1.0 - sol[i].x - sol[i].y) * n0 + sol[i].x * n1 + sol[i].y * n2;
 
         vec3 wo = normalize(P - pM);
-        vec3 wi_ref = refract(-wo,nM, 1.33 / 1.0);
+        vec3 wi_ref = refract(wo,nM, 1.33 / 1.0);
         vec3 wi = normalize(L - pM);
 
         tangent[i] = normalize(vec3(-curveBinormal.y,curveBinormal.x,0)); 
+
+        wi_refs[i] = nM;
         
         float s = sign(dot(tangent[i],cross(wi_ref,wi)));
         tanSign[i] = s; 
     }
+
+//    debugPrintfEXT("tangent0: (%f,%f),tangent1: (%f,%f) \n", tangent[0].x,tangent[0].y,tangent[1].x,tangent[1].y);
+//    debugPrintfEXT("sign : (%f,%f) \n", tanSign[0],tanSign[1]);
+//    debugPrintfEXT("wi_refs : (%f,%f,%f), (%f,%f,%f) \n", wi_refs[0].x,wi_refs[0].y, wi_refs[0].z, wi_refs[1].x,wi_refs[1].y, wi_refs[1].z);
+//    debugPrintfEXT("wo : (%f,%f,%f), (%f,%f,%f) \n", wi_refs[0].x,wi_refs[0].y, wi_refs[0].z, wi_refs[1].x,wi_refs[1].y, wi_refs[1].z);
+
+    vec3 wo = normalize(vec3(1,0.2,0));
+    vec3 ref = refract(-wo,vec3(0,1,0),1.33 / 1.0);
+    debugPrintfEXT("ref : (%f,%f,%f) \n", ref.x,ref.y,ref.z);
 
     sol_bary = sol;
     sol_count = count;
@@ -392,6 +404,7 @@ int GetSolTypeIndex(int edgeIndex[2]){
     int index_max = max(edgeIndex[0], edgeIndex[1]);
 
     return (index_min + index_max) - 1;
+
 }
 
 vec2 DivBaryCoord(int solTypeIndex){
@@ -496,12 +509,14 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
         }
 
         if(i == iteration - 1){
-            debugPrintfEXT("inter : %d, v0 :(%f,%f,%f),v1 :(%f,%f,%f),v2 :(%f,%f,%f) \n", i+1, next_v[0].x, next_v[0].y, next_v[0].z, next_v[1].x, next_v[1].y, next_v[1].z, next_v[2].x, next_v[2].y, next_v[2].z);
+//            debugPrintfEXT("inter : %d, v0 :(%f,%f,%f),v1 :(%f,%f,%f),v2 :(%f,%f,%f) \n", i+1, next_v[0].x, next_v[0].y, next_v[0].z, next_v[1].x, next_v[1].y, next_v[1].z, next_v[2].x, next_v[2].y, next_v[2].z);
 
             vec2 end_bary = div_sol_bary[0];
             endP = (1.0 - end_bary.x - end_bary.y) * next_v[0] + end_bary.x * next_v[1] + end_bary.y * next_v[2];
             endN = (1.0 - end_bary.x - end_bary.y) * next_n[0] + end_bary.x * next_n[1] + end_bary.y * next_n[2];
         }
+
+//        debugPrintfEXT("div_sol_sign, (%f,%f) \n ", div_sol_sign[0],div_sol_sign[1]);
 
         if(div_sol_sign[0] * div_sol_sign[1] <= 0){
             next_v = prim1_v;
@@ -583,18 +598,18 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
 
     int iteration = 4;
 
-    bool check =  SearchCausticsPath(L,P,v,n,pos,norm,iteration);
+//    bool check =  SearchCausticsPath(L,P,v,n,pos,norm,iteration);
 
-//    vec2 sol_bary[2];
-//    int sol_count;
-//    float sol_sign[2];
-//    int edge_index[2];
-//
-//    bool testFrag = SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
-//
+    vec2 sol_bary[2];
+    int sol_count;
+    float sol_sign[2];
+    int edge_index[2];
+
+    bool testFrag = SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
+
 
 //    debugPrintfEXT("iter: %d, pos(%f,%f,%f) \n", iteration, pos.x, pos.y, pos.z);
-    bool testFrag = check;
+//    bool testFrag = check;
 
     vec3 wo = normalize(P - pos);
     vec3 wi = normalize(L - pos);
