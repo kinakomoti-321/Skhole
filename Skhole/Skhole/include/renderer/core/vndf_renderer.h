@@ -127,6 +127,7 @@ namespace Skhole
 			MakeShr<ParamVec>("Atlook",vec3(0.0)),
 			MakeShr<ParamFloat>("F Value",1,0,10.0),
 			MakeShr<ParamFloat>("Forcus Length",1,0.0,10.0),
+			MakeShr<ParamBool>("UseLens",false),
 		};
 
 		ShrPtr<RendererParameter> GetRendererParameter() override {
@@ -168,6 +169,7 @@ namespace Skhole
 			vec3_layout atlook;
 			float fValue;	
 			float forcusLength;
+			int useLens;
 		};
 
 	private:

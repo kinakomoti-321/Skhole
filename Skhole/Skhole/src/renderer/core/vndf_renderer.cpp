@@ -162,6 +162,7 @@ namespace Skhole {
 		uniformBufferObject.atlook = GetParamVecValue(raytracerParam->rendererParameters[5]);
 		uniformBufferObject.fValue = GetParamFloatValue(raytracerParam->rendererParameters[6]);
 		uniformBufferObject.forcusLength = GetParamFloatValue(raytracerParam->rendererParameters[7]);
+		uniformBufferObject.useLens = GetParamBoolValue(raytracerParam->rendererParameters[8]);
 
 		m_uniformBuffer.Update(*m_context.device);
 	}
