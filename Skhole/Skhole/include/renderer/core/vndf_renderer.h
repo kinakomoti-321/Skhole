@@ -123,7 +123,10 @@ namespace Skhole
 			MakeShr<ParamVec>("PointLight",vec3(0.0,10.0,0.0)),
 			MakeShr<ParamCol>("PointLightColor",vec4(1.0,1.0,1.0,1.0)),
 			MakeShr<ParamFloat>("Intensity",10.0f,0.0,100.0),
-			MakeShr<ParamVec>("Debug Value", vec3(0.0,0.0,0.0))
+			MakeShr<ParamVec>("Debug Value", vec3(0.0,0.0,0.0)),
+			MakeShr<ParamVec>("Atlook",vec3(0.0)),
+			MakeShr<ParamFloat>("F Value",1,0,10.0),
+			MakeShr<ParamFloat>("Forcus Length",1,0.0,10.0),
 		};
 
 		ShrPtr<RendererParameter> GetRendererParameter() override {
@@ -162,6 +165,9 @@ namespace Skhole
 			float lightIntensity;
 
 			vec3_layout debugValue;
+			vec3_layout atlook;
+			float fValue;	
+			float forcusLength;
 		};
 
 	private:
