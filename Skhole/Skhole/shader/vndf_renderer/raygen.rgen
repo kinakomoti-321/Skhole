@@ -433,7 +433,6 @@ int GetSolTypeIndex(int edgeIndex[2]){
     int index_max = max(edgeIndex[0], edgeIndex[1]);
 
     return (index_min + index_max) - 1;
-
 }
 
 vec2 DivBaryCoord(int solTypeIndex){
@@ -605,19 +604,10 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
     n[2] = (normalTransform * vert[2].normal).xyz;
 
 
-    v[0] = vec3(-2.10556, -0.124393, -2.10556);
-    v[1] = vec3(2.10556, -0.0734614, -2.100556);
-    v[2] = vec3(2.10556, 0.681325, 2.10555);
-
-    n[0] = vec3(-0.0744765, 0.996484, 0.0383678);
-    n[1] = vec3(0.0650443, 0.993437, -0.0940823);
-    n[2] = vec3(0.000121576, 0.998528, -0.0542396);
-
-//
 // IterationTest
-    L = vec3(-0.3,2,-2);
-    P = vec3(0,-1,0);
-
+//    L = vec3(-0.3,2,-2);
+//    P = vec3(0,-1,0);
+//
     vec3 pos;
     vec3 norm;
 
@@ -643,7 +633,7 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
 //
 //    bool testFrag = SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
 //
-    debugPrintfEXT("iter: %d, pos(%f,%f,%f) \n", iteration, pos.x, pos.y, pos.z);
+//    debugPrintfEXT("iter: %d, pos(%f,%f,%f) \n", iteration, pos.x, pos.y, pos.z);
 //    debugPrintfEXT("bary : (%f, %f), (%f, %f), sign : (%f, %f) \n", sol_bary[0].x,sol_bary[0].y, sol_bary[1].x,sol_bary[1].y, sol_sign[0], sol_sign[1]);
 
     vec3 wo = normalize(P - pos);
@@ -653,7 +643,9 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
     testFrag = dot(wi,woRef) < 0.01;
 
     if(testFrag){
-        return vec3(1.0);
+        float d = length(L - pos);
+        float fresnel = ShlickFresnel(1.33,1.0,wi,norm);
+        return vec3(fresnel) / (d * d);
     }
     else{
         return vec3(0.0);
