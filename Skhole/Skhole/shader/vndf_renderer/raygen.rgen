@@ -85,6 +85,8 @@ struct Material{
 
 	int isGlass;
 	float ior;
+
+    int useFastMultiple;
 };
 
 layout(std430, binding = 4) buffer readonly vertexData{
@@ -153,6 +155,8 @@ bool isGlass;
 float ior;
 
 bool isSand;
+
+bool useFastMultiple;
 };
 
 float ComplexBSDF_PDF(vec3 wo, inout vec3 wi, BSDFParameter param){
@@ -182,6 +186,7 @@ vec3 ComplexBSDF_Evaluate(vec3 wo, vec3 wi, BSDFParameter param){
     ggxParam.F0 = mix(vec3(0.04),param.basecolor, param.metallic);
     ggxParam.roughness = param.roughness;
     ggxParam.anisotropic = param.anisotropic;
+    ggxParam.useFastMultiple = param.useFastMultiple;
 
     vec3 diffuse = LambertBSDF_Evaluation(wo,wi,param.basecolor);
     vec3 specular = GGX_Evaluation(wo,wi,ggxParam);
@@ -207,6 +212,7 @@ vec3 ComplexBSDF_Sample(vec3 wo, inout vec3 wi, BSDFParameter param, inout float
     ggxParam.F0 = param.basecolor;
     ggxParam.roughness = param.roughness;
     ggxParam.anisotropic = param.anisotropic;
+    ggxParam.useFastMultiple = param.useFastMultiple;
 
     vec2 xi = rnd2();
     if(sampleSelectP <= diffusePDF){
@@ -740,6 +746,7 @@ vec3 Pathtrace(Ray ray, inout vec3 fBaseColor, inout vec3 fNormal)
         bsdfParam.anisotropic = anisotropic;
         bsdfParam.isGlass = payload.isGlass;
         bsdfParam.ior = payload.ior;
+        bsdfParam.useFastMultiple = payload.useFastMultiple;
 
         bsdf = BSDF_Sample(localwo,localwi,bsdfParam,pdf);
         {

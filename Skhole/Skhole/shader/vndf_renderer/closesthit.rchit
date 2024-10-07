@@ -43,6 +43,8 @@ struct Material{
 
 	int isGlass;
 	float ior;
+
+	int useFastMultiple;
 };
 
 layout(std430, binding = 4) buffer readonly vertexData{
@@ -138,6 +140,8 @@ void main()
 
 	payload.isGlass = mat.isGlass > 0;
 	payload.ior = mat.ior;
+
+	payload.useFastMultiple = mat.useFastMultiple > 0;
 
 	payload.instanceID = instanceID;
 	payload.primID = primID;

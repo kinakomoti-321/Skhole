@@ -17,6 +17,8 @@ struct PayLoadStruct{
     bool isGlass;
     float ior;
 
+    bool useFastMultiple;
+
     float t;
 
     uint instanceID;

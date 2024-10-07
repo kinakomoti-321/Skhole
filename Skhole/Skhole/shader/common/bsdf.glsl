@@ -86,11 +86,27 @@ vec3 Shlick_Fresnel(vec3 F0, vec3 v, vec3 n)
 	return F0 + (1.0 - F0) * pow(1.0 - dot(v, n), 5.0);
 }
 
+
+float multipleG(vec3 wo, vec3 wi, vec3 wc) {
+        float theta_c = acos(dot(wo, wc));
+        float theta_m = (PI - acos(dot(wo, wi))) * 0.25;
+        float OP = sin(theta_c - theta_m) / sin(theta_c + theta_m);
+        return 1.0 - max(0.0, OP);
+}
+
+float GGX_D_Approximate(float mdot, float alpha) {
+	float term1 = (mdot * mdot * (alpha * alpha - 1.0) + 1.0);
+	return alpha * alpha / (PI * term1 * term1);
+}
+
+
 struct GGX_Params
 {
 	vec3 F0;
 	float roughness;
 	float anisotropic;
+
+	bool useFastMultiple;
 };
 
 
@@ -151,7 +167,6 @@ float GGXReflectionPDF (vec3 wo, vec3 wm, vec2 alpha ) {
 	float k = (1.0 - a2) * s2 / (s2 + a2 * wo.y * wo.y); 
 
 	return GGX_D(wm,alpha.x,alpha.y) / (2.0 * (k * wo.z + k * wo.y + sqrt(alpha.x * alpha.x * wo.x * wo.x + alpha.y * alpha.y * wo.z * wo.z + wo.y * wo.y)));
-//	return 2.0 * dot(wo,wm) * GGX_D(wm,alpha.x,alpha.y) / (k * wo.y + sqrt(alpha.x * alpha.x * wo.x * wo.x + alpha.y * alpha.y * wo.z * wo.z + wo.y * wo.y));
 }
 
 
@@ -175,8 +190,8 @@ vec3 GGX_Sample(vec3 wo, inout float pdf, GGX_Params param, vec2 xi){
 
 	float jacobian = 0.25 / dot(wo, wm);
 
-//	pdf = GGXReflectionPDF(wo,wi,alpha); 
 	pdf = VNDF(wo,wm,alpha) * jacobian;
+//	pdf = GGXReflectionPDF(wo,wi,alpha); 
 
 	return wi;
 }
@@ -195,7 +210,19 @@ vec3 GGX_Evaluation(vec3 wo, vec3 wi, GGX_Params param)
 	float ggx_G = GGX_G2(wo, wi, alpha.x, alpha.y);
 	vec3 ggx_F = Shlick_Fresnel(param.F0, wo, wm);
 
-	return  ggx_D * ggx_G * ggx_F / (4.0 * wo.y * wi.y);
+	vec3 bsdf = ggx_D * ggx_G * ggx_F / (4.0 * wo.y * wi.y);
+	
+	if(param.useFastMultiple){
+		vec3 wc = normalize(vec3(0, 1, 0) + wm);
+		float Gi = multipleG(wo, wi, wc);
+		float theta_m = (PI - acos(dot(wo, wi))) * 0.25;
+		float cos_theta_m = cos(theta_m);
+		float Di = GGX_D_Approximate(cos_theta_m, alpha.x);
+
+		bsdf += Di * Gi * ggx_F * ggx_F / (2.0 * dot(wc,wo));
+	}
+
+	return bsdf;
 }
 
 float GGX_PDF(vec3 wo, vec3 wi,GGX_Params param){

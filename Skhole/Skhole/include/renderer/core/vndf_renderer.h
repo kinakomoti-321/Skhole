@@ -60,6 +60,8 @@ namespace Skhole
 
 			int transmission = 0;
 			float ior = 1.5;
+
+			int useFastMultiple = 0;
 		};
 
 		const std::vector<ShrPtr<Parameter>> m_matParams =
@@ -74,6 +76,8 @@ namespace Skhole
 
 			MakeShr<ParamBool>("IsGlass", false),
 			MakeShr<ParamFloat>("IOR", 1.5,0.0,2.0),
+
+			MakeShr<ParamBool>("UseFastMultiple",false),
 		};
 
 		void DefineMaterial(ShrPtr<RendererDefinisionMaterial>& materialDef, const ShrPtr<BasicMaterial>& material) override
@@ -88,6 +92,7 @@ namespace Skhole
 			materialDef->materialParameters[5]->setParamValue(material->emissionColor);
 			materialDef->materialParameters[6]->setParamValue(material->transmission > 0);
 			materialDef->materialParameters[7]->setParamValue(material->ior);
+			materialDef->materialParameters[8]->setParamValue(false);
 		}
 
 		Material ConvertMaterial(const ShrPtr<RendererDefinisionMaterial>& materialDef) {
@@ -101,6 +106,7 @@ namespace Skhole
 			material.emissionColor = GetParamColValue(materialDef->materialParameters[5]);
 			material.transmission = GetParamBoolValue(materialDef->materialParameters[6]) ? 1 : 0;
 			material.ior = GetParamFloatValue(materialDef->materialParameters[7]);
+			material.useFastMultiple = GetParamBoolValue(materialDef->materialParameters[8]) ? 1 : 0;
 
 			return material;
 		}
@@ -167,7 +173,7 @@ namespace Skhole
 
 			vec3_layout debugValue;
 			vec3_layout atlook;
-			float fValue;	
+			float fValue;
 			float forcusLength;
 			int useLens;
 		};
