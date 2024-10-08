@@ -2,7 +2,6 @@
 #extension GL_EXT_ray_tracing : enable
 #extension GL_ARB_shading_language_include : require
 #extension GL_EXT_scalar_block_layout : enable
-#extension GL_EXT_debug_printf : enable
 
 #define PI 3.14159265359
 
@@ -340,10 +339,6 @@ vec3 houdiniRefract(vec3 I, vec3 N, float eta){
         return eta * I - (eta * dot(N, I) + sqrt(k)) * N;
 }
 
-void MatrixPrintf(mat3 matrix){
-    debugPrintfEXT("matrix : (%f,%f,%f),(%f,%f,%f),(%f,%f,%f) \n", matrix[0][0],matrix[0][1],matrix[0][2],matrix[1][0],matrix[1][1],matrix[1][2],matrix[2][0],matrix[2][1],matrix[2][2]);
-}
-
 bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],inout int sol_count,inout float sol_sign[2],inout int edge_index[2]){
     vec3 v0 = v[0];
     vec3 v1 = v[1];
@@ -374,8 +369,6 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
     float D = mCoplaner[0][2] + mCoplaner[2][0];
     float E = mCoplaner[1][2] + mCoplaner[2][1];
     float F = mCoplaner[2][2];
-
-//    debugPrintfEXT("A: %f, B: %f, C: %f, D: %f, E: %f, F: %f \n", A, B, C, D, E, F);
 
     int count = 0;
     vec2 sol[2];
@@ -631,26 +624,6 @@ vec3 EvaluateCausticsPath(vec3 Point, vec3 LightPos,uint instanceID,uint primID,
 
     bool check =  SearchCausticsPath(L,P,v,n,pos,norm,iteration);
     bool testFrag = check;
-
-// SolveTest
-    
-//    v[0] = vec3(-2.10556, -0.124393, -2.10556);
-//    v[1] = vec3(2.10555, 0.303932, -9.53674e-7);
-//    v[2] = vec3(2.10556, 0.681325, 2.10555);
-//
-//    n[0] = vec3(-0.0744765, 0.996484, 0.0383678);
-//    n[1] = vec3(0.032583, 0.995983, -0.0741609);
-//    n[2] = vec3(0.000121576, 0.998528, -0.0542396);
-//
-//    vec2 sol_bary[2];
-//    int sol_count;
-//    float sol_sign[2];
-//    int edge_index[2];
-//
-//    bool testFrag = SolveTriangle(v,n,L,P,sol_bary,sol_count,sol_sign,edge_index);
-//
-//    debugPrintfEXT("iter: %d, pos(%f,%f,%f) \n", iteration, pos.x, pos.y, pos.z);
-//    debugPrintfEXT("bary : (%f, %f), (%f, %f), sign : (%f, %f) \n", sol_bary[0].x,sol_bary[0].y, sol_bary[1].x,sol_bary[1].y, sol_sign[0], sol_sign[1]);
 
     vec3 wo = normalize(P - pos);
     vec3 wi = normalize(L - pos);

@@ -282,6 +282,16 @@ namespace Skhole {
 				uniformBufferObject.cameraParam.v[0] = camera->GetYFov();
 				uniformBufferObject.cameraParam.v[1] = static_cast<float>(width) / static_cast<float>(height);
 
+				uniformBufferObject.lightPosition = GetParamVecValue(raytracerParam->rendererParameters[1]);
+				uniformBufferObject.lightColor = GetParamColValue(raytracerParam->rendererParameters[2]);
+				uniformBufferObject.lightIntensity = GetParamFloatValue(raytracerParam->rendererParameters[3]);
+
+				uniformBufferObject.debugValue = GetParamVecValue(raytracerParam->rendererParameters[4]);
+				uniformBufferObject.atlook = GetParamVecValue(raytracerParam->rendererParameters[5]);
+				uniformBufferObject.fValue = GetParamFloatValue(raytracerParam->rendererParameters[6]);
+				uniformBufferObject.forcusLength = GetParamFloatValue(raytracerParam->rendererParameters[7]);
+				uniformBufferObject.useLens = GetParamBoolValue(raytracerParam->rendererParameters[8]);
+
 				m_uniformBuffer.Update(*m_context.device);
 
 			}
