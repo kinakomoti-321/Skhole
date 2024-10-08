@@ -427,16 +427,11 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
         vec3 nM = (1.0 - sol[i].x - sol[i].y) * n0 + sol[i].x * n1 + sol[i].y * n2;
 
         vec3 wo = normalize(P - pM);
-//        vec3 wi_ref = refract(-wo,nM, 1.33 / 1.0);
-//        if(length(wi_ref) <= 0.001) wi_ref = reflect(-wo,nM);
 
         vec3 wi_ref = houdiniRefract(-wo, nM, 1.33 / 1.0);
         vec3 wi = normalize(L - pM);
 
         wi_refs[i] = wi_ref;
-//          wi_refs[i] = nM;
-//        wi_refs[i] = wo;
-//        wi_refs[i] = wi;
 
         tangent[i] = normalize(vec3(-curveBinormal.y,curveBinormal.x,0)); 
 
@@ -445,15 +440,6 @@ bool SolveTriangle(vec3 v[3], vec3 n[3], vec3 L, vec3 P, inout vec2 sol_bary[2],
     }
 
 // Tangent is OK
-//    debugPrintfEXT("tangent0: (%f,%f),tangent1: (%f,%f) \n", tangent[0].x,tangent[0].y,tangent[1].x,tangent[1].y);
-
-//    debugPrintfEXT("wi_refs : (%f,%f,%f), (%f,%f,%f) \n", wi_refs[0].x,wi_refs[0].y, wi_refs[0].z, wi_refs[1].x,wi_refs[1].y, wi_refs[1].z);
-//    debugPrintfEXT("wo : (%f,%f,%f), (%f,%f,%f) \n", wi_refs[0].x,wi_refs[0].y, wi_refs[0].z, wi_refs[1].x,wi_refs[1].y, wi_refs[1].z);
-
-//    vec3 wo = normalize(vec3(1,0.2,0));
-//    vec3 ref = houdiniRefract(-wo,vec3(0,1,0),1.33 / 1.0);
-//    debugPrintfEXT("ref : (%f,%f,%f) \n", ref.x,ref.y,ref.z);
-//
     sol_bary = sol;
     sol_count = count;
     sol_sign = tanSign;
@@ -530,7 +516,7 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
 
 //    if(sol_count != 2) return false;
 //    if(sol_sign[0] * sol_sign[1] > 0) return false;
-//
+
     //Divide
 
     vec3 next_v[3];
@@ -545,8 +531,6 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
 
     int solTypeIndex = GetSolTypeIndex(div_edge_index);
     vec2 divBary =  DivBaryCoord(solTypeIndex);
-
-//    bool selectTest = false;
 
     for(int i = 0; i < iteration; i++){
         solTypeIndex = GetSolTypeIndex(div_edge_index);
@@ -571,11 +555,9 @@ bool SearchCausticsPath(vec3 L, vec3 P, vec3 v[3], vec3 n[3], inout vec3 pos, in
         }
 
         if(i == iteration - 1){
-//            debugPrintfEXT("inter : %d, v0 :(%f,%f,%f),v1 :(%f,%f,%f),v2 :(%f,%f,%f) \n", i+1, next_v[0].x, next_v[0].y, next_v[0].z, next_v[1].x, next_v[1].y, next_v[1].z, next_v[2].x, next_v[2].y, next_v[2].z);
             vec2 end_bary = div_sol_bary[0];
             endP = (1.0 - end_bary.x - end_bary.y) * next_v[0] + end_bary.x * next_v[1] + end_bary.y * next_v[2];
             endN = (1.0 - end_bary.x - end_bary.y) * next_n[0] + end_bary.x * next_n[1] + end_bary.y * next_n[2];
-//            debugPrintfEXT("div_sol, (%f,%f) \n ", div_sol_bary[0].x,div_sol_bary[0].y);
         }
 
         if(div_sol_sign[0] * div_sol_sign[1] <= 0){

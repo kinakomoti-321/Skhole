@@ -54,7 +54,14 @@ namespace Skhole {
 		// Uniform Buffer	
 		auto& parameter = desc.param.param;
 		uniformObject.color = CastParamCol(parameter[0])->value;
-		uniformObject.intensity = CastParamFloat(parameter[1])->value;
+		uniformObject.exposure = CastParamFloat(parameter[1])->value;
+		uniformObject.useACES = CastParamBool(parameter[2])->value;
+		uniformObject.Lift = CastParamCol(parameter[3])->value;
+		uniformObject.Gain = CastParamCol(parameter[4])->value;
+		uniformObject.Gamma = CastParamCol(parameter[5])->value;
+		uniformObject.Brightness = CastParamFloat(parameter[6])->value;
+		uniformObject.Contrast = CastParamFloat(parameter[7])->value;
+		uniformObject.Saturation = CastParamFloat(parameter[8])->value;
 
 		CopyBuffer(device, uniformBuffer, &uniformObject, uniformBuffer.GetBufferSize());
 

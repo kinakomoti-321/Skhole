@@ -1,19 +1,122 @@
 #version 460
+#extension GL_EXT_scalar_block_layout : enable
+
 layout(local_size_x = 1, local_size_y = 1) in;
 
 layout(binding = 0, rgba32f) uniform image2D inputImage;
 layout(binding = 1, rgba8) uniform image2D outputImage;
-layout(binding = 2) uniform ubo{
+
+layout(binding = 2, scalar) uniform ubo{
 	vec4 col;
-	float intensity;
+	float exposure;
+	int useACES;
+
+	vec4 lift;
+	vec4 gain;
+	vec4 gamma;
+
+	float brightness;
+	float contrast;
+	float saturation;
 };
+
+
+// Reference 
+// https://gist.github.com/Pikachuxxxx/136940d6d0d64074aba51246f514bd26
+vec3 aces(vec3 x) {
+  float a = 2.51;
+  float b = 0.03;
+  float c = 2.43;
+  float d = 0.59;
+  float e = 0.14;
+  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+vec3 uchimura(vec3 x, float P, float a, float m, float l, float c, float b) {
+  float l0 = ((P - m) * l) / a;
+  float L0 = m - m / a;
+  float L1 = m + (1.0 - m) / a;
+  float S0 = m + l0;
+  float S1 = m + a * l0;
+  float C2 = (a * P) / (P - S1);
+  float CP = -C2 / P;
+
+  vec3 w0 = vec3(1.0 - smoothstep(0.0, m, x));
+  vec3 w2 = vec3(step(m + l0, x));
+  vec3 w1 = vec3(1.0 - w0 - w2);
+
+  vec3 T = vec3(m * pow(x / m, vec3(c)) + b);
+  vec3 S = vec3(P - (P - S1) * exp(CP * (x - S0)));
+  vec3 L = vec3(m + a * (x - m));
+
+  return T * w0 + L * w1 + S * w2;
+}
+
+// Color Collection
+// https://www.shadertoy.com/view/7tK3zW by 0b5vr
+const vec3 LUMA = vec3( 0.2126, 0.7152, 0.0722 );
+
+vec3 liftGammaGain( vec3 rgb, vec4 lift, vec4 gamma, vec4 gain ) {
+  vec4 liftt = 1.0 - pow( 1.0 - lift, log2( gain + 1.0 ) );
+
+  vec4 gammat = gamma.rgba - vec4( 0.0, 0.0, 0.0, dot( LUMA, gamma.rgb ) );
+  vec4 gammatTemp = 1.0 + 4.0 * abs( gammat );
+  gammat = mix( gammatTemp, 1.0 / gammatTemp, step( 0.0, gammat ) );
+
+  vec3 col = rgb;
+  float luma = dot( LUMA, col );
+
+  col = pow( col, gammat.rgb );
+  col *= pow( gain.rgb, gammat.rgb );
+  col = max( mix( 2.0 * liftt.rgb, vec3( 1.0 ), col ), 0.0 );
+
+  luma = pow( luma, gammat.a );
+  luma *= pow( gain.a, gammat.a );
+  luma = max( mix( 2.0 * liftt.a, 1.0, luma ), 0.0 );
+
+  col += luma - dot( LUMA, col );
+
+  return col;
+}
+
+// https://tsev.dev/posts/2020-06-19-colour-correction-with-webgl/
+// Brightness
+vec3 adjustBrightness(vec3 color,float value){
+	return color + vec3(value);
+}
+
+// Contrast
+vec3 adjustContrast(vec3 color, float value) {
+  return 0.5 + (1.0 + value) * (color - 0.5);
+}
+
+// Saturation
+vec3 adjustSaturation(vec3 color,float value){
+	float gray = vec3(dot(color,vec3(0.2126,0.7152,0.0722))).x;
+	return mix(color,vec3(gray),value);
+}
 
 void main() {
 	ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
     vec3 inputCol = imageLoad(inputImage, pos).xyz; 
+
 	vec3 outputCol;
 	outputCol = inputCol * col.xyz; 
-	outputCol = outputCol * intensity;
+	outputCol = outputCol * exposure;
+	
+	if(useACES != 0){
+		outputCol = aces(outputCol);
+	}
+	
+	// Color Collection
+	outputCol = liftGammaGain(outputCol, lift, gain, vec4(gamma.xyz,1.0));
+
+	outputCol = adjustBrightness(outputCol, brightness);
+	outputCol = adjustContrast(outputCol, contrast * 0.5);
+	outputCol = adjustSaturation(outputCol, saturation);
+
+	// Gamma
+	outputCol = pow(outputCol,vec3(1.0 / 2.2));
 
 	imageStore(outputImage, pos, vec4(outputCol,1));
 }
