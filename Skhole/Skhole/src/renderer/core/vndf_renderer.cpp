@@ -234,6 +234,8 @@ namespace Skhole {
 		RenderImages offlineRenderImages;
 		offlineRenderImages.Initialize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
+		m_postProcessor->Resize(width, height);
+
 		std::cout << "Start Offline Rendering" << std::endl;
 
 		//TODO: Implement limit time

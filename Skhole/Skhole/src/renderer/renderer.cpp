@@ -115,6 +115,7 @@ namespace Skhole {
 		m_screenContext.Init(swapchainInfo);
 
 		m_renderImages.Resize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
+
 		m_postProcessor->Resize(width, height);
 
 		m_scene->m_rendererParameter->numSPP = 1;
