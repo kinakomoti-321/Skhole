@@ -257,7 +257,11 @@ namespace Skhole
 		std::string rendererName = "Simple RayTracer";
 
 		std::vector<const char*> m_layer = {
+			
+#ifdef  _DEBUG
 			"VK_LAYER_KHRONOS_validation"
+#endif //  _DEBUG
+
 		};
 
 		std::vector<const char* > m_extension = {

@@ -231,14 +231,15 @@ namespace Skhole {
 
 		auto& fps = renderInfo.fps;
 
-
 		RenderImages offlineRenderImages;
 		offlineRenderImages.Initialize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
+
+		std::cout << "Start Offline Rendering" << std::endl;
 
 		//TODO: Implement limit time
 		for (int i = 0; i < numFrame; i++)
 		{
-
+			std::cout << "Start Frame : " << i << std::endl;
 			m_commandBuffer->reset({});
 
 			auto postEffectBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
@@ -247,6 +248,7 @@ namespace Skhole {
 			uint32_t nowFrame = renderInfo.startFrame + i;
 			float time = static_cast<float>(nowFrame) / static_cast<float>(fps);
 
+			std::cout << "Buffer Update" << std::endl;
 			{
 				m_scene->SetTransformMatrix(time);
 				m_sceneBufferManager.FrameUpdateInstance(time, *m_context.device, *m_commandPool, m_context.queue);
@@ -283,14 +285,10 @@ namespace Skhole {
 			UpdateDescriptorSet(offlineRenderImages);
 
 			m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-
-			//RecordCommandBuffer(width, height);
 			RaytracingCommand(*m_commandBuffer, width, height);
-
 			m_commandBuffer->end();
 
 			postEffectBuffer->begin(vk::CommandBufferBeginInfo{});
-
 			PostProcessor::ExecuteDesc desc{};
 			desc.device = *m_context.device;
 			desc.inputImage = offlineRenderImages.GetRenderImage().GetImageView();
@@ -298,7 +296,6 @@ namespace Skhole {
 			desc.param = m_scene->m_rendererParameter->posproParameters;
 
 			m_postProcessor->Execute(*postEffectBuffer, desc);
-
 			postEffectBuffer->end();
 
 			vk::UniqueFence fence = m_context.device->createFenceUnique({});
@@ -317,6 +314,7 @@ namespace Skhole {
 
 			m_context.queue.submit(postInfo, fence.get());
 
+			std::cout << "Submit" << std::endl;
 			if (m_context.device->waitForFences(fence.get(), true,
 				std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
 				std::cerr << "Failed to wait fence.\n";
@@ -327,8 +325,10 @@ namespace Skhole {
 			offlineRenderImages.WritePNG(renderInfo.filepath, renderInfo.filename + frameNumber, *m_context.device, *m_commandPool, m_context.queue);
 
 			FrameEnd();
+			std::cout << "End Frame" << std::endl;
 		}
 
+		std::cout << "End Offline Rendering" << std::endl;
 	}
 
 }

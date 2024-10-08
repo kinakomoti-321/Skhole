@@ -187,11 +187,9 @@ namespace Skhole {
 		UpdateDescriptorSet();
 
 		m_commandBuffer->begin(vk::CommandBufferBeginInfo{});
-
 		RecordCommandBuffer(width, height);
 		CopyRenderToScreen(*m_commandBuffer, m_renderImages.GetPostProcessedImage().GetImage(), m_screenContext.GetFrameImage(imageIndex), width, height);
 		RenderImGuiCommand(*m_commandBuffer, m_screenContext.GetFrameBuffer(imageIndex), width, height);
-
 		m_commandBuffer->end();
 
 		vk::PipelineStageFlags waitStage{ vk::PipelineStageFlagBits::eTopOfPipe };
