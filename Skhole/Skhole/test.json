@@ -1,12 +1,12 @@
 {
   "OfflineRenderingInfo": {
-    "EndFrame": 1,
+    "EndFrame": 0,
     "Filename": "output",
     "Filepath": "./image/",
     "Height": 720,
     "Limit Time": 10000.0,
-    "SPP": 1000,
-    "StartFrame": 1,
+    "SPP": 10000,
+    "StartFrame": 0,
     "Use LimitTime": false,
     "Width": 1024,
     "fps": 24
@@ -14,16 +14,18 @@
   "Scene": {
     "Camera": {
       "CameraObject": {
-        "Indices": [],
-        "NumIndices": 0,
+        "Indices": [
+          8
+        ],
+        "NumIndices": 1,
         "TargetCameraIndex": -1,
         "Use": false
       },
       "Fov": 45.0,
       "LookAt": [
-        0.019437799230217934,
-        -0.00901856180280447,
-        -0.99977046251297
+        -0.9181949496269226,
+        -0.04198035970330238,
+        -0.3938981294631958
       ],
       "Name": "Camera",
       "Parameters": {
@@ -41,19 +43,19 @@
         ]
       },
       "Position": [
-        0.25729551911354065,
-        2.026067018508911,
-        6.165850639343262
+        2.2571029663085938,
+        0.33510926365852356,
+        0.8872055411338806
       ],
       "Right": [
-        0.9998100996017456,
-        0.0015752380713820457,
-        0.019424427300691605
+        0.3942945897579193,
+        -0.0012644128873944283,
+        -0.9189832806587219
       ],
       "Up": [
-        -0.0013996482593938708,
-        0.9999580979347229,
-        -0.009048000909388065
+        -0.038080912083387375,
+        0.9991176724433899,
+        -0.01771344244480133
       ]
     },
     "Geometries": {
@@ -63,9 +65,9 @@
       "BasicMaterials": [
         {
           "BaseColor": [
-            1.0,
-            0.20000000298023224,
-            0.20000000298023224,
+            0.009449209086596966,
+            0.8001565933227539,
+            0.0,
             1.0
           ],
           "BaseColorTexture": -1,
@@ -74,7 +76,7 @@
             0.0,
             0.0,
             0.0,
-            0.0
+            1.0
           ],
           "EmissionIntensity": 0.0,
           "EmissiveTexture": -1,
@@ -82,7 +84,63 @@
           "IOR": 1.0,
           "Metallic": 0.0,
           "MetallicTexture": -1,
-          "Name": "DefaultMaterial",
+          "Name": "R",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.8001648187637329,
+            0.0,
+            0.0042146239429712296,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "T",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 1.0,
+          "MetallicTexture": -1,
+          "Name": "C",
           "NormalTexture": -1,
           "Roughness": 1.0,
           "RoughnessTexture": -1,
@@ -91,9 +149,9 @@
         },
         {
           "BaseColor": [
-            0.20000000298023224,
-            1.0,
-            0.20000000298023224,
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929,
             1.0
           ],
           "BaseColorTexture": -1,
@@ -102,15 +160,15 @@
             0.0,
             0.0,
             0.0,
-            0.0
+            1.0
           ],
           "EmissionIntensity": 0.0,
           "EmissiveTexture": -1,
           "HeightTexture": -1,
           "IOR": 1.0,
-          "Metallic": 0.0,
+          "Metallic": 1.0,
           "MetallicTexture": -1,
-          "Name": "DefaultMaterial",
+          "Name": "a",
           "NormalTexture": -1,
           "Roughness": 1.0,
           "RoughnessTexture": -1,
@@ -119,9 +177,9 @@
         },
         {
           "BaseColor": [
-            1.0,
-            1.0,
-            1.0,
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929,
             1.0
           ],
           "BaseColorTexture": -1,
@@ -130,7 +188,7 @@
             0.0,
             0.0,
             0.0,
-            0.0
+            1.0
           ],
           "EmissionIntensity": 0.0,
           "EmissiveTexture": -1,
@@ -138,57 +196,225 @@
           "IOR": 1.0,
           "Metallic": 0.0,
           "MetallicTexture": -1,
-          "Name": "DefaultMaterial",
+          "Name": "m",
           "NormalTexture": -1,
-          "Roughness": 1.0,
+          "Roughness": 0.5,
           "RoughnessTexture": -1,
           "Sheen": 0.0,
           "Transmission": 0.0
         },
         {
           "BaseColor": [
-            1.0,
-            1.0,
-            1.0,
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929,
             1.0
           ],
           "BaseColorTexture": -1,
           "Clearcoat": 0.0,
           "EmissionColor": [
-            1.0,
-            1.0,
-            1.0,
+            0.0,
+            0.0,
+            0.0,
             1.0
           ],
-          "EmissionIntensity": 4.0,
+          "EmissionIntensity": 0.0,
           "EmissiveTexture": -1,
           "HeightTexture": -1,
           "IOR": 1.0,
           "Metallic": 0.0,
           "MetallicTexture": -1,
-          "Name": "DefaultMaterial",
+          "Name": "p",
           "NormalTexture": -1,
-          "Roughness": 1.0,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "1",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "0",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.11983579397201538,
+            0.14834406971931458,
+            0.8008280992507935,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.9198207855224609,
+            0.7563515901565552,
+            1.0,
+            1.0
+          ],
+          "EmissionIntensity": 2.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "Light2",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "EmissionIntensity": 0.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "Floor",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.11983579397201538,
+            0.14834406971931458,
+            0.8008280992507935,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.45322901010513306,
+            0.9512789249420166,
+            1.0,
+            1.0
+          ],
+          "EmissionIntensity": 2.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "Light3",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
+          "RoughnessTexture": -1,
+          "Sheen": 0.0,
+          "Transmission": 0.0
+        },
+        {
+          "BaseColor": [
+            0.11983579397201538,
+            0.14834406971931458,
+            0.8008280992507935,
+            1.0
+          ],
+          "BaseColorTexture": -1,
+          "Clearcoat": 0.0,
+          "EmissionColor": [
+            0.9198207855224609,
+            0.7563515901565552,
+            1.0,
+            1.0
+          ],
+          "EmissionIntensity": 2.0,
+          "EmissiveTexture": -1,
+          "HeightTexture": -1,
+          "IOR": 1.0,
+          "Metallic": 0.0,
+          "MetallicTexture": -1,
+          "Name": "Light1",
+          "NormalTexture": -1,
+          "Roughness": 0.5,
           "RoughnessTexture": -1,
           "Sheen": 0.0,
           "Transmission": 0.0
         }
       ],
-      "NumBasicMaterials": 4,
-      "NumRendererMaterials": 4,
+      "NumBasicMaterials": 12,
+      "NumRendererMaterials": 12,
       "RendererMaterials": [
         {
-          "Name": "DefaultMaterial",
+          "Name": "R",
           "Parameters": {
-            "NumParameters": 8,
+            "NumParameters": 9,
             "Parameter": [
               {
                 "Name": "BaseColor",
                 "Type": "COLOR",
                 "Value": [
-                  1.0,
-                  0.20000000298023224,
-                  0.20000000298023224,
+                  0.009449209086596966,
+                  0.8001565933227539,
+                  0.0,
                   1.0
                 ]
               },
@@ -200,7 +426,7 @@
               {
                 "Name": "Roughness",
                 "Type": "FLOAT",
-                "Value": 1.0
+                "Value": 0.5
               },
               {
                 "Name": "Metallic",
@@ -219,7 +445,7 @@
                   0.0,
                   0.0,
                   0.0,
-                  0.0
+                  1.0
                 ]
               },
               {
@@ -231,22 +457,27 @@
                 "Name": "IOR",
                 "Type": "FLOAT",
                 "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
               }
             ]
           }
         },
         {
-          "Name": "DefaultMaterial",
+          "Name": "T",
           "Parameters": {
-            "NumParameters": 8,
+            "NumParameters": 9,
             "Parameter": [
               {
                 "Name": "BaseColor",
                 "Type": "COLOR",
                 "Value": [
-                  0.20000000298023224,
-                  1.0,
-                  0.20000000298023224,
+                  0.8001648187637329,
+                  0.0,
+                  0.0042146239429712296,
                   1.0
                 ]
               },
@@ -258,7 +489,7 @@
               {
                 "Name": "Roughness",
                 "Type": "FLOAT",
-                "Value": 1.0
+                "Value": 0.5
               },
               {
                 "Name": "Metallic",
@@ -277,7 +508,7 @@
                   0.0,
                   0.0,
                   0.0,
-                  0.0
+                  1.0
                 ]
               },
               {
@@ -289,22 +520,27 @@
                 "Name": "IOR",
                 "Type": "FLOAT",
                 "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
               }
             ]
           }
         },
         {
-          "Name": "DefaultMaterial",
+          "Name": "C",
           "Parameters": {
-            "NumParameters": 8,
+            "NumParameters": 9,
             "Parameter": [
               {
                 "Name": "BaseColor",
                 "Type": "COLOR",
                 "Value": [
-                  1.0,
-                  1.0,
-                  1.0,
+                  0.800000011920929,
+                  0.800000011920929,
+                  0.800000011920929,
                   1.0
                 ]
               },
@@ -321,7 +557,7 @@
               {
                 "Name": "Metallic",
                 "Type": "FLOAT",
-                "Value": 0.0
+                "Value": 1.0
               },
               {
                 "Name": "EmissionIntensity",
@@ -335,7 +571,7 @@
                   0.0,
                   0.0,
                   0.0,
-                  0.0
+                  1.0
                 ]
               },
               {
@@ -347,22 +583,27 @@
                 "Name": "IOR",
                 "Type": "FLOAT",
                 "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
               }
             ]
           }
         },
         {
-          "Name": "DefaultMaterial",
+          "Name": "a",
           "Parameters": {
-            "NumParameters": 8,
+            "NumParameters": 9,
             "Parameter": [
               {
                 "Name": "BaseColor",
                 "Type": "COLOR",
                 "Value": [
-                  1.0,
-                  1.0,
-                  1.0,
+                  0.800000011920929,
+                  0.800000011920929,
+                  0.800000011920929,
                   1.0
                 ]
               },
@@ -379,19 +620,334 @@
               {
                 "Name": "Metallic",
                 "Type": "FLOAT",
-                "Value": 0.0
+                "Value": 1.0
               },
               {
                 "Name": "EmissionIntensity",
                 "Type": "FLOAT",
-                "Value": 4.0
+                "Value": 0.0
               },
               {
                 "Name": "Emission",
                 "Type": "COLOR",
                 "Value": [
-                  1.0,
-                  1.0,
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "m",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.800000011920929,
+                  0.800000011920929,
+                  0.800000011920929,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "p",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.800000011920929,
+                  0.800000011920929,
+                  0.800000011920929,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "1",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.800000011920929,
+                  0.800000011920929,
+                  0.800000011920929,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "0",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.800000011920929,
+                  0.800000011920929,
+                  0.800000011920929,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "Light2",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.11983579397201538,
+                  0.14834406971931458,
+                  0.8008280992507935,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 2.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.9198207855224609,
+                  0.7563515901565552,
                   1.0,
                   1.0
                 ]
@@ -405,6 +961,200 @@
                 "Name": "IOR",
                 "Type": "FLOAT",
                 "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "Floor",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.800000011920929,
+                  0.800000011920929,
+                  0.800000011920929,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "Light3",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.11983579397201538,
+                  0.14834406971931458,
+                  0.8008280992507935,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 2.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.45322901010513306,
+                  0.9512789249420166,
+                  1.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
+              }
+            ]
+          }
+        },
+        {
+          "Name": "Light1",
+          "Parameters": {
+            "NumParameters": 9,
+            "Parameter": [
+              {
+                "Name": "BaseColor",
+                "Type": "COLOR",
+                "Value": [
+                  0.11983579397201538,
+                  0.14834406971931458,
+                  0.8008280992507935,
+                  1.0
+                ]
+              },
+              {
+                "Name": "Anisotropic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "Roughness",
+                "Type": "FLOAT",
+                "Value": 0.5
+              },
+              {
+                "Name": "Metallic",
+                "Type": "FLOAT",
+                "Value": 0.0
+              },
+              {
+                "Name": "EmissionIntensity",
+                "Type": "FLOAT",
+                "Value": 2.0
+              },
+              {
+                "Name": "Emission",
+                "Type": "COLOR",
+                "Value": [
+                  0.9198207855224609,
+                  0.7563515901565552,
+                  1.0,
+                  1.0
+                ]
+              },
+              {
+                "Name": "IsGlass",
+                "Type": "BOOL",
+                "Value": false
+              },
+              {
+                "Name": "IOR",
+                "Type": "FLOAT",
+                "Value": 1.0
+              },
+              {
+                "Name": "UseFastMultiple",
+                "Type": "BOOL",
+                "Value": false
               }
             ]
           }
@@ -416,7 +1166,7 @@
     },
     "RendererParameter": {
       "Parameters": {
-        "NumParameters": 4,
+        "NumParameters": 9,
         "Parameter": [
           {
             "Name": "Ckeck Mode",
@@ -428,7 +1178,7 @@
             "Type": "VECTOR",
             "Value": [
               0.0,
-              1.0,
+              10.0,
               0.0
             ]
           },
@@ -445,13 +1195,46 @@
           {
             "Name": "Intensity",
             "Type": "FLOAT",
+            "Value": 10.0
+          },
+          {
+            "Name": "Debug Value",
+            "Type": "VECTOR",
+            "Value": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "Name": "Atlook",
+            "Type": "VECTOR",
+            "Value": [
+              10.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "Name": "F Value",
+            "Type": "FLOAT",
             "Value": 1.0
+          },
+          {
+            "Name": "Forcus Length",
+            "Type": "FLOAT",
+            "Value": 1.0
+          },
+          {
+            "Name": "UseLens",
+            "Type": "BOOL",
+            "Value": false
           }
         ]
       },
       "PostProcess": {
         "Parameters": {
-          "NumParameters": 2,
+          "NumParameters": 9,
           "Parameter": [
             {
               "Name": "color",
@@ -464,9 +1247,59 @@
               ]
             },
             {
-              "Name": "intensity",
+              "Name": "exposure",
               "Type": "FLOAT",
               "Value": 1.0
+            },
+            {
+              "Name": "useACES Tonemap",
+              "Type": "BOOL",
+              "Value": false
+            },
+            {
+              "Name": "Lift",
+              "Type": "COLOR",
+              "Value": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "Name": "Gain",
+              "Type": "COLOR",
+              "Value": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "Name": "Gamma",
+              "Type": "COLOR",
+              "Value": [
+                1.0,
+                1.0,
+                1.0,
+                0.0
+              ]
+            },
+            {
+              "Name": "Brightness",
+              "Type": "FLOAT",
+              "Value": 0.0
+            },
+            {
+              "Name": "Contrast",
+              "Type": "FLOAT",
+              "Value": 0.0
+            },
+            {
+              "Name": "Saturation",
+              "Type": "FLOAT",
+              "Value": 0.0
             }
           ]
         },
@@ -475,7 +1308,7 @@
       "RendererName": "Simple Raytracer",
       "frame": 0,
       "maxSPP": 100,
-      "numSPP": 92,
+      "numSPP": 100,
       "sppPerFrame": 1
     },
     "SceneName": "",

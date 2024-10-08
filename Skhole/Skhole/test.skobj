@@ -1,69 +1,139 @@
 Object
-6
+13
 
 #Object
-Name Instance
+Name geo2.002
 #Features
 Type INSTANCE
 GeometryIndex 0
 #Transform
-LocalTranslation 0 0 0
-LocalRotation 0 0 0 1
-LocalScale 1 1 1
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
 #Parent_Child
 Parent -1
 Child -1
 #Animation 0
 
 #Object
-Name Instance2
+Name geo2.003
 #Features
 Type INSTANCE
 GeometryIndex 1
 #Transform
-LocalTranslation 0 0 0
-LocalRotation 0 0 0 1
-LocalScale 1 1 1
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
 #Parent_Child
 Parent -1
 Child -1
 #Animation 0
 
 #Object
-Name Instance3
+Name geo2.004
 #Features
 Type INSTANCE
 GeometryIndex 2
 #Transform
-LocalTranslation 0 0 0
-LocalRotation 0 0 0 1
-LocalScale 1 1 1
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
 #Parent_Child
 Parent -1
 Child -1
 #Animation 0
 
 #Object
-Name Instance4
+Name geo2.005
 #Features
 Type INSTANCE
 GeometryIndex 3
 #Transform
-LocalTranslation 0 0 0
-LocalRotation 0 0 0 1
-LocalScale 1 1 1
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
 #Parent_Child
 Parent -1
 Child -1
 #Animation 0
 
 #Object
-Name Instance4
+Name geo2.006
 #Features
 Type INSTANCE
 GeometryIndex 4
 #Transform
-LocalTranslation 0 0 0
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name geo2.007
+#Features
+Type INSTANCE
+GeometryIndex 5
+#Transform
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name geo2.008
+#Features
+Type INSTANCE
+GeometryIndex 6
+#Transform
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name geo2.009
+#Features
+Type INSTANCE
+GeometryIndex 7
+#Transform
+LocalTranslation 0.267717 0.182293 0
+LocalRotation 0 0.707107 0 0.707107
+LocalScale 0.375372 0.375372 0.375372
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Camera
+#Features
+Type CAMERA
+Fov 22.8952
+#Transform
+LocalTranslation 2.3789 0.141147 0.916442
+LocalRotation -0.00656844 0.566284 -0.0855815 0.819729
+LocalScale 0.12639 0.12639 0.12639
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Plane.002
+#Features
+Type INSTANCE
+GeometryIndex 8
+#Transform
+LocalTranslation 0.575513 1.0153 -0.581318
 LocalRotation 0 0 0 1
 LocalScale 1 1 1
 #Parent_Child
@@ -72,13 +142,41 @@ Child -1
 #Animation 0
 
 #Object
-Name Instance4
+Name Plane
 #Features
 Type INSTANCE
-GeometryIndex 5
+GeometryIndex 9
 #Transform
 LocalTranslation 0 0 0
 LocalRotation 0 0 0 1
+LocalScale 1.76622 1.76622 1.76622
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Plane.003
+#Features
+Type INSTANCE
+GeometryIndex 10
+#Transform
+LocalTranslation 0.553989 0.789203 0.796993
+LocalRotation 0.558915 0.149181 -0.113313 0.807786
+LocalScale 0.471125 0.471125 0.471125
+#Parent_Child
+Parent -1
+Child -1
+#Animation 0
+
+#Object
+Name Plane.004
+#Features
+Type INSTANCE
+GeometryIndex 11
+#Transform
+LocalTranslation 2.00414 0.616433 0.166321
+LocalRotation -0.459244 -0.441488 -0.263657 0.72434
 LocalScale 1 1 1
 #Parent_Child
 Parent -1

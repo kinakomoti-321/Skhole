@@ -241,10 +241,11 @@ namespace Skhole {
 		RenderImages offlineRenderImages;
 		offlineRenderImages.Initialize(width, height, *m_context.device, m_context.physicalDevice, *m_commandPool, m_context.queue);
 
+		std::cout << "Start Rendering" << std::endl;
 		//TODO: Implement limit time
 		for (int i = 0; i < numFrame; i++)
 		{
-
+			std::cout << "Frame :" << i << std::endl;
 			m_commandBuffer->reset({});
 
 			auto postEffectBuffer = vkutils::createCommandBuffer(*m_context.device, *m_commandPool);
@@ -343,8 +344,10 @@ namespace Skhole {
 			offlineRenderImages.WritePNG(renderInfo.filepath, renderInfo.filename + frameNumber, *m_context.device, *m_commandPool, m_context.queue);
 
 			FrameEnd();
+			std::cout << "End Frame :" << i << std::endl;
 		}
 
+		std::cout << "End Rendering" << std::endl;
 	}
 
 }
