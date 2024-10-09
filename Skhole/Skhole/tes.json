@@ -1,6 +1,6 @@
 {
   "OfflineRenderingInfo": {
-    "EndFrame": 72,
+    "EndFrame": 100,
     "Filename": "output",
     "Filepath": "./image/",
     "Height": 720,
@@ -23,9 +23,9 @@
       },
       "Fov": 45.0,
       "LookAt": [
+        0.04498482123017311,
         0.0,
-        0.0,
-        -1.0
+        -0.9989877343177795
       ],
       "Name": "Camera",
       "Parameters": {
@@ -48,9 +48,9 @@
         10.0
       ],
       "Right": [
-        1.0,
+        0.9989877343177795,
         0.0,
-        0.0
+        0.04498482123017311
       ],
       "Up": [
         0.0,
@@ -59,7 +59,7 @@
       ]
     },
     "Geometries": {
-      "Filename": "test.skgeom"
+      "Filename": "tes.skgeom"
     },
     "Materials": {
       "BasicMaterials": [
@@ -1076,9 +1076,9 @@
                 "Name": "BaseColor",
                 "Type": "COLOR",
                 "Value": [
-                  0.44117647409439087,
-                  0.5188197493553162,
-                  1.0,
+                  0.0,
+                  0.11135968565940857,
+                  0.8014931678771973,
                   1.0
                 ]
               },
@@ -1090,7 +1090,7 @@
               {
                 "Name": "Roughness",
                 "Type": "FLOAT",
-                "Value": 1.0
+                "Value": 0.5
               },
               {
                 "Name": "Metallic",
@@ -1134,9 +1134,9 @@
                 "Name": "BaseColor",
                 "Type": "COLOR",
                 "Value": [
-                  0.398885041475296,
-                  0.5692589282989502,
-                  0.9803921580314636,
+                  0.0,
+                  0.23498037457466125,
+                  0.8020169734954834,
                   1.0
                 ]
               },
@@ -1153,7 +1153,7 @@
               {
                 "Name": "Metallic",
                 "Type": "FLOAT",
-                "Value": 0.0
+                "Value": 1.0
               },
               {
                 "Name": "EmissionIntensity",
@@ -1360,7 +1360,7 @@
       ]
     },
     "Objects": {
-      "Filename": "test.skobj"
+      "Filename": "tes.skobj"
     },
     "RendererParameter": {
       "Parameters": {

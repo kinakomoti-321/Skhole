@@ -303,27 +303,28 @@ namespace Skhole {
 			vk::UniqueFence fence = m_context.device->createFenceUnique({});
 			vk::SubmitInfo drawInfo{};
 			drawInfo.setCommandBuffers(*m_commandBuffer);
-			drawInfo.setSignalSemaphoreCount(1);
-			drawInfo.setSignalSemaphores(*drawSemaphore);
+			//drawInfo.setSignalSemaphoreCount(1);
+			//drawInfo.setSignalSemaphores(*drawSemaphore);
 
 			m_context.queue.submit(drawInfo);
+			m_context.queue.waitIdle();
 
 			vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eNone;
 			vk::SubmitInfo postInfo{};
 			postInfo.setCommandBuffers(*postEffectBuffer);
-			postInfo.setWaitSemaphores(*drawSemaphore);
-			postInfo.setWaitDstStageMask(waitStages);
+			//postInfo.setWaitSemaphores(*drawSemaphore);
+			//postInfo.setWaitDstStageMask(waitStages);
 
 			m_context.queue.submit(postInfo, fence.get());
+			m_context.queue.waitIdle();
 
-			std::cout << "Submit" << std::endl;
-			if (m_context.device->waitForFences(fence.get(), true,
-				std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
-				std::cerr << "Failed to wait fence.\n";
-				std::abort();
-			}
+			//if (m_context.device->waitForFences(fence.get(), true,
+			//	std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
+			//	std::cerr << "Failed to wait fence.\n";
+			//	std::abort();
+			//}
 
-			std::string frameNumber = NumbertToSerial(nowFrame, 3);
+			std::string frameNumber = NumbertToSerial(i, 3);
 			offlineRenderImages.WritePNG(renderInfo.filepath, renderInfo.filename + frameNumber, *m_context.device, *m_commandPool, m_context.queue);
 
 			FrameEnd();

@@ -14,6 +14,7 @@ void main() {
 	vec3 outputCol;
 	outputCol = inputCol * col.xyz; 
 	outputCol = outputCol * intensity;
+	outputCol = pow(outputCol,vec3(1.0/2.2));
 
 	imageStore(outputImage, pos, vec4(outputCol,1));
 }
