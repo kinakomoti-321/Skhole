@@ -341,7 +341,7 @@ namespace Skhole {
 				std::abort();
 			}
 
-			std::string frameNumber = NumbertToSerial(nowFrame, 3);
+			std::string frameNumber = NumbertToSerial(i, 3);
 			offlineRenderImages.WritePNG(renderInfo.filepath, renderInfo.filename + frameNumber, *m_context.device, *m_commandPool, m_context.queue);
 
 			FrameEnd();
